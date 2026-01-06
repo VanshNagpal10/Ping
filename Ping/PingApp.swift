@@ -2,7 +2,7 @@
 //  PingApp.swift
 //  Ping
 //
-//  Created by Vansh Nagpal on 06/01/26.
+//  A Packet's Odyssey - Swift Student Challenge
 //
 
 import SwiftUI
@@ -12,6 +12,14 @@ struct PingApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
         }
+    }
+    
+    init() {
+        // Lock to landscape orientation for iPad
+        #if os(iOS)
+        UIDevice.current.setValue(UIInterfaceOrientation.landscapeRight.rawValue, forKey: "orientation")
+        #endif
     }
 }
