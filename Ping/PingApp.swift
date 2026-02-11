@@ -1,8 +1,8 @@
 //
 //  PingApp.swift
-//  Ping
+//  Ping - Packet World
 //
-//  A Packet's Odyssey - Swift Student Challenge
+//  A Narrative Journey Through the Internet
 //
 
 import SwiftUI

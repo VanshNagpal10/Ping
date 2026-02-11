@@ -1,17 +1,18 @@
 //
 //  SoundManager.swift
-//  Ping
+//  Ping - Packet World
 //
-//  Audio management for game sounds
+//  Manages ambient sounds and haptic feedback
 //
 
+import SwiftUI
 import AVFoundation
 
+@MainActor
 class SoundManager {
     static let shared = SoundManager()
     
-    private var audioPlayers: [String: AVAudioPlayer] = [:]
-    private var isMuted: Bool = false
+    var isMuted: Bool = false
     
     private init() {
         setupAudioSession()
@@ -26,50 +27,58 @@ class SoundManager {
         }
     }
     
-    // MARK: - Sound Effects (Using System Sounds as Placeholders)
-    
-    func playThrust() {
-        // Placeholder - would load actual sound file
-        playSystemSound(1104) // Tick sound
-    }
-    
-    func playHit() {
-        playSystemSound(1073) // Alert sound
-    }
-    
-    func playCollect() {
-        playSystemSound(1057) // Positive sound
-    }
-    
-    func playHandshake() {
-        playSystemSound(1075) // Connection sound
-    }
-    
-    func playTransition() {
-        playSystemSound(1110) // Swoosh sound
-    }
-    
-    func playSuccess() {
-        playSystemSound(1025) // Success fanfare
-    }
-    
-    func playFailure() {
-        playSystemSound(1073) // Error sound
-    }
-    
-    // MARK: - System Sound Helper
-    private func playSystemSound(_ soundID: SystemSoundID) {
+    // MARK: - 8-bit Talking Effect
+    func playTalkingSound() {
         guard !isMuted else { return }
-        AudioServicesPlaySystemSound(soundID)
+        let generator = UIImpactFeedbackGenerator(style: .soft)
+        generator.impactOccurred()
     }
     
-    // MARK: - Controls
+    // MARK: - Scene Ambient Sounds
+    func playAmbientSound(for scene: StoryScene) {
+        guard !isMuted else { return }
+        
+        switch scene {
+        case .cpuCity:
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+        case .oceanCable:
+            let generator = UIImpactFeedbackGenerator(style: .soft)
+            generator.impactOccurred()
+        case .dnsLibrary:
+            let generator = UIImpactFeedbackGenerator(style: .rigid)
+            generator.impactOccurred()
+        default:
+            break
+        }
+    }
+    
+    // MARK: - UI Sounds
+    func playButtonSound() {
+        guard !isMuted else { return }
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+    
+    func playTermLearnedSound() {
+        guard !isMuted else { return }
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
+    
+    func playPortalSound() {
+        guard !isMuted else { return }
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
+    }
+    
+    func playMissionCompleteSound() {
+        guard !isMuted else { return }
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
+    
     func toggleMute() {
         isMuted.toggle()
-    }
-    
-    var muted: Bool {
-        get { isMuted }
-        set { isMuted = newValue }
     }
 }
