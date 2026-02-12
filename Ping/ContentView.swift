@@ -24,7 +24,7 @@ struct ContentView: View {
                         .transition(.opacity)
                         
                     case .act1_smartphone, .act2_transmission, .act3_oceanFloor, .act4_dnsServer, .act5_return:
-                        ExplorationView(engine: engine)
+                        ExplorationView3D(engine: engine)
                             .transition(.opacity)
                         
                     case .epilogue:

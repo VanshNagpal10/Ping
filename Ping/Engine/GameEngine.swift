@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SceneKit
 import Combine
 
 class GameEngine: ObservableObject {
@@ -36,15 +37,25 @@ class GameEngine: ObservableObject {
     @Published var currentMission: String = ""
     @Published var screenSize: CGSize = .zero
     
+    // 3D Scene Manager
+    let sceneManager = SceneManager()
+    @Published var nearbyNPCName: String? = nil
+    @Published var nearPortal: Bool = false
+    
     // Movement
     private var moveTimer: Timer?
     private let moveSpeed: CGFloat = 5.0
     private var joystickDirection: CGVector = .zero
     private var gameLoopTimer: Timer?
+    private var gameLoop3DTimer: Timer?
 
     // Collision - obstacles defined per scene as CGRects
     @Published var obstacles: [CGRect] = []
     private let playerHalfSize: CGFloat = 20 // roughly half of the 55x55 body
+    
+    // NPC-to-UUID mapping for 3D
+    private var npcIDMap: [UUID: Int] = [:] // UUID -> npcs array index
+    private var portalIDMap: [UUID: Int] = [:] // UUID -> interactiveObjects array index
     
     // MARK: - Initialization
     init() {
@@ -669,7 +680,7 @@ class GameEngine: ObservableObject {
     
     func startGame() {
         stats = JourneyStats()
-        transitionToScene(.cpuCity)
+        transitionTo3DScene(.cpuCity)
     }
     
     func resetGame() {
@@ -682,10 +693,169 @@ class GameEngine: ObservableObject {
         stats = JourneyStats()
         isDialogueActive = false
         currentDialogue = []
+        gameLoop3DTimer?.invalidate()
+        gameLoop3DTimer = nil
+        has3DSceneBeenSetup = false
+        sceneManager.clearSceneContent()
     }
     
     func completeMission() {
         stats.missionComplete = true
         phase = .epilogue
+    }
+    
+    // MARK: - 3D Scene Integration
+    
+    /// Called once when ExplorationView3D appears
+    private var has3DSceneBeenSetup = false
+    func setup3DScene() {
+        guard !has3DSceneBeenSetup else { return }
+        has3DSceneBeenSetup = true
+        build3DWorld(for: currentScene)
+    }
+    
+    /// Builds the 3D world and places NPCs / portals
+    func build3DWorld(for scene: StoryScene) {
+        // Build the environment diorama
+        WorldBuilder.buildScene(scene, in: sceneManager)
+        
+        // Clear old mappings
+        npcIDMap.removeAll()
+        portalIDMap.removeAll()
+        
+        // Place NPCs in 3D
+        for (index, npc) in npcs.enumerated() {
+            let pos3D = convertTo3DPosition(npc.position)
+            sceneManager.addNPC(id: npc.id, type: npc.type, at: pos3D)
+            npcIDMap[npc.id] = index
+        }
+        
+        // Place portals in 3D
+        for (index, obj) in interactiveObjects.enumerated() {
+            if obj.type == .portal {
+                let pos3D = convertTo3DPosition(obj.position)
+                let portalColor: UIColor
+                switch scene {
+                case .cpuCity: portalColor = SceneManager.Palette.magenta
+                case .wifiAntenna: portalColor = SceneManager.Palette.lime
+                case .routerStation: portalColor = SceneManager.Palette.amber
+                case .oceanCable: portalColor = SceneManager.Palette.cyan
+                case .dnsLibrary: portalColor = SceneManager.Palette.violet
+                default: portalColor = SceneManager.Palette.magenta
+                }
+                sceneManager.addPortal(id: obj.id, at: pos3D, color: portalColor)
+                portalIDMap[obj.id] = index
+            }
+        }
+    }
+    
+    /// Convert 2D screen position to 3D world position
+    private func convertTo3DPosition(_ point: CGPoint) -> SCNVector3 {
+        // Map from screen-space to 3D world-space
+        // Screen center → (0,0,0), edges → world bounds
+        let halfW = sceneManager.worldBounds.width / 2
+        let halfH = sceneManager.worldBounds.height / 2
+        
+        let normalizedX = (point.x / max(screenSize.width, 1)) * 2 - 1  // -1 to 1
+        let normalizedZ = (point.y / max(screenSize.height, 1)) * 2 - 1  // -1 to 1
+        
+        return SCNVector3(
+            Float(normalizedX * halfW),
+            0,
+            Float(normalizedZ * halfH)
+        )
+    }
+    
+    // MARK: - 3D Joystick Movement
+    
+    func updatePlayerDirection3D(_ direction: CGVector) {
+        joystickDirection = direction
+        let isActive = abs(direction.dx) > 0.01 || abs(direction.dy) > 0.01
+        
+        if isActive && gameLoop3DTimer == nil {
+            packet.isMoving = true
+            start3DGameLoop()
+        } else if !isActive {
+            packet.isMoving = false
+            gameLoop3DTimer?.invalidate()
+            gameLoop3DTimer = nil
+            check3DInteractions()
+        }
+    }
+    
+    private func start3DGameLoop() {
+        gameLoop3DTimer?.invalidate()
+        gameLoop3DTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
+            self?.gameLoop3DTick()
+        }
+    }
+    
+    private func gameLoop3DTick() {
+        let dir = joystickDirection
+        guard abs(dir.dx) > 0.01 || abs(dir.dy) > 0.01 else { return }
+        
+        sceneManager.movePlayer(direction: dir, speed: 0.18)
+        
+        // Update facing direction
+        if abs(dir.dx) > abs(dir.dy) {
+            packet.facingDirection = dir.dx > 0 ? .right : .left
+        } else {
+            packet.facingDirection = dir.dy > 0 ? .down : .up
+        }
+        
+        // Check for 3D interactions
+        check3DInteractions()
+    }
+    
+    private func check3DInteractions() {
+        guard !isDialogueActive else { return }
+        
+        // Check NPC proximity
+        if let nearestNPCID = sceneManager.nearestNPCInRange(range: 3.0),
+           let npcIndex = npcIDMap[nearestNPCID],
+           npcIndex < npcs.count {
+            let npc = npcs[npcIndex]
+            nearbyNPCName = npc.name
+            
+            if npc.isInteractable && !npc.hasSpoken {
+                startDialogue(with: npc)
+                npcs[npcIndex].hasSpoken = true
+            }
+        } else {
+            nearbyNPCName = nil
+        }
+        
+        // Check portal proximity
+        if let nearestPortalID = sceneManager.nearestPortalInRange(range: 2.5),
+           let portalIndex = portalIDMap[nearestPortalID],
+           portalIndex < interactiveObjects.count {
+            nearPortal = true
+            let obj = interactiveObjects[portalIndex]
+            if let sceneString = obj.data, let scene = StoryScene(rawValue: sceneString) {
+                nearPortal = false
+                transitionTo3DScene(scene)
+            }
+        } else {
+            nearPortal = false
+        }
+    }
+    
+    func transitionTo3DScene(_ scene: StoryScene) {
+        // Stop movement
+        joystickDirection = .zero
+        gameLoop3DTimer?.invalidate()
+        gameLoop3DTimer = nil
+        packet.isMoving = false
+        
+        // Mark as setup so ExplorationView3D.onAppear won't double-build
+        has3DSceneBeenSetup = true
+        
+        currentScene = scene
+        stats.scenesVisited.append(scene)
+        
+        // Setup scene content first (populates npcs and interactiveObjects arrays),
+        // then build 3D world synchronously to avoid race conditions
+        setupSceneContent(for: scene)
+        build3DWorld(for: scene)
     }
 }

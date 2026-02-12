@@ -22,11 +22,11 @@ struct PrologueView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Cafe background - warm, cozy
+                // Dark cinematic background
                 LinearGradient(
                     colors: [
-                        Color(red: 0.95, green: 0.92, blue: 0.85),
-                        Color(red: 0.9, green: 0.85, blue: 0.75)
+                        Color(red: 0.04, green: 0.02, blue: 0.10),
+                        Color(red: 0.02, green: 0.01, blue: 0.06)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -67,7 +67,7 @@ struct PrologueView: View {
                             text: "To a computer, a second is an eternity.",
                             font: .system(size: 22, weight: .medium, design: .serif)
                         )
-                        .foregroundColor(Color(red: 0.2, green: 0.15, blue: 0.1))
+                        .foregroundColor(.white.opacity(0.85))
                         .transition(.opacity)
                     }
                     
@@ -76,7 +76,7 @@ struct PrologueView: View {
                             text: "While humans blink, billions of operations occur.",
                             font: .system(size: 18, weight: .regular, design: .serif)
                         )
-                        .foregroundColor(Color(red: 0.3, green: 0.25, blue: 0.2))
+                        .foregroundColor(.white.opacity(0.6))
                         .transition(.opacity)
                     }
                     
@@ -84,12 +84,13 @@ struct PrologueView: View {
                         VStack(spacing: 8) {
                             Text("Welcome to the")
                                 .font(.system(size: 16, design: .serif))
-                                .foregroundColor(Color(red: 0.4, green: 0.35, blue: 0.3))
+                                .foregroundColor(.white.opacity(0.5))
                             
-                            Text("MICRO-VERSE")
+                            Text("INTERNET")
                                 .font(.system(size: 36, weight: .bold, design: .monospaced))
                                 .foregroundColor(.cyan)
-                                .shadow(color: .cyan.opacity(0.5), radius: 10)
+                                .shadow(color: .cyan.opacity(0.7), radius: 15)
+                                .shadow(color: Color(red: 1.0, green: 0.1, blue: 0.6).opacity(0.3), radius: 25)
                         }
                         .transition(.scale.combined(with: .opacity))
                     }
@@ -114,20 +115,21 @@ struct PrologueView: View {
                                 Image(systemName: "arrow.right.circle.fill")
                                     .font(.title2)
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .padding(.horizontal, 32)
                             .padding(.vertical, 16)
                             .background(
                                 Capsule()
                                     .fill(
                                         LinearGradient(
-                                            colors: [.cyan, .blue],
+                                            colors: [.cyan, Color(red: 0.0, green: 0.7, blue: 1.0)],
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         )
                                     )
                             )
-                            .shadow(color: .cyan.opacity(0.5), radius: 15, y: 5)
+                            .shadow(color: .cyan.opacity(0.6), radius: 20, y: 5)
+                            .shadow(color: Color(red: 1.0, green: 0.1, blue: 0.6).opacity(0.2), radius: 30, y: 8)
                         }
                         .scaleEffect(tapPulse ? 1.05 : 1.0)
                         .padding(.bottom, 50)
@@ -139,13 +141,14 @@ struct PrologueView: View {
                 VStack {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("PACKET WORLD")
-                                .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                .foregroundColor(.cyan.opacity(0.8))
+                            Text("PING")
+                                .font(.system(size: 18, weight: .black, design: .monospaced))
+                                .foregroundColor(.cyan)
+                                .shadow(color: .cyan.opacity(0.5), radius: 8)
                             
                             Text("A Journey Through the Internet")
                                 .font(.system(size: 10, design: .serif))
-                                .foregroundColor(Color(red: 0.4, green: 0.35, blue: 0.3))
+                                .foregroundColor(.white.opacity(0.4))
                         }
                         Spacer()
                     }

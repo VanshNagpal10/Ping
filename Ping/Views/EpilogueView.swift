@@ -21,11 +21,11 @@ struct EpilogueView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Cafe background - same as prologue
+                // Dark neon background
                 LinearGradient(
                     colors: [
-                        Color(red: 0.95, green: 0.92, blue: 0.85),
-                        Color(red: 0.9, green: 0.85, blue: 0.75)
+                        Color(red: 0.04, green: 0.02, blue: 0.10),
+                        Color(red: 0.02, green: 0.01, blue: 0.06)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -62,15 +62,16 @@ struct EpilogueView: View {
                         VStack(spacing: 8) {
                             Text("✨ MISSION COMPLETE ✨")
                                 .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(red: 0.2, green: 0.5, blue: 0.3))
+                                .foregroundColor(.cyan)
+                                .shadow(color: .cyan.opacity(0.5), radius: 10)
                             
                             Text("The feed loaded in the blink of an eye!")
                                 .font(.system(size: 16, design: .serif))
-                                .foregroundColor(Color(red: 0.3, green: 0.25, blue: 0.2))
+                                .foregroundColor(.white.opacity(0.7))
                             
                             Text("(To her, it was instant. To you, it was an adventure.)")
                                 .font(.system(size: 12, design: .serif))
-                                .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                                .foregroundColor(.white.opacity(0.4))
                         }
                         .padding()
                         .transition(.opacity)
@@ -95,19 +96,20 @@ struct EpilogueView: View {
                                     Text("Play Again")
                                 }
                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
                                 .padding(.horizontal, 32)
                                 .padding(.vertical, 16)
                                 .background(
                                     Capsule()
                                         .fill(
                                             LinearGradient(
-                                                colors: [.cyan, .blue],
+                                                colors: [.cyan, Color(red: 0.0, green: 0.7, blue: 1.0)],
                                                 startPoint: .leading,
                                                 endPoint: .trailing
                                             )
                                         )
                                 )
+                                .shadow(color: .cyan.opacity(0.5), radius: 15, y: 5)
                             }
                             .padding(.top, 20)
                             .transition(.move(edge: .bottom))

@@ -44,27 +44,27 @@ enum StoryScene: String, CaseIterable {
     
     var backgroundColor: Color {
         switch self {
-        case .frozenCafe: return Color(red: 0.95, green: 0.93, blue: 0.88)
-        case .cpuCity: return Color(red: 0.05, green: 0.08, blue: 0.15)
-        case .wifiAntenna: return Color(red: 0.1, green: 0.15, blue: 0.25)
-        case .routerStation: return Color(red: 0.08, green: 0.12, blue: 0.18)
-        case .oceanCable: return Color(red: 0.02, green: 0.08, blue: 0.2)
-        case .dnsLibrary: return Color(red: 0.12, green: 0.08, blue: 0.15)
-        case .returnJourney: return Color(red: 0.1, green: 0.1, blue: 0.2)
-        case .feedLoaded: return Color(red: 0.95, green: 0.93, blue: 0.88)
+        case .frozenCafe: return Color(red: 0.04, green: 0.02, blue: 0.08)
+        case .cpuCity: return Color(red: 0.04, green: 0.02, blue: 0.08)
+        case .wifiAntenna: return Color(red: 0.03, green: 0.05, blue: 0.08)
+        case .routerStation: return Color(red: 0.06, green: 0.04, blue: 0.08)
+        case .oceanCable: return Color(red: 0.01, green: 0.03, blue: 0.10)
+        case .dnsLibrary: return Color(red: 0.06, green: 0.02, blue: 0.10)
+        case .returnJourney: return Color(red: 0.08, green: 0.03, blue: 0.05)
+        case .feedLoaded: return Color(red: 0.04, green: 0.02, blue: 0.08)
         }
     }
     
     var accentColor: Color {
         switch self {
-        case .frozenCafe: return .brown
+        case .frozenCafe: return .cyan
         case .cpuCity: return .cyan
-        case .wifiAntenna: return .green
-        case .routerStation: return .orange
-        case .oceanCable: return .blue
-        case .dnsLibrary: return .purple
-        case .returnJourney: return .yellow
-        case .feedLoaded: return .pink
+        case .wifiAntenna: return Color(red: 0.4, green: 1.0, blue: 0.3)
+        case .routerStation: return Color(red: 1.0, green: 0.75, blue: 0.0)
+        case .oceanCable: return .cyan
+        case .dnsLibrary: return Color(red: 0.6, green: 0.2, blue: 1.0)
+        case .returnJourney: return Color(red: 1.0, green: 0.4, blue: 0.3)
+        case .feedLoaded: return Color(red: 1.0, green: 0.1, blue: 0.6)
         }
     }
 }
