@@ -41,6 +41,7 @@ class GameEngine: ObservableObject {
     let sceneManager = SceneManager()
     @Published var nearbyNPCName: String? = nil
     @Published var nearPortal: Bool = false
+    private var pendingPortalScene: StoryScene? = nil
     
     // Movement
     private var moveTimer: Timer?
@@ -190,7 +191,7 @@ class GameEngine: ObservableObject {
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
-            data: "wifiAntenna"
+            data: "wifi_antenna"
         )
         interactiveObjects.append(portal)
     }
@@ -209,7 +210,7 @@ class GameEngine: ObservableObject {
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
-            data: "routerStation"
+            data: "router_station"
         )
         interactiveObjects.append(portal)
     }
@@ -263,7 +264,7 @@ class GameEngine: ObservableObject {
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
-            data: "oceanCable"
+            data: "ocean_cable"
         )
         interactiveObjects.append(portal)
     }
@@ -291,7 +292,7 @@ class GameEngine: ObservableObject {
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
-            data: "dnsLibrary"
+            data: "dns_library"
         )
         interactiveObjects.append(portal)
     }
@@ -359,7 +360,7 @@ class GameEngine: ObservableObject {
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: 80, y: screenSize.height / 2),
-            data: "returnJourney"
+            data: "return_journey"
         )
         interactiveObjects.append(portal)
     }
@@ -372,7 +373,7 @@ class GameEngine: ObservableObject {
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
-            data: "feedLoaded"
+            data: "feed_loaded"
         )
         interactiveObjects.append(portal)
     }
@@ -829,15 +830,26 @@ class GameEngine: ObservableObject {
         if let nearestPortalID = sceneManager.nearestPortalInRange(range: 2.5),
            let portalIndex = portalIDMap[nearestPortalID],
            portalIndex < interactiveObjects.count {
-            nearPortal = true
             let obj = interactiveObjects[portalIndex]
             if let sceneString = obj.data, let scene = StoryScene(rawValue: sceneString) {
+                nearPortal = true
+                pendingPortalScene = scene
+            } else {
                 nearPortal = false
-                transitionTo3DScene(scene)
+                pendingPortalScene = nil
             }
         } else {
             nearPortal = false
+            pendingPortalScene = nil
         }
+    }
+    
+    /// Called when user taps the ENTER PORTAL button
+    func enterPortal() {
+        guard let scene = pendingPortalScene else { return }
+        nearPortal = false
+        pendingPortalScene = nil
+        transitionTo3DScene(scene)
     }
     
     func transitionTo3DScene(_ scene: StoryScene) {

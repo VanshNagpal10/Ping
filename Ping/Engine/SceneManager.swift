@@ -64,21 +64,17 @@ class SceneManager: ObservableObject {
     // MARK: - Camera
     private func setupCamera() {
         let camera = SCNCamera()
-        camera.fieldOfView = 45
+        camera.fieldOfView = 50
         camera.zNear = 0.1
         camera.zFar = 200
-        // Bloom / HDR
-        camera.wantsHDR = true
-        camera.bloomIntensity = 0.6
-        camera.bloomThreshold = 0.7
-        camera.bloomBlurRadius = 8
+        // Keep HDR off initially — ExplorationView3D may re-enable on real device
+        camera.wantsHDR = false
         camera.wantsExposureAdaptation = false
-        camera.exposureOffset = 0
         
         cameraNode = SCNNode()
         cameraNode.camera = camera
-        cameraNode.position = SCNVector3(0, 18, 14)
-        cameraNode.eulerAngles = SCNVector3(-Float.pi / 3.2, 0, 0)
+        cameraNode.position = SCNVector3(0, 14, 12)
+        cameraNode.eulerAngles = SCNVector3(-Float.pi / 3.5, 0, 0)
         
         // Rig so we can smoothly follow player
         cameraRig = SCNNode()
@@ -124,85 +120,134 @@ class SceneManager: ObservableObject {
     
     // MARK: - Player
     private func setupPlayer() {
-        // Placeholder cube character — will be replaced with .usdz model
+        // Cute robot packet character — replace with .usdz model later
         playerNode = SCNNode()
         
-        // Body — rounded box
-        let body = SCNBox(width: 1.0, height: 1.0, length: 1.0, chamferRadius: 0.2)
+        // Body — rounded box with metallic finish
+        let body = SCNBox(width: 0.9, height: 1.0, length: 0.9, chamferRadius: 0.25)
         let bodyMat = SCNMaterial()
-        bodyMat.diffuse.contents = Palette.cyan
-        bodyMat.emission.contents = UIColor(red: 0.0, green: 0.3, blue: 0.4, alpha: 1)
-        bodyMat.roughness.contents = 0.3
-        bodyMat.metalness.contents = 0.1
+        bodyMat.diffuse.contents = UIColor(red: 0.12, green: 0.14, blue: 0.22, alpha: 1)
+        bodyMat.metalness.contents = 0.7
+        bodyMat.roughness.contents = 0.25
         body.materials = [bodyMat]
         let bodyNode = SCNNode(geometry: body)
         bodyNode.name = "body"
-        bodyNode.position = SCNVector3(0, 0.5, 0)
+        bodyNode.position = SCNVector3(0, 0.55, 0)
         
-        // Face — tiny sphere eyes
-        let eyeGeo = SCNSphere(radius: 0.1)
+        // Head — slightly bigger rounded box
+        let head = SCNBox(width: 0.95, height: 0.7, length: 0.85, chamferRadius: 0.2)
+        let headMat = SCNMaterial()
+        headMat.diffuse.contents = UIColor(red: 0.15, green: 0.17, blue: 0.28, alpha: 1)
+        headMat.metalness.contents = 0.6
+        headMat.roughness.contents = 0.2
+        head.materials = [headMat]
+        let headNode = SCNNode(geometry: head)
+        headNode.position = SCNVector3(0, 1.4, 0)
+        
+        // Visor — glowing face plate
+        let visor = SCNBox(width: 0.75, height: 0.35, length: 0.05, chamferRadius: 0.1)
+        let visorMat = SCNMaterial()
+        visorMat.diffuse.contents = UIColor(red: 0.0, green: 0.1, blue: 0.15, alpha: 1)
+        visorMat.emission.contents = Palette.cyan.withAlphaComponent(0.4)
+        visorMat.transparency = 0.85
+        visor.materials = [visorMat]
+        let visorNode = SCNNode(geometry: visor)
+        visorNode.position = SCNVector3(0, 1.38, 0.44)
+        
+        // Glowing eyes inside visor
+        let eyeGeo = SCNSphere(radius: 0.08)
         let eyeMat = SCNMaterial()
-        eyeMat.diffuse.contents = UIColor.white
-        eyeMat.emission.contents = UIColor.white
+        eyeMat.diffuse.contents = Palette.cyan
+        eyeMat.emission.contents = Palette.cyan
         eyeGeo.materials = [eyeMat]
         
         let leftEye = SCNNode(geometry: eyeGeo)
-        leftEye.position = SCNVector3(-0.2, 0.6, 0.5)
+        leftEye.position = SCNVector3(-0.18, 1.4, 0.42)
         let rightEye = SCNNode(geometry: eyeGeo)
-        rightEye.position = SCNVector3(0.2, 0.6, 0.5)
+        rightEye.position = SCNVector3(0.18, 1.4, 0.42)
         
-        // Pupil
-        let pupilGeo = SCNSphere(radius: 0.06)
-        let pupilMat = SCNMaterial()
-        pupilMat.diffuse.contents = UIColor.black
-        pupilGeo.materials = [pupilMat]
-        let leftPupil = SCNNode(geometry: pupilGeo)
-        leftPupil.position = SCNVector3(0, 0, 0.06)
-        leftEye.addChildNode(leftPupil)
-        let rightPupil = SCNNode(geometry: pupilGeo)
-        rightPupil.position = SCNVector3(0, 0, 0.06)
-        rightEye.addChildNode(rightPupil)
+        // Antenna on top
+        let antennaStick = SCNCylinder(radius: 0.03, height: 0.3)
+        let antennaMat = SCNMaterial()
+        antennaMat.diffuse.contents = UIColor.lightGray
+        antennaMat.metalness.contents = 0.8
+        antennaStick.materials = [antennaMat]
+        let antennaNode = SCNNode(geometry: antennaStick)
+        antennaNode.position = SCNVector3(0, 1.9, 0)
         
-        // Mouth
-        let mouthGeo = SCNCapsule(capRadius: 0.04, height: 0.2)
-        let mouthMat = SCNMaterial()
-        mouthMat.diffuse.contents = UIColor(red: 0.15, green: 0.1, blue: 0.1, alpha: 1)
-        mouthGeo.materials = [mouthMat]
-        let mouthNode = SCNNode(geometry: mouthGeo)
-        mouthNode.position = SCNVector3(0, 0.3, 0.5)
-        mouthNode.eulerAngles = SCNVector3(0, 0, Float.pi / 2)
+        let antennaBall = SCNSphere(radius: 0.07)
+        let abMat = SCNMaterial()
+        abMat.diffuse.contents = Palette.magenta
+        abMat.emission.contents = Palette.magenta
+        antennaBall.materials = [abMat]
+        let abNode = SCNNode(geometry: antennaBall)
+        abNode.position = SCNVector3(0, 2.1, 0)
         
-        // Glow halo under feet
-        let glowRing = SCNTorus(ringRadius: 0.7, pipeRadius: 0.05)
+        // Neon accent stripe on body
+        let stripe = SCNBox(width: 0.92, height: 0.06, length: 0.92, chamferRadius: 0.2)
+        let stripeMat = SCNMaterial()
+        stripeMat.diffuse.contents = Palette.cyan.withAlphaComponent(0.3)
+        stripeMat.emission.contents = Palette.cyan
+        stripe.materials = [stripeMat]
+        let stripeNode = SCNNode(geometry: stripe)
+        stripeNode.position = SCNVector3(0, 0.55, 0)
+        
+        // Ground glow ring
+        let glowRing = SCNTorus(ringRadius: 0.6, pipeRadius: 0.04)
         let glowMat = SCNMaterial()
-        glowMat.diffuse.contents = Palette.cyan
+        glowMat.diffuse.contents = Palette.cyan.withAlphaComponent(0.2)
         glowMat.emission.contents = Palette.cyan
-        glowMat.transparency = 0.6
+        glowMat.transparency = 0.5
         glowRing.materials = [glowMat]
         let glowNode = SCNNode(geometry: glowRing)
         glowNode.name = "glow"
         glowNode.position = SCNVector3(0, 0.02, 0)
         
+        // Point light on player
+        let playerLight = SCNLight()
+        playerLight.type = .omni
+        playerLight.color = Palette.cyan
+        playerLight.intensity = 200
+        playerLight.attenuationStartDistance = 1
+        playerLight.attenuationEndDistance = 5
+        let playerLightNode = SCNNode()
+        playerLightNode.light = playerLight
+        playerLightNode.position = SCNVector3(0, 1.5, 0)
+        
         playerNode.addChildNode(bodyNode)
+        playerNode.addChildNode(headNode)
+        playerNode.addChildNode(visorNode)
         playerNode.addChildNode(leftEye)
         playerNode.addChildNode(rightEye)
-        playerNode.addChildNode(mouthNode)
+        playerNode.addChildNode(antennaNode)
+        playerNode.addChildNode(abNode)
+        playerNode.addChildNode(stripeNode)
         playerNode.addChildNode(glowNode)
+        playerNode.addChildNode(playerLightNode)
         playerNode.position = SCNVector3(0, 0, 0)
         
-        // Idle bounce animation
-        let bounce = SCNAction.sequence([
-            SCNAction.moveBy(x: 0, y: 0.15, z: 0, duration: 0.6),
-            SCNAction.moveBy(x: 0, y: -0.15, z: 0, duration: 0.6)
+        // Idle hover animation
+        let hover = SCNAction.sequence([
+            SCNAction.moveBy(x: 0, y: 0.12, z: 0, duration: 0.8),
+            SCNAction.moveBy(x: 0, y: -0.12, z: 0, duration: 0.8)
         ])
-        bodyNode.runAction(SCNAction.repeatForever(bounce))
+        bodyNode.runAction(SCNAction.repeatForever(hover))
+        headNode.runAction(SCNAction.repeatForever(hover))
         
         // Glow pulse
         let pulse = SCNAction.sequence([
-            SCNAction.scale(to: 1.15, duration: 0.8),
-            SCNAction.scale(to: 1.0, duration: 0.8)
+            SCNAction.scale(to: 1.12, duration: 0.9),
+            SCNAction.scale(to: 1.0, duration: 0.9)
         ])
         glowNode.runAction(SCNAction.repeatForever(pulse))
+        
+        // Antenna blink
+        let blink = SCNAction.sequence([
+            SCNAction.fadeOpacity(to: 0.3, duration: 0.4),
+            SCNAction.fadeOpacity(to: 1.0, duration: 0.4),
+            SCNAction.wait(duration: 1.5)
+        ])
+        abNode.runAction(SCNAction.repeatForever(blink))
         
         scene.rootNode.addChildNode(playerNode)
     }
@@ -270,83 +315,107 @@ class SceneManager: ObservableObject {
     private func createNPCNode(type: NPCType) -> SCNNode {
         let node = SCNNode()
         
-        let color: UIColor
-        let shape: SCNGeometry
-        let halfHeight: Float  // Used for positioning instead of boundingSphere
+        let accentColor: UIColor
+        let bodyWidth: CGFloat
+        let bodyHeight: CGFloat
         
         switch type {
         case .daemon:
-            color = Palette.cyan
-            shape = SCNBox(width: 1.2, height: 1.5, length: 1.2, chamferRadius: 0.15)
-            halfHeight = 0.75
+            accentColor = Palette.cyan
+            bodyWidth = 1.0; bodyHeight = 1.3
         case .firewall:
-            color = Palette.coral
-            shape = SCNBox(width: 1.5, height: 2.0, length: 0.4, chamferRadius: 0.1)
-            halfHeight = 1.0
+            accentColor = Palette.coral
+            bodyWidth = 1.3; bodyHeight = 1.8
         case .routerGuard:
-            color = Palette.amber
-            shape = SCNCylinder(radius: 0.6, height: 1.8)
-            halfHeight = 0.9
+            accentColor = Palette.amber
+            bodyWidth = 1.1; bodyHeight = 1.5
         case .librarian:
-            color = Palette.violet
-            shape = SCNCapsule(capRadius: 0.5, height: 1.8)
-            halfHeight = 0.9
+            accentColor = Palette.violet
+            bodyWidth = 0.9; bodyHeight = 1.6
         case .networkManager:
-            color = Palette.lime
-            shape = SCNBox(width: 1.3, height: 1.6, length: 1.3, chamferRadius: 0.3)
-            halfHeight = 0.8
+            accentColor = Palette.lime
+            bodyWidth = 1.2; bodyHeight = 1.4
         }
         
-        let mat = SCNMaterial()
-        mat.diffuse.contents = color
-        mat.emission.contents = color.withAlphaComponent(0.3)
-        mat.roughness.contents = 0.4
-        shape.materials = [mat]
-        
-        let bodyNode = SCNNode(geometry: shape)
-        bodyNode.position = SCNVector3(0, halfHeight, 0)
+        // Body - dark metallic with accent glow
+        let body = SCNBox(width: bodyWidth, height: bodyHeight, length: bodyWidth * 0.8, chamferRadius: bodyWidth * 0.2)
+        let bodyMat = SCNMaterial()
+        bodyMat.diffuse.contents = UIColor(red: 0.1, green: 0.1, blue: 0.15, alpha: 1)
+        bodyMat.metalness.contents = 0.6
+        bodyMat.roughness.contents = 0.3
+        body.materials = [bodyMat]
+        let bodyNode = SCNNode(geometry: body)
+        bodyNode.position = SCNVector3(0, Float(bodyHeight / 2), 0)
         node.addChildNode(bodyNode)
         
-        // Eyes
-        let eyeGeo = SCNSphere(radius: 0.12)
+        // Head
+        let headSize = bodyWidth * 0.85
+        let head = SCNBox(width: headSize, height: headSize * 0.7, length: headSize * 0.75, chamferRadius: headSize * 0.2)
+        let headMat = SCNMaterial()
+        headMat.diffuse.contents = UIColor(red: 0.12, green: 0.12, blue: 0.18, alpha: 1)
+        headMat.metalness.contents = 0.5
+        headMat.roughness.contents = 0.25
+        head.materials = [headMat]
+        let headNode = SCNNode(geometry: head)
+        headNode.position = SCNVector3(0, Float(bodyHeight) + Float(headSize * 0.35), 0)
+        node.addChildNode(headNode)
+        
+        // Glowing eyes
+        let eyeGeo = SCNSphere(radius: 0.1)
         let eyeMat = SCNMaterial()
-        eyeMat.diffuse.contents = UIColor.white
-        eyeMat.emission.contents = UIColor.white
+        eyeMat.diffuse.contents = accentColor
+        eyeMat.emission.contents = accentColor
         eyeGeo.materials = [eyeMat]
         
-        let eyeY = halfHeight + 0.45
+        let eyeY = Float(bodyHeight) + Float(headSize * 0.35)
+        let eyeZ = Float(headSize * 0.75 / 2) + 0.01
         let leftEye = SCNNode(geometry: eyeGeo)
-        leftEye.position = SCNVector3(-0.25, eyeY, 0.55)
+        leftEye.position = SCNVector3(-0.2, eyeY, eyeZ)
         node.addChildNode(leftEye)
         let rightEye = SCNNode(geometry: eyeGeo)
-        rightEye.position = SCNVector3(0.25, eyeY, 0.55)
+        rightEye.position = SCNVector3(0.2, eyeY, eyeZ)
         node.addChildNode(rightEye)
         
-        // Interaction ring
-        let ring = SCNTorus(ringRadius: 1.2, pipeRadius: 0.03)
-        let ringMat = SCNMaterial()
-        ringMat.diffuse.contents = Palette.amber
-        ringMat.emission.contents = Palette.amber
-        ringMat.transparency = 0.5
-        ring.materials = [ringMat]
-        let ringNode = SCNNode(geometry: ring)
-        ringNode.name = "interactRing"
-        ringNode.position = SCNVector3(0, 0.02, 0)
-        node.addChildNode(ringNode)
+        // Accent stripe across body
+        let stripe = SCNBox(width: bodyWidth + 0.02, height: 0.08, length: bodyWidth * 0.8 + 0.02, chamferRadius: bodyWidth * 0.15)
+        let stripeMat = SCNMaterial()
+        stripeMat.diffuse.contents = accentColor.withAlphaComponent(0.3)
+        stripeMat.emission.contents = accentColor
+        stripe.materials = [stripeMat]
+        let stripeNode = SCNNode(geometry: stripe)
+        stripeNode.position = SCNVector3(0, Float(bodyHeight * 0.7), 0)
+        node.addChildNode(stripeNode)
+        
+        // Ground glow
+        let glow = SCNTorus(ringRadius: CGFloat(bodyWidth * 0.7), pipeRadius: 0.03)
+        let glowMat = SCNMaterial()
+        glowMat.diffuse.contents = accentColor.withAlphaComponent(0.2)
+        glowMat.emission.contents = accentColor
+        glowMat.transparency = 0.4
+        glow.materials = [glowMat]
+        let glowNode = SCNNode(geometry: glow)
+        glowNode.position = SCNVector3(0, 0.02, 0)
+        node.addChildNode(glowNode)
+        
+        // Point light
+        let npcLight = SCNLight()
+        npcLight.type = .omni
+        npcLight.color = accentColor
+        npcLight.intensity = 150
+        npcLight.attenuationStartDistance = 1
+        npcLight.attenuationEndDistance = 4
+        let lightNode = SCNNode()
+        lightNode.light = npcLight
+        lightNode.position = SCNVector3(0, Float(bodyHeight * 0.5), 0)
+        node.addChildNode(lightNode)
         
         // Hover animation
         let hover = SCNAction.sequence([
-            SCNAction.moveBy(x: 0, y: 0.3, z: 0, duration: 1.2),
-            SCNAction.moveBy(x: 0, y: -0.3, z: 0, duration: 1.2)
+            SCNAction.moveBy(x: 0, y: 0.2, z: 0, duration: 1.3),
+            SCNAction.moveBy(x: 0, y: -0.2, z: 0, duration: 1.3)
         ])
         bodyNode.runAction(SCNAction.repeatForever(hover))
-        
-        // Ring pulse
-        let ringPulse = SCNAction.sequence([
-            SCNAction.scale(to: 1.1, duration: 0.8),
-            SCNAction.scale(to: 1.0, duration: 0.8)
-        ])
-        ringNode.runAction(SCNAction.repeatForever(ringPulse))
+        headNode.runAction(SCNAction.repeatForever(hover))
         
         return node
     }
@@ -355,55 +424,74 @@ class SceneManager: ObservableObject {
     func addPortal(id: UUID, at position: SCNVector3, color: UIColor = Palette.magenta) {
         let portal = SCNNode()
         
-        // Outer ring
-        let torus = SCNTorus(ringRadius: 0.8, pipeRadius: 0.1)
-        let torusMat = SCNMaterial()
-        torusMat.diffuse.contents = color
-        torusMat.emission.contents = color
-        torusMat.transparency = 0.8
-        torus.materials = [torusMat]
-        let torusNode = SCNNode(geometry: torus)
-        torusNode.position = SCNVector3(0, 1.0, 0)
-        torusNode.eulerAngles = SCNVector3(Float.pi / 2, 0, 0)
-        portal.addChildNode(torusNode)
+        // Portal arch frame
+        let archOuter = SCNTorus(ringRadius: 1.5, pipeRadius: 0.12)
+        let archMat = SCNMaterial()
+        archMat.diffuse.contents = UIColor(red: 0.15, green: 0.12, blue: 0.2, alpha: 1)
+        archMat.metalness.contents = 0.7
+        archMat.roughness.contents = 0.3
+        archOuter.materials = [archMat]
+        let archNode = SCNNode(geometry: archOuter)
+        archNode.position = SCNVector3(0, 1.5, 0)
+        archNode.eulerAngles = SCNVector3(Float.pi / 2, 0, 0)
+        portal.addChildNode(archNode)
         
-        // Inner glow disc
-        let disc = SCNCylinder(radius: 0.6, height: 0.02)
+        // Inner spinning ring — colored
+        let innerRing = SCNTorus(ringRadius: 1.2, pipeRadius: 0.06)
+        let innerMat = SCNMaterial()
+        innerMat.diffuse.contents = color
+        innerMat.emission.contents = color
+        innerRing.materials = [innerMat]
+        let innerNode = SCNNode(geometry: innerRing)
+        innerNode.position = SCNVector3(0, 1.5, 0)
+        innerNode.eulerAngles = SCNVector3(Float.pi / 2, 0, 0)
+        portal.addChildNode(innerNode)
+        
+        // Portal fill — glowing disc
+        let disc = SCNCylinder(radius: 1.1, height: 0.02)
         let discMat = SCNMaterial()
-        discMat.diffuse.contents = color.withAlphaComponent(0.3)
+        discMat.diffuse.contents = color.withAlphaComponent(0.15)
         discMat.emission.contents = color
-        discMat.transparency = 0.5
+        discMat.transparency = 0.4
+        discMat.isDoubleSided = true
         disc.materials = [discMat]
         let discNode = SCNNode(geometry: disc)
-        discNode.position = SCNVector3(0, 1.0, 0)
+        discNode.position = SCNVector3(0, 1.5, 0)
         portal.addChildNode(discNode)
         
         // Light pillar
-        let pillar = SCNCylinder(radius: 0.05, height: 4)
+        let pillar = SCNCylinder(radius: 0.04, height: 5)
         let pillarMat = SCNMaterial()
-        pillarMat.diffuse.contents = color.withAlphaComponent(0.2)
+        pillarMat.diffuse.contents = color.withAlphaComponent(0.15)
         pillarMat.emission.contents = color
-        pillarMat.transparency = 0.4
+        pillarMat.transparency = 0.3
         pillar.materials = [pillarMat]
         let pillarNode = SCNNode(geometry: pillar)
-        pillarNode.position = SCNVector3(0, 2.0, 0)
+        pillarNode.position = SCNVector3(0, 2.5, 0)
         portal.addChildNode(pillarNode)
         
-        // Point light for glow effect
+        // Portal light
         let portalLight = SCNLight()
         portalLight.type = .omni
         portalLight.color = color
-        portalLight.intensity = 400
+        portalLight.intensity = 600
         portalLight.attenuationStartDistance = 1
-        portalLight.attenuationEndDistance = 6
+        portalLight.attenuationEndDistance = 8
         let lightNode = SCNNode()
         lightNode.light = portalLight
         lightNode.position = SCNVector3(0, 1.5, 0)
         portal.addChildNode(lightNode)
         
         // Spin animation
-        let spin = SCNAction.rotateBy(x: 0, y: CGFloat.pi * 2, z: 0, duration: 4)
-        torusNode.runAction(SCNAction.repeatForever(spin))
+        let spin = SCNAction.rotateBy(x: 0, y: CGFloat.pi * 2, z: 0, duration: 3)
+        innerNode.runAction(SCNAction.repeatForever(spin))
+        
+        // Disc pulse
+        let discPulse = SCNAction.sequence([
+            SCNAction.fadeOpacity(to: 0.6, duration: 1.0),
+            SCNAction.fadeOpacity(to: 1.0, duration: 1.0)
+        ])
+        discNode.runAction(SCNAction.repeatForever(discPulse))
         
         portal.position = position
         portalNodes[id] = portal

@@ -2,9 +2,6 @@
 //  ExplorationView3D.swift
 //  Ping - Packet World
 //
-//  3D SceneKit-based exploration view replacing the 2D canvas.
-//  SwiftUI overlays (dialogue, HUD, joystick, inventory) remain as-is.
-//
 
 import SwiftUI
 import SceneKit
@@ -20,7 +17,11 @@ struct ExplorationView3D: View {
                 SceneView(
                     scene: engine.sceneManager.scene,
                     pointOfView: engine.sceneManager.cameraNode,
-                    options: [.allowsCameraControl, .temporalAntialiasingEnabled]
+                    // FIX 1: Removed .temporalAntialiasingEnabled to stop the Metal Crash
+                    // FIX 2: Removed .allowsCameraControl (unless you want the user to pinch/rotate manually)
+                    options: [],
+                    preferredFramesPerSecond: 60,
+                    antialiasingMode: .none // FIX 3: Explicitly disable MSAA for Simulator stability
                 )
                 .ignoresSafeArea()
                 
@@ -38,13 +39,15 @@ struct ExplorationView3D: View {
                     .transition(.scale.combined(with: .opacity))
                 }
                 
-                // Portal proximity prompt
+                // Portal proximity prompt — tap to enter
                 if engine.nearPortal && !engine.isDialogueActive {
                     VStack {
                         Spacer()
                         HStack {
                             Spacer()
-                            PortalPrompt()
+                            PortalPrompt {
+                                engine.enterPortal()
+                            }
                                 .padding(.trailing, 40)
                                 .padding(.bottom, 120)
                         }
@@ -121,6 +124,23 @@ struct ExplorationView3D: View {
             .onAppear {
                 engine.setScreenSize(geo.size)
                 engine.setup3DScene()
+                
+                // --- CRITICAL CRASH FIX FOR SIMULATOR ---
+                // The Simulator cannot handle Bloom/HDR + Depth Buffers correctly.
+                // We forcibly disable them here to ensure the app runs.
+                if let camera = engine.sceneManager.cameraNode.camera {
+                    camera.wantsHDR = false
+                    camera.bloomIntensity = 0
+                    camera.wantsDepthOfField = false
+                    camera.motionBlurIntensity = 0
+                    
+                    // Add basic fog to hide the "end of the world" (Improves look without crashing)
+                    engine.sceneManager.scene.fogColor = UIColor(red: 0.1, green: 0.1, blue: 0.15, alpha: 1.0)
+                    engine.sceneManager.scene.fogStartDistance = 5
+                    engine.sceneManager.scene.fogEndDistance = 30
+                    engine.sceneManager.scene.fogDensityExponent = 1
+                }
+                // ----------------------------------------
             }
         }
     }
@@ -160,26 +180,29 @@ struct InteractionPrompt: View {
 
 // MARK: - Portal Prompt
 struct PortalPrompt: View {
+    let onEnter: () -> Void
     @State private var glow = false
     
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "arrow.right.circle.fill")
-                .foregroundColor(.magenta)
-            Text("ENTER PORTAL")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+        Button(action: onEnter) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.right.circle.fill")
+                    .foregroundColor(.magenta)
+                Text("ENTER PORTAL")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.black.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.pink.opacity(glow ? 0.8 : 0.4), lineWidth: 1.5)
+                    )
+            )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.black.opacity(0.8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.pink.opacity(glow ? 0.8 : 0.4), lineWidth: 1.5)
-                )
-        )
         .onAppear {
             withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
                 glow = true
