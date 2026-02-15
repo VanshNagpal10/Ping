@@ -82,6 +82,11 @@ struct WorldBuilder {
         return floor
     }
     
+    /// Register a box-shaped obstacle with the SceneManager for collision
+    private static func registerBox(_ manager: SceneManager, x: Float, z: Float, w: CGFloat, l: CGFloat) {
+        manager.registerObstacle(x: x, z: z, halfW: Float(w / 2), halfL: Float(l / 2))
+    }
+    
     /// Dark metallic building with neon edge trim and window lights
     private static func makeBuilding(
         width: CGFloat, height: CGFloat, length: CGFloat,
@@ -272,6 +277,7 @@ struct WorldBuilder {
                 at: SCNVector3(b.x, 0, b.z)
             )
             root.addChildNode(building)
+            registerBox(manager, x: b.x, z: b.z, w: b.w, l: b.l)
         }
         
         // Overhead pipes connecting buildings
@@ -449,8 +455,14 @@ struct WorldBuilder {
         
         // Rooftop structures — AC units, vents
         root.addChildNode(makeBuilding(width: 2, height: 1.5, length: 2, color: P.slate, emissionColor: P.lime, at: SCNVector3(3, 0, -6)))
+        registerBox(manager, x: 3, z: -6, w: 2, l: 2)
         root.addChildNode(makeBuilding(width: 1.5, height: 1, length: 1.5, color: P.slate, emissionColor: P.lime, at: SCNVector3(-10, 0, 3)))
+        registerBox(manager, x: -10, z: 3, w: 1.5, l: 1.5)
         root.addChildNode(makeBuilding(width: 3, height: 0.4, length: 2, color: UIColor.darkGray, emissionColor: P.lime, at: SCNVector3(5, 0, 6)))
+        registerBox(manager, x: 5, z: 6, w: 3, l: 2)
+        
+        // Tower base obstacle
+        registerBox(manager, x: -4, z: -4, w: 1.2, l: 1.2)
         
         // Cable runs across rooftop
         for z: Float in [-2, 3, 7] {
@@ -499,6 +511,7 @@ struct WorldBuilder {
         for x in stride(from: -12, through: 12, by: 6) {
             for z in [-8, 8] as [Float] {
                 root.addChildNode(makePillar(radius: 0.3, height: 6, color: P.amber, at: SCNVector3(Float(x), 0, z)))
+                registerBox(manager, x: Float(x), z: z, w: 0.6, l: 0.6)
             }
         }
         
@@ -517,6 +530,7 @@ struct WorldBuilder {
             let wNode = SCNNode(geometry: wall)
             wNode.position = SCNVector3(0, 3, z)
             root.addChildNode(wNode)
+            registerBox(manager, x: 0, z: z, w: 32, l: 0.3)
         }
         
         // Neon direction signs
@@ -657,6 +671,7 @@ struct WorldBuilder {
             
             coralNode.position = SCNVector3(cx, 0, cz)
             root.addChildNode(coralNode)
+            registerBox(manager, x: cx, z: cz, w: size * 2, l: size * 2)
         }
         
         // Bubbles
@@ -759,6 +774,7 @@ struct WorldBuilder {
             
             shelfNode.position = SCNVector3(shelf.x, 0, shelf.z)
             root.addChildNode(shelfNode)
+            registerBox(manager, x: shelf.x, z: shelf.z, w: 2.2, l: 0.7)
         }
         
         // Central reading desk
@@ -771,6 +787,7 @@ struct WorldBuilder {
         let deskNode = SCNNode(geometry: desk)
         deskNode.position = SCNVector3(0, 0.4, 0)
         root.addChildNode(deskNode)
+        registerBox(manager, x: 0, z: 0, w: 4, l: 2.5)
         
         // Desk lamp light
         let deskLight = SCNLight()
@@ -827,6 +844,7 @@ struct WorldBuilder {
                 let wNode = SCNNode(geometry: wall)
                 wNode.position = SCNVector3(Float(i) * 5 - 12.5, 2, side * 7)
                 root.addChildNode(wNode)
+                registerBox(manager, x: Float(i) * 5 - 12.5, z: side * 7, w: 5, l: 0.3)
                 
                 // Neon stripe along top of wall
                 let stripe = SCNBox(width: 5, height: 0.08, length: 0.35, chamferRadius: 0)

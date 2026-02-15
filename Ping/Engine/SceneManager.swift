@@ -25,6 +25,24 @@ class SceneManager: ObservableObject {
     // World boundaries
     var worldBounds: CGSize = CGSize(width: 30, height: 20)
     
+    // Obstacle collision — simple AABB rects on the XZ plane
+    struct ObstacleRect {
+        let minX: Float
+        let maxX: Float
+        let minZ: Float
+        let maxZ: Float
+    }
+    private(set) var obstacles: [ObstacleRect] = []
+    private let playerRadius: Float = 0.4  // collision radius for the player
+    
+    /// Register a box obstacle at world position with given half-extents.
+    func registerObstacle(x: Float, z: Float, halfW: Float, halfL: Float) {
+        obstacles.append(ObstacleRect(
+            minX: x - halfW, maxX: x + halfW,
+            minZ: z - halfL, maxZ: z + halfL
+        ))
+    }
+    
     // MARK: - Color Palette (Neon Cyberpunk)
     struct Palette {
         // Base darks
@@ -257,16 +275,45 @@ class SceneManager: ObservableObject {
         let dx = Float(direction.dx) * speed
         let dz = Float(direction.dy) * speed
         
-        let newX = playerNode.position.x + dx
-        let newZ = playerNode.position.z + dz
+        var newX = playerNode.position.x + dx
+        var newZ = playerNode.position.z + dz
         
         // Clamp to world bounds
         let halfW = Float(worldBounds.width) / 2
         let halfH = Float(worldBounds.height) / 2
-        let clampedX = max(-halfW, min(halfW, newX))
-        let clampedZ = max(-halfH, min(halfH, newZ))
+        newX = max(-halfW, min(halfW, newX))
+        newZ = max(-halfH, min(halfH, newZ))
         
-        playerNode.position = SCNVector3(clampedX, playerNode.position.y, clampedZ)
+        // Obstacle collision — resolve each axis independently for sliding
+        let r = playerRadius
+        let oldX = playerNode.position.x
+        let oldZ = playerNode.position.z
+        
+        // Try X movement
+        var canMoveX = true
+        for obs in obstacles {
+            if (newX + r > obs.minX) && (newX - r < obs.maxX) &&
+               (oldZ + r > obs.minZ) && (oldZ - r < obs.maxZ) {
+                canMoveX = false
+                break
+            }
+        }
+        
+        // Try Z movement
+        var canMoveZ = true
+        let testX = canMoveX ? newX : oldX
+        for obs in obstacles {
+            if (testX + r > obs.minX) && (testX - r < obs.maxX) &&
+               (newZ + r > obs.minZ) && (newZ - r < obs.maxZ) {
+                canMoveZ = false
+                break
+            }
+        }
+        
+        let finalX = canMoveX ? newX : oldX
+        let finalZ = canMoveZ ? newZ : oldZ
+        
+        playerNode.position = SCNVector3(finalX, playerNode.position.y, finalZ)
         
         // Rotate to face movement direction
         if abs(dx) > 0.001 || abs(dz) > 0.001 {
@@ -543,6 +590,7 @@ class SceneManager: ObservableObject {
         
         removeAllNPCs()
         removeAllPortals()
+        obstacles.removeAll()
         floorNode?.removeFromParentNode()
         
         // Snapshot array first to avoid mutating while iterating
