@@ -250,6 +250,74 @@ struct WorldBuilder {
         return node
     }
     
+    /// Ambient NPC packet — a small cube/sphere that drifts through the scene on its own
+    private static func makeAmbientPacket(in root: SCNNode, bounds: CGSize, accentColor: UIColor, yRange: ClosedRange<Float> = 1.0...4.0) {
+        let colors: [UIColor] = [P.cyan, P.magenta, P.amber, P.lime, P.violet, P.coral]
+        let count = Int.random(in: 10...16)
+        let halfW = Float(bounds.width) / 2 - 2
+        let halfH = Float(bounds.height) / 2 - 2
+        
+        for i in 0..<count {
+            let isBox = i % 3 == 0
+            let size = CGFloat.random(in: 0.12...0.28)
+            let color = colors.randomElement()!
+            
+            let geo: SCNGeometry
+            if isBox {
+                let box = SCNBox(width: size, height: size, length: size, chamferRadius: size * 0.15)
+                geo = box
+            } else {
+                let sphere = SCNSphere(radius: size * 0.5)
+                sphere.segmentCount = 8
+                geo = sphere
+            }
+            
+            let mat = SCNMaterial()
+            mat.diffuse.contents = color.withAlphaComponent(0.6)
+            mat.emission.contents = color.withAlphaComponent(0.4)
+            mat.transparency = 0.8
+            geo.materials = [mat]
+            
+            let node = SCNNode(geometry: geo)
+            let startX = Float.random(in: -halfW...halfW)
+            let startY = Float.random(in: yRange)
+            let startZ = Float.random(in: -halfH...halfH)
+            node.position = SCNVector3(startX, startY, startZ)
+            
+            // Small glow
+            if i % 4 == 0 {
+                let glow = SCNLight()
+                glow.type = .omni
+                glow.color = color
+                glow.intensity = 15
+                glow.attenuationStartDistance = 0.2
+                glow.attenuationEndDistance = 1.5
+                node.light = glow
+            }
+            
+            // Drift path — random waypoint movement
+            let speed = Double.random(in: 6...14)
+            let dx = CGFloat.random(in: -8...8)
+            let dy = CGFloat.random(in: -1...1)
+            let dz = CGFloat.random(in: -8...8)
+            let drift1 = SCNAction.moveBy(x: dx, y: dy, z: dz, duration: speed)
+            let drift2 = drift1.reversed()
+            node.runAction(SCNAction.repeatForever(SCNAction.sequence([drift1, drift2])))
+            
+            // Gentle spin
+            let spinAxis = SCNVector4(Float.random(in: -1...1), 1, Float.random(in: -1...1), Float(CGFloat.random(in: 0.3...1.5)))
+            let spin = SCNAction.rotate(by: CGFloat.pi * 2, around: SCNVector3(spinAxis.x, spinAxis.y, spinAxis.z), duration: Double.random(in: 4...10))
+            node.runAction(SCNAction.repeatForever(spin))
+            
+            // Subtle pulse opacity
+            let fadeOut = SCNAction.fadeOpacity(to: CGFloat.random(in: 0.3...0.6), duration: Double.random(in: 1.5...3))
+            let fadeIn = SCNAction.fadeOpacity(to: 0.9, duration: Double.random(in: 1.5...3))
+            node.runAction(SCNAction.repeatForever(SCNAction.sequence([fadeOut, fadeIn])))
+            
+            root.addChildNode(node)
+        }
+    }
+    
     // MARK: - CPU City (Act 1)
     // Dense cyberpunk metropolis — dark alleys, neon signs, pipes, cables
     private static func buildCPUCity(in manager: SceneManager) {
@@ -362,6 +430,9 @@ struct WorldBuilder {
         spotNode.eulerAngles = SCNVector3(-Float.pi / 3, 0, 0)
         root.addChildNode(spotNode)
         
+        // Ambient NPC packets drifting through the city
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.cyan)
+        
         manager.resetPlayerPosition(to: SCNVector3(-12, 0, 0))
     }
     
@@ -472,6 +543,9 @@ struct WorldBuilder {
         // Sign
         root.addChildNode(makeSignPanel(color: P.lime, width: 5, height: 1.2, at: SCNVector3(-6, 5, -10)))
         
+        // Ambient packets floating across the rooftop
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.lime, yRange: 1.5...8.0)
+        
         manager.resetPlayerPosition(to: SCNVector3(8, 0, 5))
     }
     
@@ -572,6 +646,9 @@ struct WorldBuilder {
         }
         
         root.addChildNode(makeSignPanel(color: P.amber, at: SCNVector3(0, 4.5, -9.5)))
+        
+        // Packets rushing through the station
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.amber, yRange: 0.5...3.0)
         
         manager.resetPlayerPosition(to: SCNVector3(-10, 0, 0))
     }
@@ -714,6 +791,9 @@ struct WorldBuilder {
         
         root.addChildNode(makeSignPanel(color: P.cyan, at: SCNVector3(0, 5, -7)))
         
+        // Data packets drifting through the deep ocean
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.cyan, yRange: 0.8...5.0)
+        
         manager.resetPlayerPosition(to: SCNVector3(-14, 0, 0))
     }
     
@@ -812,6 +892,9 @@ struct WorldBuilder {
         }
         
         root.addChildNode(makeSignPanel(color: P.violet, at: SCNVector3(0, 8, -12)))
+        
+        // Knowledge packets floating between the shelves
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.violet, yRange: 2.0...7.0)
         
         manager.resetPlayerPosition(to: SCNVector3(-12, 0, 0))
     }
@@ -922,6 +1005,9 @@ struct WorldBuilder {
         }
         
         root.addChildNode(makeSignPanel(color: P.amber, at: SCNVector3(0, 5, -8)))
+        
+        // Packets racing alongside you
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.coral, yRange: 0.5...3.5)
         
         manager.resetPlayerPosition(to: SCNVector3(-12, 0, 0))
     }
