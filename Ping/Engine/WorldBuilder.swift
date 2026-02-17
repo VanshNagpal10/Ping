@@ -30,7 +30,8 @@ struct WorldBuilder {
     
     // MARK: - Shared Helpers
     
-    /// Creates a textured ground plane with subtle grid and edge glow
+    /// Creates a massive seamless ground plane that extends far beyond the play area,
+    /// making the world feel infinite. Grid lines fade out toward edges.
     private static func makeGroundPlane(
         width: CGFloat = 40,
         length: CGFloat = 30,
@@ -39,8 +40,9 @@ struct WorldBuilder {
     ) -> SCNNode {
         let floor = SCNNode()
         
-        // Base plane — slightly reflective
-        let plane = SCNPlane(width: width, height: length)
+        // Massive base plane — extends far beyond play area so edges are never visible
+        let visibleSize: CGFloat = 200
+        let plane = SCNPlane(width: visibleSize, height: visibleSize)
         let baseMat = SCNMaterial()
         baseMat.diffuse.contents = baseColor
         baseMat.roughness.contents = 0.6
@@ -51,27 +53,39 @@ struct WorldBuilder {
         baseNode.position = SCNVector3(0, -0.01, 0)
         floor.addChildNode(baseNode)
         
-        // Sparse grid lines — only major ones for cleaner look
+        // Grid lines — concentrated in the play area, fading out beyond it
         let spacing: Float = 4.0
-        let halfW = Float(width) / 2
-        let halfL = Float(length) / 2
+        let gridExtent: Float = 50 // grid extends well past play area
+        let fadeStart: Float = Float(min(width, length)) / 2  // start fading at play-area edge
         
-        let lineMat = SCNMaterial()
-        lineMat.diffuse.contents = accentColor.withAlphaComponent(0.08)
-        lineMat.emission.contents = accentColor.withAlphaComponent(0.15)
-        
-        var x: Float = -halfW
-        while x <= halfW {
-            let line = SCNBox(width: 0.02, height: 0.003, length: CGFloat(length), chamferRadius: 0)
+        var x: Float = -gridExtent
+        while x <= gridExtent {
+            let distFromCenter = abs(x)
+            let alpha: CGFloat = distFromCenter > fadeStart
+                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.08
+                : 0.08
+            guard alpha > 0.005 else { x += spacing; continue }
+            let lineMat = SCNMaterial()
+            lineMat.diffuse.contents = accentColor.withAlphaComponent(alpha)
+            lineMat.emission.contents = accentColor.withAlphaComponent(alpha * 1.8)
+            let line = SCNBox(width: 0.02, height: 0.003, length: CGFloat(gridExtent * 2), chamferRadius: 0)
             line.materials = [lineMat]
             let node = SCNNode(geometry: line)
             node.position = SCNVector3(x, 0.003, 0)
             floor.addChildNode(node)
             x += spacing
         }
-        var z: Float = -halfL
-        while z <= halfL {
-            let line = SCNBox(width: CGFloat(width), height: 0.003, length: 0.02, chamferRadius: 0)
+        var z: Float = -gridExtent
+        while z <= gridExtent {
+            let distFromCenter = abs(z)
+            let alpha: CGFloat = distFromCenter > fadeStart
+                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.08
+                : 0.08
+            guard alpha > 0.005 else { z += spacing; continue }
+            let lineMat = SCNMaterial()
+            lineMat.diffuse.contents = accentColor.withAlphaComponent(alpha)
+            lineMat.emission.contents = accentColor.withAlphaComponent(alpha * 1.8)
+            let line = SCNBox(width: CGFloat(gridExtent * 2), height: 0.003, length: 0.02, chamferRadius: 0)
             line.materials = [lineMat]
             let node = SCNNode(geometry: line)
             node.position = SCNVector3(0, 0.003, z)
@@ -819,8 +833,8 @@ struct WorldBuilder {
         let floor = makeGroundPlane(width: 36, length: 24, baseColor: UIColor(red: 0.06, green: 0.05, blue: 0.1, alpha: 1), accentColor: P.amber)
         root.addChildNode(floor)
         
-        // Ceiling
-        let ceiling = SCNPlane(width: 36, height: 24)
+        // Ceiling — extends beyond visible area
+        let ceiling = SCNPlane(width: 200, height: 200)
         let ceilMat = SCNMaterial()
         ceilMat.diffuse.contents = UIColor(red: 0.06, green: 0.05, blue: 0.08, alpha: 1)
         ceilMat.isDoubleSided = true
@@ -911,6 +925,12 @@ struct WorldBuilder {
         // Packets rushing through the station
         makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.amber, yRange: 0.5...3.0, flowDirection: SCNVector3(1, 0, 0))
         
+        // Indoor scene — lower camera below the ceiling (y=6) so the interior is visible
+        manager.setCameraOverride(
+            position: SCNVector3(0, 5, 8),
+            eulerAngles: SCNVector3(-Float.pi / 4, 0, 0)
+        )
+        
         manager.resetPlayerPosition(to: SCNVector3(-10, 0, 0))
     }
     
@@ -920,8 +940,8 @@ struct WorldBuilder {
         manager.worldBounds = CGSize(width: 36, height: 16)
         let root = manager.scene.rootNode
         
-        // Deep ocean floor — sandy/murky
-        let oceanFloor = SCNPlane(width: 40, height: 30)
+        // Deep ocean floor — vast seamless seabed
+        let oceanFloor = SCNPlane(width: 200, height: 200)
         let floorMat = SCNMaterial()
         floorMat.diffuse.contents = UIColor(red: 0.03, green: 0.05, blue: 0.12, alpha: 1)
         floorMat.roughness.contents = 0.9

@@ -134,11 +134,8 @@ struct ExplorationView3D: View {
                     camera.wantsDepthOfField = false
                     camera.motionBlurIntensity = 0
                     
-                    // Add basic fog to hide the "end of the world" (Improves look without crashing)
-                    engine.sceneManager.scene.fogColor = UIColor(red: 0.1, green: 0.1, blue: 0.15, alpha: 1.0)
-                    engine.sceneManager.scene.fogStartDistance = 5
-                    engine.sceneManager.scene.fogEndDistance = 30
-                    engine.sceneManager.scene.fogDensityExponent = 1
+                    // Add tuned fog to blend distant floor into the void (Improves look without crashing)
+                    engine.sceneManager.scene.fogDensityExponent = 1.5
                 }
                 // ----------------------------------------
             }

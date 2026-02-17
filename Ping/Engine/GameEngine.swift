@@ -197,7 +197,7 @@ class GameEngine: ObservableObject {
     }
     
     private func setupWiFiAntenna() {
-        currentMission = "Beam out of the phone via the Wi-Fi Antenna!"
+        currentMission = "Reach the Wi-Fi transmitter and beam yourself into the airwaves!"
 
         // Antenna tower obstacle (positioned at 30% of screen width)
         let towerX = screenSize.width * 0.3
@@ -206,6 +206,46 @@ class GameEngine: ObservableObject {
             x: towerX - 15, y: towerY - 120,
             width: 30, height: 240
         ))
+        
+        let firewall = NPC(
+            type: .firewall,
+            position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.35),
+            name: "Firewall Blaze",
+            dialogue: [
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "HALT! *scans you* ...Processing... Ah, outbound traffic. You check out.",
+                    emotion: "\u{1F6E1}\u{FE0F}"
+                ),
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "I'm a Firewall. Every single packet that enters or leaves this device has to pass through ME. I decide who gets in and who gets blocked.",
+                    emotion: "\u{1F6E1}\u{FE0F}",
+                    learnedTerm: EncyclopediaTerm.term(for: "firewall")
+                ),
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "Malware, hackers, suspicious connections \u{2014} I stop them all. Think of me as the bouncer of this phone. No ticket? No entry.",
+                    emotion: "\u{1F6E1}\u{FE0F}"
+                ),
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "See that massive antenna? That's the Wi-Fi transmitter. It converts your data into radio waves that fly through the air at the speed of light!",
+                    emotion: "\u{1F6E1}\u{FE0F}"
+                ),
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "Once you reach it, you'll be encoded into electromagnetic waves and beamed to the router. It'll feel like teleportation. Trust me, it's a rush.",
+                    emotion: "\u{1F6E1}\u{FE0F}"
+                ),
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "Stay safe out there, little packet. The internet isn't always friendly. Now GO \u{2014} the portal to the Router Station awaits!",
+                    emotion: "\u{1F6E1}\u{FE0F}"
+                )
+            ]
+        )
+        npcs.append(firewall)
         
         let portal = InteractiveObject(
             type: .portal,
@@ -216,7 +256,7 @@ class GameEngine: ObservableObject {
     }
     
     private func setupRouterStation() {
-        currentMission = "Navigate through the Router Station to reach the backbone."
+        currentMission = "Meet Router Rex and find the path to the undersea cable."
 
         // Platform barriers (horizontal rails the player must navigate around)
         for i in 0..<4 {
@@ -243,19 +283,41 @@ class GameEngine: ObservableObject {
             dialogue: [
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "Welcome to the Router Station! Think of this place as a busy subway station.",
+                    text: "*stamps routing table* Well well, another packet! Welcome to the Router Station — the Grand Central Terminal of the internet.",
                     emotion: "👮"
                 ),
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "Every packet gets sorted and sent to the right 'train' - that's a cable to you!",
+                    text: "I'm a Router, and this is what I do: I read the destination on your HAT (your Network Layer header) and figure out where to send you next.",
                     emotion: "👮",
                     learnedTerm: EncyclopediaTerm.term(for: "router")
                 ),
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "You're headed to the DNS Server? Take the Blue Line - that's the undersea fiber optic cable!",
+                    text: "See those glowing rails? Each one is a different network path. Millions of packets zoom through here every second — and I route EVERY. SINGLE. ONE.",
                     emotion: "👮"
+                ),
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "Fun fact: your data doesn't travel in one piece. It gets split into many packets, each finding its own path, then reassembled at the destination!",
+                    emotion: "👮"
+                ),
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "Your destination is blank though... you need the DNS Library. I'll route you through the undersea fiber optic cable — the Blue Line, fastest route!",
+                    emotion: "👮",
+                    learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")
+                ),
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "That cable runs along the actual ocean floor. Thousands of miles of glass fiber, carrying 99% of the world's internet traffic. Mind-blowing, right?",
+                    emotion: "👮"
+                ),
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "Head to the portal. And remember: every hop between routers adds a tiny delay called LATENCY. The fewer hops, the faster the internet feels!",
+                    emotion: "👮",
+                    learnedTerm: EncyclopediaTerm.term(for: "latency")
                 )
             ]
         )
@@ -270,7 +332,7 @@ class GameEngine: ObservableObject {
     }
     
     private func setupOceanCable() {
-        currentMission = "Travel through the fiber optic cable across the ocean floor!"
+        currentMission = "Ride the fiber optic light pulse across the ocean floor!"
 
         // The fiber optic cable tube walls - player travels INSIDE the cable
         let cableY = screenSize.height / 2
@@ -298,7 +360,7 @@ class GameEngine: ObservableObject {
     }
     
     private func setupDNSLibrary() {
-        currentMission = "Find the DNS Librarian and look up the IP address!"
+        currentMission = "Find the DNS Librarian and look up the IP address for socialmedia.com!"
 
         // Bookshelf obstacles (4 rows x partial shelving)
         for row in 0..<4 {
@@ -322,34 +384,54 @@ class GameEngine: ObservableObject {
             dialogue: [
                 DialogueLine(
                     speaker: "Librarian DNS",
-                    text: "Ah, a visitor! Welcome to the Domain Name System - the Internet's Grand Library!",
+                    text: "*adjusts holographic spectacles* A visitor from a smartphone! Welcome to the Domain Name System — the Grand Library of the Internet.",
                     emotion: "📚",
                     learnedTerm: EncyclopediaTerm.term(for: "dns")
                 ),
                 DialogueLine(
                     speaker: "Librarian DNS",
-                    text: "You seek... *adjusts glasses* ...socialmedia.com? Let me check the records...",
+                    text: "Every website you've ever visited? The browser asked ME first. Humans type names like 'socialmedia.com', but computers only understand numbers.",
                     emotion: "📚"
                 ),
                 DialogueLine(
                     speaker: "Librarian DNS",
-                    text: "*flips through massive book* Found it! The IP address is: 142.250.185.78",
+                    text: "My job is to translate those human-readable names into IP addresses — the numerical addresses that computers use to find each other.",
+                    emotion: "📚"
+                ),
+                DialogueLine(
+                    speaker: "Librarian DNS",
+                    text: "Now, you seek... *consults ancient glowing tome* ...socialmedia.com? Let me trace through the hierarchy...",
+                    emotion: "📚"
+                ),
+                DialogueLine(
+                    speaker: "Librarian DNS",
+                    text: "First I check the ROOT servers (the 13 master directories of the internet), then the .COM registry, and finally the authoritative server for socialmedia.com...",
+                    emotion: "📚"
+                ),
+                DialogueLine(
+                    speaker: "Librarian DNS",
+                    text: "*a book flies off the shelf* FOUND IT! The IP address is: 142.250.185.78. I'll cache this answer so the NEXT lookup is instant!",
                     emotion: "📚",
                     learnedTerm: EncyclopediaTerm.term(for: "ip_address")
                 ),
                 DialogueLine(
                     speaker: "SYSTEM",
-                    text: "🎩 HAT Updated! Destination IP: 142.250.185.78",
+                    text: "🎩 HAT Updated! Destination IP: 142.250.185.78 — Your network layer now has a complete address!",
                     emotion: nil
                 ),
                 DialogueLine(
                     speaker: "SYSTEM",
-                    text: "🎒 BACKPACK Updated! Now carrying: IP Response",
+                    text: "🎒 BACKPACK Updated! Now carrying: IP Response — Mission data acquired!",
                     emotion: nil
                 ),
                 DialogueLine(
                     speaker: "Librarian DNS",
-                    text: "Now hurry back! The user is waiting, and remember - to a computer, every millisecond counts!",
+                    text: "Now RUSH back! Every millisecond counts. To the human, this entire journey should feel instant. That's the magic of the internet — it's only fast because every piece works together.",
+                    emotion: "📚"
+                ),
+                DialogueLine(
+                    speaker: "Librarian DNS",
+                    text: "Fun fact: this whole DNS lookup? In real life it takes about 20-120 milliseconds. The human won't even notice. But for us? It's an EPIC quest.",
                     emotion: "📚",
                     learnedTerm: EncyclopediaTerm.term(for: "latency")
                 )
@@ -366,7 +448,7 @@ class GameEngine: ObservableObject {
     }
     
     private func setupReturnJourney() {
-        currentMission = "Rush back through the network to deliver the IP address!"
+        currentMission = "Race back through the network \u{2014} the user is waiting for their feed!"
         packet.layers.applicationLayer = .ipResponse
         packet.layers.networkLayer.destinationIP = "142.250.185.78"
         

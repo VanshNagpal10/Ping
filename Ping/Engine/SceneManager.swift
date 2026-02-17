@@ -588,6 +588,9 @@ class SceneManager: ObservableObject {
         SCNTransaction.begin()
         SCNTransaction.animationDuration = 0
         
+        // Restore camera to default outdoor position
+        resetCameraToDefault()
+        
         removeAllNPCs()
         removeAllPortals()
         obstacles.removeAll()
@@ -602,6 +605,22 @@ class SceneManager: ObservableObject {
         }
         
         SCNTransaction.commit()
+    }
+    
+    // Default camera settings (outdoor scenes)
+    private let defaultCameraPosition = SCNVector3(0, 14, 12)
+    private let defaultCameraAngle = SCNVector3(-Float.pi / 3.5, 0, 0)
+    
+    /// Override camera for indoor / enclosed scenes (e.g. Router Station).
+    func setCameraOverride(position: SCNVector3, eulerAngles: SCNVector3) {
+        cameraNode.position = position
+        cameraNode.eulerAngles = eulerAngles
+    }
+    
+    /// Restore camera to default (called during scene clear).
+    func resetCameraToDefault() {
+        cameraNode.position = defaultCameraPosition
+        cameraNode.eulerAngles = defaultCameraAngle
     }
     
     // MARK: - Reset Player Position

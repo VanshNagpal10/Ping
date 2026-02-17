@@ -308,84 +308,84 @@ extension EncyclopediaTerm {
         EncyclopediaTerm(
             id: "daemon",
             term: "Daemon",
-            definition: "A background process that runs continuously, performing system tasks without direct user interaction. Like a helpful robot working behind the scenes.",
+            definition: "A background process that runs continuously without user interaction. Your phone has hundreds of daemons managing Wi-Fi, Bluetooth, notifications, and more — all while you think you're the one in charge!",
             icon: "🤖",
             category: .basics
         ),
         EncyclopediaTerm(
             id: "packet",
             term: "Packet",
-            definition: "A small unit of data transmitted over a network. Think of it as a digital envelope containing your message and delivery information.",
+            definition: "A small unit of data transmitted over a network. When you send a photo, it gets chopped into thousands of tiny packets, each traveling independently, then reassembled at the destination. Like a jigsaw puzzle mailed in separate envelopes!",
             icon: "📦",
             category: .basics
         ),
         EncyclopediaTerm(
             id: "dns",
             term: "DNS",
-            definition: "Domain Name System - the internet's phonebook. It translates human-friendly domain names (like google.com) into IP addresses computers understand.",
+            definition: "Domain Name System — the internet's phone book. When you type 'google.com', DNS translates that into a numeric IP address (like 142.250.185.78) that computers understand. Without DNS, you'd have to memorize numbers for every website!",
             icon: "📚",
             category: .infrastructure
         ),
         EncyclopediaTerm(
             id: "ip_address",
             term: "IP Address",
-            definition: "A unique numerical label assigned to every device on a network. Like a street address for your computer.",
+            definition: "A unique numerical label (like 192.168.1.42) assigned to every device on a network. IPv4 uses 4 numbers (0-255), giving about 4.3 billion combinations. We're running out, so IPv6 was invented with 340 undecillion addresses!",
             icon: "🏠",
             category: .basics
         ),
         EncyclopediaTerm(
             id: "tcp",
             term: "TCP",
-            definition: "Transmission Control Protocol - ensures reliable, ordered delivery of data. It checks if everything arrived correctly, like certified mail.",
+            definition: "Transmission Control Protocol — the 'careful delivery' method. TCP numbers every packet, checks they all arrived, and requests re-sends for any lost. Like certified mail: slower, but nothing goes missing. Used for web pages, emails, and files.",
             icon: "✅",
             category: .protocols
         ),
         EncyclopediaTerm(
             id: "udp",
             term: "UDP",
-            definition: "User Datagram Protocol - fast but unreliable. Sends data without checking if it arrived. Great for live video, risky for important files.",
+            definition: "User Datagram Protocol — the 'fire and forget' method. UDP sends data without verifying arrival. Perfect for live video calls and gaming where speed matters more than perfection — a dropped frame is better than a frozen screen!",
             icon: "⚡",
             category: .protocols
         ),
         EncyclopediaTerm(
             id: "router",
             term: "Router",
-            definition: "A device that forwards data packets between networks. Like a traffic officer directing cars at an intersection.",
+            definition: "A device that reads packet addresses and forwards them toward their destination. Like an air-traffic controller managing millions of packets per second, choosing the fastest available path. Your home Wi-Fi box is a router too!",
             icon: "🔀",
             category: .infrastructure
         ),
         EncyclopediaTerm(
             id: "firewall",
             term: "Firewall",
-            definition: "A security system that monitors and controls incoming and outgoing network traffic. The bouncer at the club of your network.",
+            definition: "A security system that monitors all incoming and outgoing network traffic. Firewalls use rules to decide what's allowed — like a bouncer with a strict guest list. They protect against hackers, malware, and unauthorized access.",
             icon: "🛡️",
             category: .security
         ),
         EncyclopediaTerm(
             id: "latency",
             term: "Latency",
-            definition: "The time delay between sending a request and receiving a response. Lower latency = faster internet experience.",
+            definition: "The time delay between sending a request and receiving a response, measured in milliseconds. Every router hop, cable length, and processing step adds latency. A typical web request has 50-200ms of latency — faster than a human blink (300ms)!",
             icon: "⏱️",
             category: .basics
         ),
         EncyclopediaTerm(
             id: "fiber_optic",
             term: "Fiber Optic Cable",
-            definition: "Cables that transmit data as pulses of light through glass fibers. They run under oceans connecting continents!",
+            definition: "Cables that transmit data as pulses of LIGHT through thin glass fibers. Over 1.3 million km of submarine cables crisscross the ocean floor connecting continents. A single cable can carry 200+ terabits per second — enough to stream millions of videos at once!",
             icon: "🌊",
             category: .infrastructure
         ),
         EncyclopediaTerm(
             id: "header",
             term: "Packet Header",
-            definition: "The metadata attached to a packet containing routing information - source, destination, and protocol details.",
+            definition: "Metadata attached to every packet: source address, destination, protocol type, packet number, and error-checking data. Think of it as the shipping label on a package — without it, the packet would be lost!",
             icon: "🎫",
             category: .basics
         ),
         EncyclopediaTerm(
             id: "payload",
             term: "Payload",
-            definition: "The actual data being transmitted in a packet. Everything else (headers) is just packaging for this content.",
+            definition: "The actual data inside a packet — your message, image, or web request. Everything else (headers, checksums) is packaging. A packet's payload is typically 1,500 bytes or less, so large files get split across many packets.",
             icon: "📨",
             category: .basics
         )
