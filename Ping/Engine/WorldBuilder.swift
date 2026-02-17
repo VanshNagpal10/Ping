@@ -583,7 +583,7 @@ struct WorldBuilder {
             // Gentle hover
             let hover = SCNAction.sequence([
                 SCNAction.moveBy(x: 0, y: CGFloat.random(in: 0.3...0.6), z: 0, duration: Double.random(in: 2...3.5)),
-                SCNAction.moveBy(x: 0, y: CGFloat.random(in: -0.3 ... -0.6), z: 0, duration: Double.random(in: 2...3.5))
+                SCNAction.moveBy(x: 0, y: CGFloat.random(in: -0.6 ... -0.3), z: 0, duration: Double.random(in: 2...3.5))
             ])
             cubeNode.runAction(SCNAction.repeatForever(hover))
         }
