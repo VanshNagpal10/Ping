@@ -74,8 +74,8 @@ class SceneManager: ObservableObject {
     // MARK: - Base Scene
     private func setupScene() {
         scene.background.contents = Palette.void
-        scene.fogStartDistance = 40
-        scene.fogEndDistance = 80
+        scene.fogStartDistance = 25
+        scene.fogEndDistance = 55
         scene.fogColor = Palette.void
     }
     
@@ -116,21 +116,21 @@ class SceneManager: ObservableObject {
         keyNode.eulerAngles = SCNVector3(-Float.pi / 3, Float.pi / 5, 0)
         scene.rootNode.addChildNode(keyNode)
         
-        // Fill light — cool cyan from left
+        // Fill light — cool cyan from left (kept subtle to avoid washing everything)
         let fillLight = SCNLight()
         fillLight.type = .directional
         fillLight.color = Palette.cyan
-        fillLight.intensity = 200
+        fillLight.intensity = 80
         let fillNode = SCNNode()
         fillNode.light = fillLight
         fillNode.eulerAngles = SCNVector3(-Float.pi / 4, -Float.pi / 3, 0)
         scene.rootNode.addChildNode(fillNode)
         
-        // Ambient
+        // Ambient — dark purple tint, low intensity for deep shadows
         let ambient = SCNLight()
         ambient.type = .ambient
-        ambient.color = UIColor(red: 0.15, green: 0.10, blue: 0.25, alpha: 1)
-        ambient.intensity = 300
+        ambient.color = UIColor(red: 0.10, green: 0.06, blue: 0.18, alpha: 1)
+        ambient.intensity = 200
         let ambientNode = SCNNode()
         ambientNode.light = ambient
         scene.rootNode.addChildNode(ambientNode)
