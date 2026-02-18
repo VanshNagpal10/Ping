@@ -833,17 +833,6 @@ struct WorldBuilder {
         let floor = makeGroundPlane(width: 36, length: 24, baseColor: UIColor(red: 0.06, green: 0.05, blue: 0.1, alpha: 1), accentColor: P.amber)
         root.addChildNode(floor)
         
-        // Ceiling — extends beyond visible area
-        let ceiling = SCNPlane(width: 200, height: 200)
-        let ceilMat = SCNMaterial()
-        ceilMat.diffuse.contents = UIColor(red: 0.06, green: 0.05, blue: 0.08, alpha: 1)
-        ceilMat.isDoubleSided = true
-        ceiling.materials = [ceilMat]
-        let ceilNode = SCNNode(geometry: ceiling)
-        ceilNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
-        ceilNode.position = SCNVector3(0, 6, 0)
-        root.addChildNode(ceilNode)
-        
         // Track rails — embedded glowing lines
         for i in -2...2 {
             let rail = SCNBox(width: 30, height: 0.06, length: 0.08, chamferRadius: 0.02)
@@ -925,10 +914,10 @@ struct WorldBuilder {
         // Packets rushing through the station
         makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.amber, yRange: 0.5...3.0, flowDirection: SCNVector3(1, 0, 0))
         
-        // Indoor scene — lower camera below the ceiling (y=6) so the interior is visible
+        // Pull camera back for a wider view of the station
         manager.setCameraOverride(
-            position: SCNVector3(0, 5, 8),
-            eulerAngles: SCNVector3(-Float.pi / 4, 0, 0)
+            position: SCNVector3(0, 10, 14),
+            eulerAngles: SCNVector3(-Float.pi / 3.5, 0, 0)
         )
         
         manager.resetPlayerPosition(to: SCNVector3(-10, 0, 0))
