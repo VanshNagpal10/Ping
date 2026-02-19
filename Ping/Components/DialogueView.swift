@@ -302,7 +302,6 @@ struct LayerRow: View {
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundColor(color)
             }
-            
             Spacer()
         }
         .padding(12)
