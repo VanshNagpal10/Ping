@@ -25,13 +25,15 @@ struct ExplorationView3D: View {
                 )
                 .ignoresSafeArea()
                 
-                // Proximity interaction prompt
+                // Proximity interaction prompt — tap to start dialogue
                 if let nearbyNPC = engine.nearbyNPCName, !engine.isDialogueActive {
                     VStack {
                         Spacer()
                         HStack {
                             Spacer()
-                            InteractionPrompt(name: nearbyNPC)
+                            InteractionPrompt(name: nearbyNPC) {
+                                engine.interactWithNearby3DNPC()
+                            }
                                 .padding(.trailing, 40)
                                 .padding(.bottom, 120)
                         }
@@ -143,29 +145,32 @@ struct ExplorationView3D: View {
     }
 }
 
-// MARK: - Interaction Prompt
+// MARK: - Interaction Prompt (Tappable)
 struct InteractionPrompt: View {
     let name: String
+    let onTalk: () -> Void
     @State private var pulse = false
     
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "bubble.left.fill")
-                .foregroundColor(.yellow)
-            Text("TALK to \(name)")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+        Button(action: onTalk) {
+            HStack(spacing: 8) {
+                Image(systemName: "bubble.left.fill")
+                    .foregroundColor(.yellow)
+                Text("TALK to \(name)")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.black.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.yellow.opacity(0.6), lineWidth: 1.5)
+                    )
+            )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.black.opacity(0.8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.yellow.opacity(0.6), lineWidth: 1.5)
-                )
-        )
         .scaleEffect(pulse ? 1.05 : 1.0)
         .onAppear {
             withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {

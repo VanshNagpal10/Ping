@@ -22,9 +22,28 @@ struct ExplorationView: View {
                     InteractiveObjectView(object: obj)
                 }
                 
-                // NPCs
+                // NPCs — tap an NPC to talk
                 ForEach(engine.npcs) { npc in
                     NPCView(npc: npc, packetPosition: engine.packet.position)
+                        .onTapGesture {
+                            engine.interactWithNearbyNPC()
+                        }
+                }
+
+                // Floating "Talk" prompt when near an NPC (2D)
+                if let nearbyNPC = engine.nearbyNPCName, !engine.isDialogueActive {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            InteractionPrompt(name: nearbyNPC) {
+                                engine.interactWithNearbyNPC()
+                            }
+                            .padding(.trailing, 40)
+                            .padding(.bottom, 120)
+                        }
+                    }
+                    .transition(.scale.combined(with: .opacity))
                 }
                 
                 // Player packet

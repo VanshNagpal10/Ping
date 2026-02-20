@@ -618,7 +618,9 @@ class GameEngine: ObservableObject {
         // Don't trigger interactions during dialogue
         guard !isDialogueActive else { return }
 
-        // Check NPC interactions
+        // Check NPC proximity — set nearbyNPCName so the view can show a "Talk" button.
+        // Dialogue is NO LONGER auto-triggered; the user must tap to talk.
+        var foundNearby = false
         for i in npcs.indices {
             let npc = npcs[i]
             let distance = sqrt(
@@ -626,11 +628,14 @@ class GameEngine: ObservableObject {
                 pow(npc.position.y - packet.position.y, 2)
             )
             
-            if distance < 80 && npc.isInteractable && !npc.hasSpoken {
-                startDialogue(with: npc)
-                npcs[i].hasSpoken = true
+            if distance < 100 && npc.isInteractable {
+                nearbyNPCName = npc.name
+                foundNearby = true
                 break
             }
+        }
+        if !foundNearby {
+            nearbyNPCName = nil
         }
         
         // Check portal interactions
@@ -658,7 +663,22 @@ class GameEngine: ObservableObject {
             
             if distance < 100 && npc.isInteractable {
                 startDialogue(with: npc)
+                npcs[i].hasSpoken = true
                 break
+            }
+        }
+    }
+
+    /// 3D variant — tap-to-talk with the nearest NPC in range.
+    func interactWithNearby3DNPC() {
+        guard !isDialogueActive else { return }
+        if let nearestNPCID = sceneManager.nearestNPCInRange(range: 3.0),
+           let npcIndex = npcIDMap[nearestNPCID],
+           npcIndex < npcs.count {
+            let npc = npcs[npcIndex]
+            if npc.isInteractable {
+                startDialogue(with: npc)
+                npcs[npcIndex].hasSpoken = true
             }
         }
     }
@@ -893,17 +913,13 @@ class GameEngine: ObservableObject {
     private func check3DInteractions() {
         guard !isDialogueActive else { return }
         
-        // Check NPC proximity
+        // Check NPC proximity — only set nearbyNPCName for the "Talk" prompt.
+        // Dialogue is NOT auto-triggered; the user must tap to talk.
         if let nearestNPCID = sceneManager.nearestNPCInRange(range: 3.0),
            let npcIndex = npcIDMap[nearestNPCID],
            npcIndex < npcs.count {
             let npc = npcs[npcIndex]
-            nearbyNPCName = npc.name
-            
-            if npc.isInteractable && !npc.hasSpoken {
-                startDialogue(with: npc)
-                npcs[npcIndex].hasSpoken = true
-            }
+            nearbyNPCName = npc.isInteractable ? npc.name : nil
         } else {
             nearbyNPCName = nil
         }
