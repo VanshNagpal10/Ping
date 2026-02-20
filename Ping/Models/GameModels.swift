@@ -340,6 +340,7 @@ struct JourneyStats {
     var chosenProtocol: TransportProtocol = .tcp
     var upgradedToSSL: Bool = false
     var lostPacketData: Bool = false   // true if UDP caused data loss in ocean
+    var quizResults: [QuizResult] = []
     
     var duration: TimeInterval {
         Date().timeIntervalSince(startTime)
@@ -349,6 +350,155 @@ struct JourneyStats {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+    
+    var quizAccuracy: Double {
+        guard !quizResults.isEmpty else { return 0 }
+        let correct = quizResults.filter(\.wasCorrect).count
+        return Double(correct) / Double(quizResults.count)
+    }
+}
+
+// MARK: - Quiz System
+struct QuizQuestion: Identifiable, Equatable {
+    let id = UUID()
+    let question: String
+    let options: [String]
+    let correctIndex: Int
+    let explanation: String
+    
+    static func == (lhs: QuizQuestion, rhs: QuizQuestion) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+struct QuizResult: Equatable {
+    let scene: StoryScene
+    let questionText: String
+    let wasCorrect: Bool
+}
+
+/// Pre-built quizzes for each level
+struct LevelQuizzes {
+    static func quiz(for scene: StoryScene) -> [QuizQuestion] {
+        switch scene {
+        case .cpuCity:
+            return [
+                QuizQuestion(
+                    question: "What is a Daemon?",
+                    options: [
+                        "A type of virus",
+                        "A background process that runs continuously",
+                        "A firewall program",
+                        "A network cable"
+                    ],
+                    correctIndex: 1,
+                    explanation: "Daemons are background processes that keep your device running — managing Wi-Fi, notifications, and more!"
+                ),
+                QuizQuestion(
+                    question: "What does the Application Layer (your Backpack) carry?",
+                    options: [
+                        "The IP address",
+                        "The encryption key",
+                        "The actual data / payload",
+                        "The transport protocol"
+                    ],
+                    correctIndex: 2,
+                    explanation: "The Application Layer holds the payload — the actual data you want to send, like 'GET socialmedia.com'."
+                )
+            ]
+        case .wifiAntenna:
+            return [
+                QuizQuestion(
+                    question: "What does a Firewall do?",
+                    options: [
+                        "Speeds up your internet",
+                        "Translates domain names to IPs",
+                        "Filters incoming and outgoing network traffic",
+                        "Stores your passwords"
+                    ],
+                    correctIndex: 2,
+                    explanation: "A Firewall inspects every packet entering or leaving your device and blocks suspicious traffic."
+                ),
+                QuizQuestion(
+                    question: "Why is SSL/TLS encryption important?",
+                    options: [
+                        "It makes your internet faster",
+                        "It scrambles data so only the destination can read it",
+                        "It compresses files to save space",
+                        "It blocks advertisements"
+                    ],
+                    correctIndex: 1,
+                    explanation: "SSL/TLS encrypts your data during transit so hackers and eavesdroppers can only see gibberish!"
+                )
+            ]
+        case .routerStation:
+            return [
+                QuizQuestion(
+                    question: "What does a Router do?",
+                    options: [
+                        "Stores website data",
+                        "Reads the destination header and forwards packets to the next hop",
+                        "Encrypts your data",
+                        "Runs background processes"
+                    ],
+                    correctIndex: 1,
+                    explanation: "Routers read the Network Layer header (your Hat) and decide the best path to forward each packet."
+                ),
+                QuizQuestion(
+                    question: "What is the key difference between TCP and UDP?",
+                    options: [
+                        "TCP is wireless, UDP uses cables",
+                        "TCP checks every packet arrived; UDP sends without confirming",
+                        "UDP is more secure than TCP",
+                        "There is no difference"
+                    ],
+                    correctIndex: 1,
+                    explanation: "TCP guarantees delivery by checking and resending lost packets. UDP is faster but doesn't confirm — lost data is gone forever."
+                )
+            ]
+        case .oceanCable:
+            return [
+                QuizQuestion(
+                    question: "How much of the world's internet traffic travels through undersea fiber optic cables?",
+                    options: [
+                        "About 25%",
+                        "About 50%",
+                        "About 75%",
+                        "Over 95%"
+                    ],
+                    correctIndex: 3,
+                    explanation: "Over 95% of intercontinental data travels through undersea cables — thousands of miles of glass fiber on the ocean floor!"
+                )
+            ]
+        case .dnsLibrary:
+            return [
+                QuizQuestion(
+                    question: "What does DNS stand for?",
+                    options: [
+                        "Digital Network Service",
+                        "Domain Name System",
+                        "Data Node Server",
+                        "Dynamic Name Security"
+                    ],
+                    correctIndex: 1,
+                    explanation: "DNS = Domain Name System. It's the internet's phone book — translating human-readable names like 'google.com' into IP addresses."
+                ),
+                QuizQuestion(
+                    question: "What is an IP address?",
+                    options: [
+                        "A website's password",
+                        "A unique numerical address computers use to find each other",
+                        "The speed of your internet connection",
+                        "A type of encryption"
+                    ],
+                    correctIndex: 1,
+                    explanation: "An IP address (like 142.250.185.78) is a unique number that identifies every device on a network — like a street address for computers."
+                )
+            ]
+        default:
+            return []
+        }
     }
 }
 
