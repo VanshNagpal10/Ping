@@ -14,6 +14,14 @@ struct DialogueOverlay: View {
         VStack {
             Spacer()
             
+            // Inventory Swap Puzzle (slides up above dialogue)
+            if engine.showInventorySwap {
+                InventorySwapPuzzle(engine: engine)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            
             // Dialogue box
             VStack(alignment: .leading, spacing: 12) {
                 // Speaker name and emotion
@@ -46,27 +54,47 @@ struct DialogueOverlay: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .frame(minHeight: 60)
                     
-                    // Continue prompt
-                    HStack {
-                        Spacer()
-                        
-                        if !engine.isTyping {
-                            HStack(spacing: 6) {
-                                Text("TAP TO CONTINUE")
-                                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 10))
-                            }
-                            .foregroundColor(.cyan)
-                            .transition(.opacity)
-                        } else {
-                            // Typing indicator
-                            HStack(spacing: 4) {
-                                ForEach(0..<3, id: \.self) { i in
-                                    Circle()
-                                        .fill(Color.cyan)
-                                        .frame(width: 6, height: 6)
-                                        .opacity(0.6)
+                    // Choices OR continue prompt
+                    if let choices = engine.activeChoices {
+                        // Show interactive choices
+                        DialogueChoicesView(choices: choices) { choice in
+                            engine.selectChoice(choice)
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else if engine.showInventorySwap && !engine.inventorySwapCompleted {
+                        // Waiting for inventory swap — show hint
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 10, weight: .bold))
+                            Text("TAP YOUR SHIRT TO UPGRADE")
+                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        }
+                        .foregroundColor(.yellow)
+                        .frame(maxWidth: .infinity)
+                        .transition(.opacity)
+                    } else {
+                        // Normal continue prompt
+                        HStack {
+                            Spacer()
+                            
+                            if !engine.isTyping {
+                                HStack(spacing: 6) {
+                                    Text("TAP TO CONTINUE")
+                                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 10))
+                                }
+                                .foregroundColor(.cyan)
+                                .transition(.opacity)
+                            } else {
+                                // Typing indicator
+                                HStack(spacing: 4) {
+                                    ForEach(0..<3, id: \.self) { i in
+                                        Circle()
+                                            .fill(Color.cyan)
+                                            .frame(width: 6, height: 6)
+                                            .opacity(0.6)
+                                    }
                                 }
                             }
                         }
@@ -101,6 +129,8 @@ struct DialogueOverlay: View {
             return .yellow
         case _ where speaker.contains("Daemon"):
             return .cyan
+        case _ where speaker.contains("Firewall"):
+            return .orange
         case _ where speaker.contains("Router"):
             return .orange
         case _ where speaker.contains("Librarian"):
@@ -108,6 +138,206 @@ struct DialogueOverlay: View {
         default:
             return .white
         }
+    }
+}
+
+// MARK: - Dialogue Choices View
+/// Shows tappable cards for branching dialogue (e.g. TCP vs UDP)
+struct DialogueChoicesView: View {
+    let choices: [DialogueChoice]
+    let onSelect: (DialogueChoice) -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            ForEach(choices) { choice in
+                Button {
+                    onSelect(choice)
+                } label: {
+                    choiceCard(for: choice)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.top, 8)
+    }
+    
+    @ViewBuilder
+    private func choiceCard(for choice: DialogueChoice) -> some View {
+        let isTCP = choice.text.contains("TCP")
+        let isUDP = choice.text.contains("UDP")
+        let accent: Color = isTCP ? .green : isUDP ? .orange : .cyan
+        let icon = isTCP ? "checkmark.shield.fill" : isUDP ? "bolt.fill" : "questionmark.circle"
+        
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 22))
+                .foregroundColor(accent)
+                .shadow(color: accent.opacity(0.6), radius: 8)
+            
+            Text(choice.text)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+            
+            // Subtitle hint
+            if isTCP {
+                Text("Reliable • Safe")
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundColor(.green.opacity(0.7))
+            } else if isUDP {
+                Text("Fast • Risky")
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundColor(.orange.opacity(0.7))
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(accent.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(accent.opacity(0.5), lineWidth: 1.5)
+                )
+        )
+    }
+}
+
+// MARK: - Inventory Swap Puzzle
+/// Appears during the Firewall SSL check — player must tap the security slot to equip SSL.
+struct InventorySwapPuzzle: View {
+    @ObservedObject var engine: GameEngine
+    @State private var pulseSSL = false
+    @State private var showLockAnimation = false
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 6) {
+                Image(systemName: "cube.box.fill")
+                    .foregroundColor(.cyan)
+                Text("PACKET INVENTORY")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundColor(.cyan)
+                    .tracking(2)
+            }
+            
+            HStack(spacing: 10) {
+                // Backpack (Application)
+                InventorySlot(
+                    icon: "🎒",
+                    label: "Backpack",
+                    value: engine.packet.layers.applicationLayer.rawValue,
+                    color: engine.packet.layers.applicationLayer.color,
+                    isTarget: false
+                )
+                
+                // Shirt (Transport)
+                InventorySlot(
+                    icon: "👕",
+                    label: "Shirt",
+                    value: engine.packet.layers.transportLayer.rawValue,
+                    color: engine.packet.layers.transportLayer.color,
+                    isTarget: false
+                )
+                
+                // Security Layer — THE TARGET
+                Button {
+                    if !engine.inventorySwapCompleted {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            showLockAnimation = true
+                        }
+                        engine.completeInventorySwap()
+                    }
+                } label: {
+                    InventorySlot(
+                        icon: engine.packet.layers.isSecure ? "🔒" : "🔓",
+                        label: engine.packet.layers.isSecure ? "SSL/TLS" : "No Encryption",
+                        value: engine.packet.layers.securityLayer.rawValue,
+                        color: engine.packet.layers.isSecure ? .green : .red,
+                        isTarget: !engine.inventorySwapCompleted
+                    )
+                }
+                .buttonStyle(.plain)
+                .scaleEffect(pulseSSL && !engine.inventorySwapCompleted ? 1.08 : 1.0)
+                
+                // Hat (Network)
+                InventorySlot(
+                    icon: "🎩",
+                    label: "Hat",
+                    value: engine.packet.layers.networkLayer.displayDestination,
+                    color: engine.packet.layers.networkLayer.hasDestination ? .green : .gray,
+                    isTarget: false
+                )
+            }
+            
+            if engine.inventorySwapCompleted {
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("SSL EQUIPPED! Your data is now encrypted.")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundColor(.green)
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.black.opacity(0.92))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(
+                            engine.inventorySwapCompleted
+                                ? Color.green.opacity(0.6)
+                                : Color.yellow.opacity(0.6),
+                            lineWidth: 2
+                        )
+                )
+        )
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
+                pulseSSL = true
+            }
+        }
+    }
+}
+
+struct InventorySlot: View {
+    let icon: String
+    let label: String
+    let value: String
+    let color: Color
+    let isTarget: Bool
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(icon)
+                .font(.system(size: 24))
+            
+            Text(label)
+                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text(value)
+                .font(.system(size: 8, weight: .medium, design: .monospaced))
+                .foregroundColor(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(width: 72, height: 72)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(color.opacity(isTarget ? 0.15 : 0.05))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(
+                            isTarget ? Color.yellow : color.opacity(0.3),
+                            lineWidth: isTarget ? 2 : 1
+                        )
+                )
+        )
     }
 }
 
@@ -244,6 +474,15 @@ struct LayerInventoryPanel: View {
                         description: "The Shirt",
                         value: "\(layers.transportLayer.rawValue) - \(layers.transportLayer.description)",
                         color: layers.transportLayer.color
+                    )
+                    
+                    // Security Layer (Lock)
+                    LayerRow(
+                        icon: layers.isSecure ? "🔒" : "🔓",
+                        name: "Security Layer",
+                        description: layers.isSecure ? "SSL/TLS Encryption" : "No Encryption",
+                        value: layers.securityLayer.rawValue,
+                        color: layers.isSecure ? .green : .red
                     )
                     
                     // Network Layer (Hat)

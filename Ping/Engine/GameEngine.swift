@@ -24,6 +24,9 @@ class GameEngine: ObservableObject {
     @Published var currentDialogueIndex: Int = 0
     @Published var typewriterText: String = ""
     @Published var isTyping: Bool = false
+    @Published var activeChoices: [DialogueChoice]? = nil      // non-nil when awaiting player choice
+    @Published var showInventorySwap: Bool = false              // true when SSL swap puzzle is active
+    @Published var inventorySwapCompleted: Bool = false         // true after player taps to equip SSL
     
     // Encyclopedia
     @Published var learnedTerms: Set<EncyclopediaTerm> = []
@@ -214,7 +217,7 @@ class GameEngine: ObservableObject {
             dialogue: [
                 DialogueLine(
                     speaker: "Firewall Blaze",
-                    text: "HALT! *scans you* ...Processing... Ah, outbound traffic. You check out.",
+                    text: "HALT! *scans you* ...Processing... Ah, outbound traffic.",
                     emotion: "\u{1F6E1}\u{FE0F}"
                 ),
                 DialogueLine(
@@ -225,22 +228,36 @@ class GameEngine: ObservableObject {
                 ),
                 DialogueLine(
                     speaker: "Firewall Blaze",
-                    text: "Malware, hackers, suspicious connections \u{2014} I stop them all. Think of me as the bouncer of this phone. No ticket? No entry.",
+                    text: "Malware, hackers, suspicious connections \u{2014} I stop them all. Think of me as the bouncer of this phone.",
                     emotion: "\u{1F6E1}\u{FE0F}"
                 ),
                 DialogueLine(
                     speaker: "Firewall Blaze",
-                    text: "See that massive antenna? That's the Wi-Fi transmitter. It converts your data into radio waves that fly through the air at the speed of light!",
+                    text: "Wait... *narrows eyes* You're traveling with NO ENCRYPTION? That means anyone along the way can READ your data. That's dangerous!",
+                    emotion: "\u{1F6E1}\u{FE0F}",
+                    learnedTerm: EncyclopediaTerm.term(for: "https")
+                ),
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "I can't let you leave unprotected. You need SSL/TLS encryption \u{2014} it scrambles your data so only the destination can read it.",
+                    emotion: "\u{1F6E1}\u{FE0F}",
+                    learnedTerm: EncyclopediaTerm.term(for: "encryption")
+                ),
+                DialogueLine(
+                    speaker: "SYSTEM",
+                    text: "\u{1F6E1}\u{FE0F} SECURITY CHECK \u{2014} Tap your Security Layer (the lock slot) to equip SSL encryption!",
+                    emotion: nil,
+                    choices: nil,
+                    action: .showInventorySwap
+                ),
+                DialogueLine(
+                    speaker: "Firewall Blaze",
+                    text: "Now THAT's more like it! 🔒 With SSL, your data is wrapped in an encrypted tunnel. Hackers will only see gibberish. You're safe to go!",
                     emotion: "\u{1F6E1}\u{FE0F}"
                 ),
                 DialogueLine(
                     speaker: "Firewall Blaze",
-                    text: "Once you reach it, you'll be encoded into electromagnetic waves and beamed to the router. It'll feel like teleportation. Trust me, it's a rush.",
-                    emotion: "\u{1F6E1}\u{FE0F}"
-                ),
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "Stay safe out there, little packet. The internet isn't always friendly. Now GO \u{2014} the portal to the Router Station awaits!",
+                    text: "See that massive antenna? That's the Wi-Fi transmitter. It'll convert you into radio waves and beam you to the router. It's a rush. Now GO!",
                     emotion: "\u{1F6E1}\u{FE0F}"
                 )
             ]
@@ -288,34 +305,79 @@ class GameEngine: ObservableObject {
                 ),
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "I'm a Router, and this is what I do: I read the destination on your HAT (your Network Layer header) and figure out where to send you next.",
+                    text: "I'm a Router. I read the destination on your HAT and figure out where to send you next. Millions of packets zoom through here every second!",
                     emotion: "👮",
                     learnedTerm: EncyclopediaTerm.term(for: "router")
                 ),
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "See those glowing rails? Each one is a different network path. Millions of packets zoom through here every second — and I route EVERY. SINGLE. ONE.",
+                    text: "See those glowing rails? Each one is a different network path. Your data doesn't travel in one piece — it gets split into packets, each finding its own route!",
                     emotion: "👮"
                 ),
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "Fun fact: your data doesn't travel in one piece. It gets split into many packets, each finding its own path, then reassembled at the destination!",
+                    text: "Now, before I route you... I see you're wearing a TCP shirt. But you have a CHOICE to make, kid.",
                     emotion: "👮"
                 ),
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "Your destination is blank though... you need the DNS Library. I'll route you through the undersea fiber optic cable — the Blue Line, fastest route!",
+                    text: "TCP is reliable — it checks every packet arrived, resends lost ones, keeps everything in order. But it's slower because of all those checks.",
+                    emotion: "👮",
+                    learnedTerm: EncyclopediaTerm.term(for: "tcp")
+                ),
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "UDP is the opposite — FAST, no waiting for confirmations. But if a packet gets lost? Gone forever. Great for video calls, risky for important data.",
+                    emotion: "👮",
+                    learnedTerm: EncyclopediaTerm.term(for: "udp")
+                ),
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "The ocean cable crossing is dangerous. So what'll it be?",
+                    emotion: "👮",
+                    choices: [
+                        DialogueChoice(
+                            text: "TCP — Stay Safe",
+                            nextDialogueIndex: 7,
+                            action: .setTransportProtocol(.tcp)
+                        ),
+                        DialogueChoice(
+                            text: "UDP — Go Fast",
+                            nextDialogueIndex: 9,
+                            action: .setTransportProtocol(.udp)
+                        )
+                    ]
+                ),
+                // Index 7: TCP path
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "Smart choice! TCP will make sure every piece of your data arrives intact. Slower, but you won't lose anything on the ocean floor.",
+                    emotion: "👮"
+                ),
+                // Index 8: shared ending
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "I'll route you through the undersea fiber optic cable — the Blue Line. Thousands of miles of glass fiber carrying 99% of the world's internet traffic!",
                     emotion: "👮",
                     learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")
                 ),
+                // Index 9: UDP path
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "That cable runs along the actual ocean floor. Thousands of miles of glass fiber, carrying 99% of the world's internet traffic. Mind-blowing, right?",
+                    text: "Bold move! UDP is blazing fast — no waiting for confirmations. But if the ocean gets rough, you might lose some data. No take-backs!",
                     emotion: "👮"
                 ),
+                // Index 10: UDP merges to shared ending (index 8)
                 DialogueLine(
                     speaker: "Router Rex",
-                    text: "Head to the portal. And remember: every hop between routers adds a tiny delay called LATENCY. The fewer hops, the faster the internet feels!",
+                    text: "I'll route you through the undersea fiber optic cable — the Blue Line. Thousands of miles of glass fiber carrying 99% of the world's internet traffic!",
+                    emotion: "👮",
+                    learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")
+                ),
+                // Index 11: final line (both paths)
+                DialogueLine(
+                    speaker: "Router Rex",
+                    text: "Head to the portal. And remember: every hop between routers adds LATENCY — tiny delays. The fewer hops, the faster the internet feels!",
                     emotion: "👮",
                     learnedTerm: EncyclopediaTerm.term(for: "latency")
                 )
@@ -350,6 +412,42 @@ class GameEngine: ObservableObject {
             width: screenSize.width * 0.9,
             height: 10
         ))
+        
+        // UDP consequence: data loss event during ocean crossing
+        if stats.chosenProtocol == .udp {
+            // Trigger a data loss event after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                guard let self = self, self.currentScene == .oceanCable else { return }
+                self.stats.lostPacketData = true
+                
+                // Show warning dialogue about packet loss
+                self.currentDialogue = [
+                    DialogueLine(
+                        speaker: "SYSTEM",
+                        text: "⚠️ TURBULENCE! A rogue current hits you — and part of your data scatters into the deep!",
+                        emotion: nil
+                    ),
+                    DialogueLine(
+                        speaker: "SYSTEM",
+                        text: "🎒 Your Backpack (Application Layer) was damaged! Some payload data was lost. With UDP, there's no way to request a resend...",
+                        emotion: nil
+                    ),
+                    DialogueLine(
+                        speaker: "SYSTEM",
+                        text: "With TCP, lost packets get automatically resent. UDP trades that safety for raw speed. The data is gone forever.",
+                        emotion: nil
+                    ),
+                    DialogueLine(
+                        speaker: "SYSTEM",
+                        text: "Keep moving! You're still fast — but the feed might load with missing pieces. That's the UDP trade-off.",
+                        emotion: nil
+                    )
+                ]
+                self.currentDialogueIndex = 0
+                self.isDialogueActive = true
+                self.showCurrentDialogueLine()
+            }
+        }
         
         let portal = InteractiveObject(
             type: .portal,
@@ -707,6 +805,8 @@ class GameEngine: ObservableObject {
         let line = currentDialogue[currentDialogueIndex]
         typewriterText = ""
         isTyping = true
+        activeChoices = nil
+        showInventorySwap = false
         
         // Check for learned term
         if let term = line.learnedTerm {
@@ -727,7 +827,19 @@ class GameEngine: ObservableObject {
         Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] timer in
             guard let self = self, charIndex < fullText.count else {
                 timer.invalidate()
-                self?.isTyping = false
+                DispatchQueue.main.async {
+                    self?.isTyping = false
+                    // After typewriter finishes, show choices if this line has them
+                    if let choices = line.choices, !choices.isEmpty {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            self?.activeChoices = choices
+                        }
+                    }
+                    // Execute direct action on the line (e.g. showInventorySwap)
+                    if let action = line.action {
+                        self?.executeChoiceAction(action)
+                    }
+                }
                 return
             }
             
@@ -738,15 +850,90 @@ class GameEngine: ObservableObject {
     }
     
     func advanceDialogue() {
+        // Don't advance if choices are showing — player must pick one
+        if activeChoices != nil { return }
+        // Don't advance if inventory swap is pending
+        if showInventorySwap && !inventorySwapCompleted { return }
+        
         if isTyping {
             // Skip typewriter and show full text
             if currentDialogueIndex < currentDialogue.count {
-                typewriterText = currentDialogue[currentDialogueIndex].text
+                let line = currentDialogue[currentDialogueIndex]
+                typewriterText = line.text
                 isTyping = false
+                // Show choices if present
+                if let choices = line.choices, !choices.isEmpty {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        activeChoices = choices
+                    }
+                }
+                // Execute direct action on skip too
+                if let action = line.action {
+                    executeChoiceAction(action)
+                }
             }
         } else {
             currentDialogueIndex += 1
             showCurrentDialogueLine()
+        }
+    }
+    
+    /// Called when the player selects a dialogue choice
+    func selectChoice(_ choice: DialogueChoice) {
+        stats.choicesMade.append(choice.text)
+        
+        // Execute the choice's action
+        if let action = choice.action {
+            executeChoiceAction(action)
+        }
+        
+        activeChoices = nil
+        
+        // Jump to specified dialogue index, or advance normally
+        if let nextIndex = choice.nextDialogueIndex {
+            currentDialogueIndex = nextIndex
+        } else {
+            currentDialogueIndex += 1
+        }
+        showCurrentDialogueLine()
+    }
+    
+    /// Execute a gameplay action triggered by a dialogue choice
+    private func executeChoiceAction(_ action: ChoiceAction) {
+        switch action {
+        case .setTransportProtocol(let proto):
+            packet.layers.transportLayer = proto
+            stats.chosenProtocol = proto
+            if proto == .udp {
+                learnTerm(EncyclopediaTerm.term(for: "udp")!)
+            }
+        case .setSecurityLayer(let sec):
+            packet.layers.securityLayer = sec
+            stats.upgradedToSSL = true
+        case .showInventorySwap:
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                showInventorySwap = true
+                inventorySwapCompleted = false
+            }
+        }
+    }
+    
+    /// Called when the player taps the security layer in the inventory swap UI
+    func completeInventorySwap() {
+        packet.layers.securityLayer = .ssl
+        stats.upgradedToSSL = true
+        inventorySwapCompleted = true
+        learnTerm(EncyclopediaTerm.term(for: "https")!)
+        learnTerm(EncyclopediaTerm.term(for: "encryption")!)
+        
+        withAnimation(.spring()) {
+            showInventorySwap = false
+        }
+        
+        // Auto-advance dialogue after a beat
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.currentDialogueIndex += 1
+            self.showCurrentDialogueLine()
         }
     }
     
@@ -755,6 +942,9 @@ class GameEngine: ObservableObject {
         currentDialogue = []
         currentDialogueIndex = 0
         typewriterText = ""
+        activeChoices = nil
+        showInventorySwap = false
+        inventorySwapCompleted = false
     }
     
     // MARK: - Encyclopedia

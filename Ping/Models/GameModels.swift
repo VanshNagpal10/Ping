@@ -74,9 +74,40 @@ struct PacketLayers: Equatable {
     var applicationLayer: ApplicationPayload = .empty
     var transportLayer: TransportProtocol = .tcp
     var networkLayer: NetworkHeader = NetworkHeader()
+    var securityLayer: SecurityProtocol = .none
     
     var isComplete: Bool {
         applicationLayer != .empty && networkLayer.hasDestination
+    }
+    
+    var isSecure: Bool {
+        securityLayer == .ssl
+    }
+}
+
+enum SecurityProtocol: String, Equatable {
+    case none = "None"
+    case ssl  = "SSL/TLS"
+    
+    var description: String {
+        switch self {
+        case .none: return "Unencrypted — anyone can read your data"
+        case .ssl:  return "Encrypted — data is scrambled and safe"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .none: return "lock.open"
+        case .ssl:  return "lock.fill"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .none: return .red
+        case .ssl:  return .green
+        }
     }
 }
 
@@ -218,13 +249,15 @@ struct DialogueLine: Identifiable, Equatable {
     let emotion: String?
     let learnedTerm: EncyclopediaTerm?
     let choices: [DialogueChoice]?
+    let action: ChoiceAction?    // Direct action triggered when this line displays (e.g. inventory swap)
     
-    init(speaker: String, text: String, emotion: String? = nil, learnedTerm: EncyclopediaTerm? = nil, choices: [DialogueChoice]? = nil) {
+    init(speaker: String, text: String, emotion: String? = nil, learnedTerm: EncyclopediaTerm? = nil, choices: [DialogueChoice]? = nil, action: ChoiceAction? = nil) {
         self.speaker = speaker
         self.text = text
         self.emotion = emotion
         self.learnedTerm = learnedTerm
         self.choices = choices
+        self.action = action
     }
     
     static func == (lhs: DialogueLine, rhs: DialogueLine) -> Bool {
@@ -236,10 +269,24 @@ struct DialogueChoice: Identifiable, Equatable {
     let id = UUID()
     let text: String
     let nextDialogueIndex: Int?
+    let action: ChoiceAction?
+    
+    init(text: String, nextDialogueIndex: Int? = nil, action: ChoiceAction? = nil) {
+        self.text = text
+        self.nextDialogueIndex = nextDialogueIndex
+        self.action = action
+    }
     
     static func == (lhs: DialogueChoice, rhs: DialogueChoice) -> Bool {
         lhs.id == rhs.id
     }
+}
+
+/// Actions that dialogue choices can trigger on the game state.
+enum ChoiceAction: Equatable {
+    case setTransportProtocol(TransportProtocol)
+    case setSecurityLayer(SecurityProtocol)
+    case showInventorySwap            // Prompt user to tap the security layer in inventory
 }
 
 // MARK: - Encyclopedia (Collected Journal)
@@ -290,6 +337,9 @@ struct JourneyStats {
     var scenesVisited: [StoryScene] = []
     var choicesMade: [String] = []
     var missionComplete: Bool = false
+    var chosenProtocol: TransportProtocol = .tcp
+    var upgradedToSSL: Bool = false
+    var lostPacketData: Bool = false   // true if UDP caused data loss in ocean
     
     var duration: TimeInterval {
         Date().timeIntervalSince(startTime)
@@ -388,6 +438,20 @@ extension EncyclopediaTerm {
             definition: "The actual data inside a packet — your message, image, or web request. Everything else (headers, checksums) is packaging. A packet's payload is typically 1,500 bytes or less, so large files get split across many packets.",
             icon: "📨",
             category: .basics
+        ),
+        EncyclopediaTerm(
+            id: "https",
+            term: "HTTPS / SSL",
+            definition: "HTTPS (HyperText Transfer Protocol Secure) uses SSL/TLS encryption to scramble data so only the sender and receiver can read it. Without it, anyone between you and the server could read your passwords and messages — like sending a postcard vs. a sealed letter!",
+            icon: "🔒",
+            category: .security
+        ),
+        EncyclopediaTerm(
+            id: "encryption",
+            term: "Encryption",
+            definition: "The process of converting readable data into scrambled code that only authorized parties can decode. Modern encryption (AES-256) would take a supercomputer billions of years to crack by brute force. It's why online banking and messaging are safe!",
+            icon: "🔐",
+            category: .security
         )
     ]
     

@@ -824,6 +824,47 @@ struct JourneyStatsPanel: View {
                 )
                 .frame(maxWidth: .infinity)
             }
+            
+            // Choice outcomes row
+            if !stats.choicesMade.isEmpty {
+                Rectangle()
+                    .fill(accentColor.opacity(0.3))
+                    .frame(height: 1)
+                    .padding(.vertical, 4)
+                
+                HStack(spacing: 0) {
+                    StatBadge(
+                        icon: stats.chosenProtocol == .udp ? "bolt.fill" : "checkmark.shield.fill",
+                        value: stats.chosenProtocol.rawValue,
+                        label: "Protocol",
+                        accent: stats.chosenProtocol == .udp ? .orange : .green,
+                        revealed: revealedStats >= 5
+                    )
+                    .frame(maxWidth: .infinity)
+                    
+                    StatDivider(color: accentColor)
+                    
+                    StatBadge(
+                        icon: stats.upgradedToSSL ? "lock.fill" : "lock.open.fill",
+                        value: stats.upgradedToSSL ? "SSL" : "None",
+                        label: "Security",
+                        accent: stats.upgradedToSSL ? .green : .red,
+                        revealed: revealedStats >= 5
+                    )
+                    .frame(maxWidth: .infinity)
+                    
+                    StatDivider(color: accentColor)
+                    
+                    StatBadge(
+                        icon: stats.lostPacketData ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
+                        value: stats.lostPacketData ? "Lost" : "Intact",
+                        label: "Data",
+                        accent: stats.lostPacketData ? .red : .green,
+                        revealed: revealedStats >= 5
+                    )
+                    .frame(maxWidth: .infinity)
+                }
+            }
         }
         .padding(.vertical, 20)
         .padding(.horizontal, 16)

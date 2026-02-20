@@ -1,7 +1,6 @@
 //
 //  NPCView.swift
 //  Ping - Packet World
-//
 //  NPC characters with visual representation
 //
 
