@@ -29,11 +29,6 @@ struct DialogueOverlay: View {
                     let line = engine.currentDialogue[engine.currentDialogueIndex]
                     
                     HStack {
-                        if let emotion = line.emotion {
-                            Text(emotion)
-                                .font(.title2)
-                        }
-                        
                         Text(line.speaker)
                             .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .foregroundColor(speakerColor(for: line.speaker))
@@ -66,7 +61,7 @@ struct DialogueOverlay: View {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up")
                                 .font(.system(size: 10, weight: .bold))
-                            Text("TAP YOUR SHIRT TO UPGRADE")
+                            Text("TAP YOUR SECURITY LAYER TO UPGRADE")
                                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                         }
                         .foregroundColor(.yellow)
@@ -223,19 +218,19 @@ struct InventorySwapPuzzle: View {
             }
             
             HStack(spacing: 10) {
-                // Backpack (Application)
+                // Layer 4 (Application)
                 InventorySlot(
-                    icon: "🎒",
-                    label: "Backpack",
+                    icon: "shippingbox.fill",
+                    label: "Layer 4",
                     value: engine.packet.layers.applicationLayer.rawValue,
                     color: engine.packet.layers.applicationLayer.color,
                     isTarget: false
                 )
                 
-                // Shirt (Transport)
+                // Layer 3 (Transport)
                 InventorySlot(
-                    icon: "👕",
-                    label: "Shirt",
+                    icon: "arrow.left.arrow.right",
+                    label: "Layer 3",
                     value: engine.packet.layers.transportLayer.rawValue,
                     color: engine.packet.layers.transportLayer.color,
                     isTarget: false
@@ -251,7 +246,7 @@ struct InventorySwapPuzzle: View {
                     }
                 } label: {
                     InventorySlot(
-                        icon: engine.packet.layers.isSecure ? "🔒" : "🔓",
+                        icon: engine.packet.layers.isSecure ? "lock.fill" : "lock.open.fill",
                         label: engine.packet.layers.isSecure ? "SSL/TLS" : "No Encryption",
                         value: engine.packet.layers.securityLayer.rawValue,
                         color: engine.packet.layers.isSecure ? .green : .red,
@@ -261,10 +256,10 @@ struct InventorySwapPuzzle: View {
                 .buttonStyle(.plain)
                 .scaleEffect(pulseSSL && !engine.inventorySwapCompleted ? 1.08 : 1.0)
                 
-                // Hat (Network)
+                // Layer 2 (Network)
                 InventorySlot(
-                    icon: "🎩",
-                    label: "Hat",
+                    icon: "signpost.right.fill",
+                    label: "Layer 2",
                     value: engine.packet.layers.networkLayer.displayDestination,
                     color: engine.packet.layers.networkLayer.hasDestination ? .green : .gray,
                     isTarget: false
@@ -313,8 +308,9 @@ struct InventorySlot: View {
     
     var body: some View {
         VStack(spacing: 4) {
-            Text(icon)
-                .font(.system(size: 24))
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(color)
             
             Text(label)
                 .font(.system(size: 9, weight: .semibold, design: .rounded))
@@ -463,10 +459,10 @@ struct LayerInventoryPanel: View {
     @State private var selectedLayer: Int? = nil
     
     private let layerData: [(icon: String, name: String, metaphor: String)] = [
-        ("🎩", "Network Layer", "The Hat"),
-        ("🔒", "Security Layer", "The Shield"),
-        ("👕", "Transport Layer", "The Shirt"),
-        ("🎒", "Application Layer", "The Backpack")
+        ("signpost.right.fill", "Network Layer", "Layer 2"),
+        ("lock.shield.fill", "Security Layer", "Layer 1"),
+        ("arrow.left.arrow.right", "Transport Layer", "Layer 3"),
+        ("shippingbox.fill", "Application Layer", "Layer 4")
     ]
     
     var body: some View {
@@ -536,22 +532,22 @@ struct LayerInventoryPanel: View {
                     VStack(spacing: 6) {
                         layerCard(
                             index: 0,
-                            icon: "🎩",
+                            icon: "signpost.right.fill",
                             name: "Network Layer",
-                            metaphor: "The Hat",
+                            metaphor: "Layer 2",
                             value: "IP: \(layers.networkLayer.displayDestination)",
                             detail: layers.networkLayer.hasDestination
-                                ? "Route: \(layers.networkLayer.sourceIP) → \(layers.networkLayer.destinationIP)"
-                                : "Destination unknown — visit DNS Library",
+                                ? "Route: \(layers.networkLayer.sourceIP) \u{2192} \(layers.networkLayer.destinationIP)"
+                                : "Destination unknown \u{2014} visit DNS Library",
                             color: layers.networkLayer.hasDestination ? .green : .gray,
                             isActive: layers.networkLayer.hasDestination
                         )
                         
                         layerCard(
                             index: 1,
-                            icon: layers.isSecure ? "🔒" : "🔓",
+                            icon: layers.isSecure ? "lock.fill" : "lock.open.fill",
                             name: "Security Layer",
-                            metaphor: layers.isSecure ? "SSL/TLS Shield" : "No Shield",
+                            metaphor: layers.isSecure ? "SSL/TLS Active" : "Unencrypted",
                             value: layers.securityLayer.rawValue,
                             detail: layers.securityLayer.description,
                             color: layers.isSecure ? .green : .red,
@@ -560,9 +556,9 @@ struct LayerInventoryPanel: View {
                         
                         layerCard(
                             index: 2,
-                            icon: "👕",
+                            icon: "arrow.left.arrow.right",
                             name: "Transport Layer",
-                            metaphor: "The Shirt",
+                            metaphor: "Layer 3",
                             value: layers.transportLayer.rawValue,
                             detail: layers.transportLayer.description,
                             color: layers.transportLayer.color,
@@ -571,9 +567,9 @@ struct LayerInventoryPanel: View {
                         
                         layerCard(
                             index: 3,
-                            icon: "🎒",
+                            icon: "shippingbox.fill",
                             name: "Application Layer",
-                            metaphor: "The Backpack",
+                            metaphor: "Layer 4",
                             value: layers.applicationLayer.rawValue,
                             detail: layers.applicationLayer == .empty
                                 ? "No payload yet"
@@ -634,28 +630,31 @@ struct LayerInventoryPanel: View {
                     .frame(width: 90, height: 90)
                     .scaleEffect(glowPulse ? 1.1 : 1.0)
                 
-                // Character body - stacked layers
-                VStack(spacing: -2) {
-                    // Hat (Network)
-                    Text("🎩")
-                        .font(.system(size: 18))
+                // Packet layers visualization
+                VStack(spacing: 2) {
+                    // Layer 2 (Network)
+                    Image(systemName: "signpost.right.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(layers.networkLayer.hasDestination ? .green : .gray)
                         .opacity(layers.networkLayer.hasDestination ? 1.0 : 0.25)
                     
-                    // Lock (Security) overlaid
+                    // Layer 1 (Security) overlaid on Layer 3
                     ZStack {
-                        Text("👕")
-                            .font(.system(size: 28))
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 22))
+                            .foregroundColor(.cyan)
                         
-                        Text(layers.isSecure ? "🔒" : "🔓")
-                            .font(.system(size: 11))
+                        Image(systemName: layers.isSecure ? "lock.fill" : "lock.open.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(layers.isSecure ? .green : .red)
                             .offset(x: 16, y: -10)
                     }
                     
-                    // Backpack indicator
-                    Text("🎒")
-                        .font(.system(size: 14))
+                    // Layer 4 (Application)
+                    Image(systemName: "shippingbox.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(layers.applicationLayer != .empty ? .orange : .gray)
                         .opacity(layers.applicationLayer != .empty ? 1.0 : 0.25)
-                        .offset(y: -4)
                 }
             }
             
@@ -724,8 +723,9 @@ struct LayerInventoryPanel: View {
             VStack(spacing: 0) {
                 HStack(spacing: 10) {
                     // Icon
-                    Text(icon)
-                        .font(.system(size: 20))
+                    Image(systemName: icon)
+                        .font(.system(size: 16))
+                        .foregroundColor(color)
                         .frame(width: 32)
                     
                     VStack(alignment: .leading, spacing: 1) {
@@ -812,164 +812,6 @@ struct LayerInventoryPanel: View {
                     )
             )
             .padding(.trailing, 6)
-    }
-}
-
-struct LayerRow: View {
-    let icon: String
-    let name: String
-    let description: String
-    let value: String
-    let color: Color
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Text(icon)
-                .font(.title)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(name)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                
-                Text(description)
-                    .font(.system(size: 10, design: .rounded))
-                    .foregroundColor(.gray)
-                
-                Text(value)
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundColor(color)
-            }
-            Spacer()
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(color.opacity(0.1))
-        )
-    }
-}
-
-// MARK: - Interactive Object View
-struct InteractiveObjectView: View {
-    let object: InteractiveObject
-    @State private var pulse = false
-    
-    var body: some View {
-        ZStack {
-            switch object.type {
-            case .portal:
-                PortalView(pulse: pulse)
-            case .terminal:
-                TerminalObjectView()
-            case .checkpoint:
-                CheckpointView()
-            case .collectable:
-                CollectableView(pulse: pulse)
-            }
-        }
-        .position(object.position)
-        .opacity(object.isActive ? 1 : 0.3)
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-                pulse = true
-            }
-        }
-    }
-}
-
-struct PortalView: View {
-    let pulse: Bool
-    
-    var body: some View {
-        ZStack {
-            // Outer glow
-            Circle()
-                .fill(Color.cyan.opacity(0.3))
-                .frame(width: 80, height: 80)
-                .scaleEffect(pulse ? 1.2 : 1.0)
-                .blur(radius: 10)
-            
-            // Portal ring
-            Circle()
-                .stroke(
-                    LinearGradient(
-                        colors: [.cyan, .blue, .purple],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 4
-                )
-                .frame(width: 60, height: 60)
-            
-            // Inner swirl
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color.cyan.opacity(0.8), Color.purple.opacity(0.4), Color.clear],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 25
-                    )
-                )
-                .frame(width: 50, height: 50)
-            
-            // Arrow indicator
-            Image(systemName: "arrow.right")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-        }
-    }
-}
-
-struct TerminalObjectView: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.8))
-                .frame(width: 40, height: 50)
-            
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.green.opacity(0.6))
-                .frame(width: 32, height: 25)
-                .offset(y: -8)
-            
-            Text(">_")
-                .font(.system(size: 12, design: .monospaced))
-                .foregroundColor(.black)
-                .offset(y: -8)
-        }
-    }
-}
-
-struct CheckpointView: View {
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.green.opacity(0.3))
-                .frame(width: 50, height: 50)
-            
-            Image(systemName: "flag.fill")
-                .font(.title)
-                .foregroundColor(.green)
-        }
-    }
-}
-
-struct CollectableView: View {
-    let pulse: Bool
-    
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.yellow.opacity(0.3))
-                .frame(width: 40, height: 40)
-                .scaleEffect(pulse ? 1.2 : 1.0)
-            
-            Image(systemName: "star.fill")
-                .font(.title2)
-                .foregroundColor(.yellow)
-        }
     }
 }
 

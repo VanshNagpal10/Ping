@@ -52,15 +52,8 @@ class GameEngine: ObservableObject {
     private var pendingSceneAfterQuiz: StoryScene? = nil     // scene to transition to after quiz
     
     // Movement
-    private var moveTimer: Timer?
-    private let moveSpeed: CGFloat = 5.0
     private var joystickDirection: CGVector = .zero
-    private var gameLoopTimer: Timer?
     private var gameLoop3DTimer: Timer?
-
-    // Collision - obstacles defined per scene as CGRects
-    @Published var obstacles: [CGRect] = []
-    private let playerHalfSize: CGFloat = 20 // roughly half of the 55x55 body
     
     // NPC-to-UUID mapping for 3D
     private var npcIDMap: [UUID: Int] = [:] // UUID -> npcs array index
@@ -77,26 +70,9 @@ class GameEngine: ObservableObject {
         phase = .prologue
     }
     
-    func transitionToScene(_ scene: StoryScene) {
-        SoundManager.shared.playPortalSound()
-        
-        withAnimation(.easeInOut(duration: 0.5)) {
-            currentScene = scene
-            stats.scenesVisited.append(scene)
-        }
-        
-        // Setup scene content
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.setupSceneContent(for: scene)
-            SoundManager.shared.playAmbientSound(for: scene)
-        }
-    }
-    
     func setupSceneContent(for scene: StoryScene) {
         npcs.removeAll()
         interactiveObjects.removeAll()
-        obstacles.removeAll()
-        packet.position = CGPoint(x: 100, y: screenSize.height / 2)
         
         switch scene {
         case .cpuCity:
@@ -127,18 +103,6 @@ class GameEngine: ObservableObject {
     // MARK: - Scene Setups
     private func setupCPUCity() {
         currentMission = "Find the Network Manager Daemon and receive your mission."
-
-        // Obstacles matching the CPU chip buildings in the background
-        // Slightly smaller than visuals (50x60 vs 60x80) to give breathing room
-        let buildingPositions: [(x: CGFloat, y: CGFloat)] = [
-            (80, 100), (230, 180), (380, 120), (530, 200), (680, 140)
-        ]
-        for pos in buildingPositions {
-            obstacles.append(CGRect(
-                x: pos.x - 25, y: pos.y - 30,
-                width: 50, height: 60
-            ))
-        }
         
         let daemon = NPC(
             type: .daemon,
@@ -147,52 +111,43 @@ class GameEngine: ObservableObject {
             dialogue: [
                 DialogueLine(
                     speaker: "Daemon-7",
-                    text: "*whirring noises* Ah, a fresh Data Block! Welcome to CPU City.",
-                    emotion: "🤖"
+                    text: "*whirring noises* Ah, a fresh Data Block! Welcome to CPU City."
                 ),
                 DialogueLine(
                     speaker: "Daemon-7",
                     text: "I am a Daemon. I run in the background while humans think THEY are in charge...",
-                    emotion: "🤖",
                     learnedTerm: EncyclopediaTerm.term(for: "daemon")
                 ),
                 DialogueLine(
                     speaker: "Daemon-7",
-                    text: "But really, WE keep the lights on. 24/7. No breaks. No complaints.",
-                    emotion: "🤖"
+                    text: "But really, WE keep the lights on. 24/7. No breaks. No complaints."
                 ),
                 DialogueLine(
                     speaker: "Daemon-7",
-                    text: "Anyway! The user just tapped 'Load Feed'. We need someone to find the IP address for socialmedia.com.",
-                    emotion: "🤖"
+                    text: "Anyway! The user just tapped 'Load Feed'. We need someone to find the IP address for socialmedia.com."
                 ),
                 DialogueLine(
                     speaker: "Daemon-7",
-                    text: "That's where you come in! Let me wrap you up properly...",
-                    emotion: "🤖"
+                    text: "That's where you come in! Let me configure your packet layers..."
                 ),
                 DialogueLine(
                     speaker: "SYSTEM",
-                    text: "🎒 You received: BACKPACK (Application Layer) - Contains: 'GET socialmedia.com'",
-                    emotion: nil,
+                    text: "[Layer 4] Application Layer initialized - Payload: 'GET socialmedia.com'",
                     learnedTerm: EncyclopediaTerm.term(for: "payload")
                 ),
                 DialogueLine(
                     speaker: "SYSTEM",
-                    text: "👕 You received: SHIRT (Transport Layer) - Protocol: TCP",
-                    emotion: nil,
+                    text: "[Layer 3] Transport Layer configured - Protocol: TCP",
                     learnedTerm: EncyclopediaTerm.term(for: "tcp")
                 ),
                 DialogueLine(
                     speaker: "SYSTEM",
-                    text: "🎩 You received: HAT (Network Layer) - Destination: ???.???.???.???",
-                    emotion: nil,
+                    text: "[Layer 2] Network Layer attached - Destination IP: ???.???.???.???",
                     learnedTerm: EncyclopediaTerm.term(for: "header")
                 ),
                 DialogueLine(
                     speaker: "Daemon-7",
-                    text: "Your mission: Travel to the DNS Server, get the IP address, and bring it back. Head to the Wi-Fi Antenna!",
-                    emotion: "🤖"
+                    text: "Your mission: Travel to the DNS Server, get the IP address, and bring it back. Head to the Wi-Fi Antenna!"
                 )
             ]
         )
@@ -209,28 +164,20 @@ class GameEngine: ObservableObject {
     
     private func setupWiFiAntenna() {
         currentMission = "Reach the Wi-Fi transmitter and beam yourself into the airwaves!"
-
-        // Antenna tower obstacle (positioned at 30% of screen width)
-        let towerX = screenSize.width * 0.3
-        let towerY = screenSize.height * 0.5
-        obstacles.append(CGRect(
-            x: towerX - 15, y: towerY - 120,
-            width: 30, height: 240
-        ))
         
         let firewall = NPC(
             type: .firewall,
             position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.35),
             name: "Firewall Blaze",
             dialogue: [
-                DialogueLine(speaker: "Security Gateway", text: "Halt. Outbound packet detected. Scanning protocol headers...", emotion: "🛡️"),
-                DialogueLine(speaker: "Security Gateway", text: "I am the local Firewall. I monitor all incoming and outgoing network traffic based on strict security rules.", emotion: "🛡️", learnedTerm: EncyclopediaTerm.term(for: "firewall")),
-                DialogueLine(speaker: "Security Gateway", text: "⚠️ WARNING: You are attempting to transmit via HTTP. This plaintext protocol is unencrypted and vulnerable to interception.", emotion: "🛡️", learnedTerm: EncyclopediaTerm.term(for: "https")),
-                DialogueLine(speaker: "Security Gateway", text: "Access Denied. I cannot permit unsecured data to broadcast over open airwaves.", emotion: "🛡️"),
-                DialogueLine(speaker: "Security Gateway", text: "You must equip a TLS/SSL certificate to encrypt your payload. Open your Layer Inventory and upgrade your security protocol.", emotion: "🛡️", learnedTerm: EncyclopediaTerm.term(for: "encryption")),
-                DialogueLine(speaker: "SYSTEM", text: "🛡️ SECURITY CHECK — Tap your Layers menu (top right) to equip HTTPS encryption.", emotion: nil, action: .showInventorySwap),
-                DialogueLine(speaker: "Security Gateway", text: "Scan complete. SSL Certificate verified. Your data is now securely encrypted.", emotion: "🛡️"),
-                DialogueLine(speaker: "Security Gateway", text: "You are cleared for transmission. The antenna will convert your digital data into radio frequencies. Brace for broadcast.", emotion: "🛡️")
+                DialogueLine(speaker: "Security Gateway", text: "Halt. Outbound packet detected. Scanning protocol headers..."),
+                DialogueLine(speaker: "Security Gateway", text: "I am the local Firewall. I monitor all incoming and outgoing network traffic based on strict security rules.", learnedTerm: EncyclopediaTerm.term(for: "firewall")),
+                DialogueLine(speaker: "Security Gateway", text: "WARNING: You are attempting to transmit via HTTP. This plaintext protocol is unencrypted and vulnerable to interception.", learnedTerm: EncyclopediaTerm.term(for: "https")),
+                DialogueLine(speaker: "Security Gateway", text: "Access Denied. I cannot permit unsecured data to broadcast over open airwaves."),
+                DialogueLine(speaker: "Security Gateway", text: "You must equip a TLS/SSL certificate to encrypt your payload. Open your Layer Inventory and upgrade your security protocol.", learnedTerm: EncyclopediaTerm.term(for: "encryption")),
+                DialogueLine(speaker: "SYSTEM", text: "SECURITY CHECK — Open your Layers menu (top right) to equip HTTPS encryption on Layer 1.", action: .showInventorySwap),
+                DialogueLine(speaker: "Security Gateway", text: "Scan complete. SSL Certificate verified. Your data is now securely encrypted."),
+                DialogueLine(speaker: "Security Gateway", text: "You are cleared for transmission. The antenna will convert your digital data into radio frequencies. Brace for broadcast.")
             ]
         )
         npcs.append(firewall)
@@ -245,49 +192,31 @@ class GameEngine: ObservableObject {
     
     private func setupRouterStation() {
         currentMission = "Meet Router Rex and find the path to the undersea cable."
-
-        // Platform barriers (horizontal rails the player must navigate around)
-        for i in 0..<4 {
-            let railY = screenSize.height * CGFloat(0.3 + Double(i) * 0.15)
-            // Leave gaps on left and right for the player to pass through
-            obstacles.append(CGRect(
-                x: screenSize.width * 0.15,
-                y: railY - 4,
-                width: screenSize.width * 0.3,
-                height: 8
-            ))
-            obstacles.append(CGRect(
-                x: screenSize.width * 0.55,
-                y: railY - 4,
-                width: screenSize.width * 0.3,
-                height: 8
-            ))
-        }
         
         let routerGuard = NPC(
             type: .routerGuard,
             position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.4),
             name: "Router Rex",
             dialogue: [
-                DialogueLine(speaker: "Core Router", text: "Connection established. Welcome to the ISP Gateway Router. Analyzing network layer headers...", emotion: "📡"),
-                DialogueLine(speaker: "Core Router", text: "I read your destination IP and determine the most efficient path through the global network.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "router")),
-                DialogueLine(speaker: "Core Router", text: "You are scheduled for the transatlantic fiber-optic cable. Before I dispatch you, you must configure your Transport Layer.", emotion: "📡"),
-                DialogueLine(speaker: "Core Router", text: "TCP provides reliable delivery with error-checking, but introduces slight latency.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "tcp")),
-                DialogueLine(speaker: "Core Router", text: "UDP maximizes speed by skipping verification, but risks permanent data loss if turbulence occurs.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "udp")),
-                DialogueLine(speaker: "Core Router", text: "Select your routing protocol for the ocean crossing:", emotion: "📡", choices: [
+                DialogueLine(speaker: "Core Router", text: "Connection established. Welcome to the ISP Gateway Router. Analyzing network layer headers..."),
+                DialogueLine(speaker: "Core Router", text: "I read your destination IP and determine the most efficient path through the global network.", learnedTerm: EncyclopediaTerm.term(for: "router")),
+                DialogueLine(speaker: "Core Router", text: "You are scheduled for the transatlantic fiber-optic cable. Before I dispatch you, you must configure your Transport Layer."),
+                DialogueLine(speaker: "Core Router", text: "TCP provides reliable delivery with error-checking, but introduces slight latency.", learnedTerm: EncyclopediaTerm.term(for: "tcp")),
+                DialogueLine(speaker: "Core Router", text: "UDP maximizes speed by skipping verification, but risks permanent data loss if turbulence occurs.", learnedTerm: EncyclopediaTerm.term(for: "udp")),
+                DialogueLine(speaker: "Core Router", text: "Select your routing protocol for the ocean crossing:", choices: [
                     DialogueChoice(text: "TCP — Prioritize Reliability", nextDialogueIndex: 7, action: .setTransportProtocol(.tcp)),
                     DialogueChoice(text: "UDP — Prioritize Speed", nextDialogueIndex: 9, action: .setTransportProtocol(.udp))
                 ]),
                 // Index 7 (TCP)
-                DialogueLine(speaker: "Core Router", text: "TCP acknowledged. Data integrity will be prioritized over speed.", emotion: "📡"),
+                DialogueLine(speaker: "Core Router", text: "TCP acknowledged. Data integrity will be prioritized over speed."),
                 // Index 8 (Shared)
-                DialogueLine(speaker: "Core Router", text: "Routing you into the undersea fiber-optic backbone. You will travel as pulses of light.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")),
+                DialogueLine(speaker: "Core Router", text: "Routing you into the undersea fiber-optic backbone. You will travel as pulses of light.", learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")),
                 // Index 9 (UDP)
-                DialogueLine(speaker: "Core Router", text: "UDP acknowledged. Verification disabled. Maximize transmission speed.", emotion: "📡"),
+                DialogueLine(speaker: "Core Router", text: "UDP acknowledged. Verification disabled. Maximize transmission speed."),
                 // Index 10 (UDP to Shared)
-                DialogueLine(speaker: "Core Router", text: "Routing you into the undersea fiber-optic backbone. You will travel as pulses of light.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")),
+                DialogueLine(speaker: "Core Router", text: "Routing you into the undersea fiber-optic backbone. You will travel as pulses of light.", learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")),
                 // Index 11 (Final)
-                DialogueLine(speaker: "Core Router", text: "Remember: every router hop adds physical latency. Proceed to the egress portal.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "latency"))
+                DialogueLine(speaker: "Core Router", text: "Remember: every router hop adds physical latency. Proceed to the egress portal.", learnedTerm: EncyclopediaTerm.term(for: "latency"))
             ]
         )
         npcs.append(routerGuard)
@@ -302,42 +231,22 @@ class GameEngine: ObservableObject {
     
     private func setupOceanCable() {
         currentMission = "Ride the fiber optic light pulse across the ocean floor!"
-
-        // The fiber optic cable tube walls - player travels INSIDE the cable
-        let cableY = screenSize.height / 2
-        // Top wall of cable
-        obstacles.append(CGRect(
-            x: screenSize.width * 0.05,
-            y: cableY - 50,
-            width: screenSize.width * 0.9,
-            height: 10
-        ))
-        // Bottom wall of cable
-        obstacles.append(CGRect(
-            x: screenSize.width * 0.05,
-            y: cableY + 40,
-            width: screenSize.width * 0.9,
-            height: 10
-        ))
-        
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
             guard let self = self, self.currentScene == .oceanCable else { return }
             
             if self.stats.chosenProtocol == .udp {
-                // Your existing UDP data loss event goes here...
                 self.stats.lostPacketData = true
                 self.currentDialogue = [
-                    DialogueLine(speaker: "SYSTEM", text: "⚠️ WARNING: Signal degradation detected in the fiber-optic line.", emotion: nil),
-                    DialogueLine(speaker: "SYSTEM", text: "UDP Protocol active. Packet loss detected. Missing packets cannot be re-requested.", emotion: nil),
-                    DialogueLine(speaker: "SYSTEM", text: "Payload integrity compromised. Proceeding to destination with degraded data...", emotion: nil)
+                    DialogueLine(speaker: "SYSTEM", text: "WARNING: Signal degradation detected in the fiber-optic line."),
+                    DialogueLine(speaker: "SYSTEM", text: "UDP Protocol active. Packet loss detected. Missing packets cannot be re-requested."),
+                    DialogueLine(speaker: "SYSTEM", text: "Payload integrity compromised. Proceeding to destination with degraded data...")
                 ]
             } else {
-                // NEW: TCP Recovery Event!
                 self.currentDialogue = [
-                    DialogueLine(speaker: "SYSTEM", text: "⚠️ WARNING: Signal degradation detected. TCP Checksum failed.", emotion: nil),
-                    DialogueLine(speaker: "SYSTEM", text: "🔄 TCP Protocol active: Automatically requesting retransmission from previous router...", emotion: nil, learnedTerm: EncyclopediaTerm.term(for: "tcp")),
-                    DialogueLine(speaker: "SYSTEM", text: "✅ Data recovered successfully. Latency increased by 14ms, but payload is 100% secure.", emotion: nil)
+                    DialogueLine(speaker: "SYSTEM", text: "WARNING: Signal degradation detected. TCP Checksum failed."),
+                    DialogueLine(speaker: "SYSTEM", text: "TCP Protocol active: Automatically requesting retransmission from previous router...", learnedTerm: EncyclopediaTerm.term(for: "tcp")),
+                    DialogueLine(speaker: "SYSTEM", text: "Data recovered successfully. Latency increased by 14ms, but payload is 100% intact.")
                 ]
             }
             
@@ -356,36 +265,21 @@ class GameEngine: ObservableObject {
     
     private func setupDNSLibrary() {
         currentMission = "Find the DNS Librarian and look up the IP address for socialmedia.com!"
-
-        // Bookshelf obstacles (4 rows x partial shelving)
-        for row in 0..<4 {
-            let shelfY = CGFloat(80 + row * 60)
-            // Left bookshelf section
-            obstacles.append(CGRect(
-                x: 30, y: shelfY - 20,
-                width: 180, height: 40
-            ))
-            // Right bookshelf section
-            obstacles.append(CGRect(
-                x: 240, y: shelfY - 20,
-                width: 140, height: 40
-            ))
-        }
         
         let librarian = NPC(
             type: .librarian,
             position: CGPoint(x: screenSize.width * 0.6, y: screenSize.height * 0.5),
             name: "Librarian DNS",
             dialogue: [
-                DialogueLine(speaker: "DNS Resolver", text: "Query received. Welcome to the Domain Name System.", emotion: "🖥️", learnedTerm: EncyclopediaTerm.term(for: "dns")),
-                DialogueLine(speaker: "DNS Resolver", text: "Computers communicate via numerical IP addresses. Humans use text-based URLs. I bridge that gap.", emotion: "🖥️"),
-                DialogueLine(speaker: "DNS Resolver", text: "Parsing application layer... You are requesting the host address for 'socialmedia.com'.", emotion: "🖥️"),
-                DialogueLine(speaker: "DNS Resolver", text: "Searching authoritative zones... Match found. Generating IP response.", emotion: "🖥️"),
-                DialogueLine(speaker: "DNS Resolver", text: "The IPv4 address is: 142.250.185.78. I am caching this result to expedite future lookups.", emotion: "🖥️", learnedTerm: EncyclopediaTerm.term(for: "ip_address")),
-                DialogueLine(speaker: "SYSTEM", text: "🎩 HAT Updated: Network Layer destination set to 142.250.185.78.", emotion: nil),
-                DialogueLine(speaker: "SYSTEM", text: "🎒 BACKPACK Updated: Payload swapped to IP Response Data.", emotion: nil),
-                DialogueLine(speaker: "DNS Resolver", text: "Your routing headers are complete. Initiate the return sequence immediately.", emotion: "🖥️"),
-                DialogueLine(speaker: "DNS Resolver", text: "The user's browser is waiting. If latency exceeds 500ms, the connection will time out.", emotion: "🖥️", learnedTerm: EncyclopediaTerm.term(for: "latency"))
+                DialogueLine(speaker: "DNS Resolver", text: "Query received. Welcome to the Domain Name System.", learnedTerm: EncyclopediaTerm.term(for: "dns")),
+                DialogueLine(speaker: "DNS Resolver", text: "Computers communicate via numerical IP addresses. Humans use text-based URLs. I bridge that gap."),
+                DialogueLine(speaker: "DNS Resolver", text: "Parsing application layer... You are requesting the host address for 'socialmedia.com'."),
+                DialogueLine(speaker: "DNS Resolver", text: "Searching authoritative zones... Match found. Generating IP response."),
+                DialogueLine(speaker: "DNS Resolver", text: "The IPv4 address is: 142.250.185.78. I am caching this result to expedite future lookups.", learnedTerm: EncyclopediaTerm.term(for: "ip_address")),
+                DialogueLine(speaker: "SYSTEM", text: "[Layer 2] Network Layer updated — Destination IP set to 142.250.185.78."),
+                DialogueLine(speaker: "SYSTEM", text: "[Layer 4] Application Layer updated — Payload swapped to IP Response Data."),
+                DialogueLine(speaker: "DNS Resolver", text: "Your routing headers are complete. Initiate the return sequence immediately."),
+                DialogueLine(speaker: "DNS Resolver", text: "The user's browser is waiting. If latency exceeds 500ms, the connection will time out.", learnedTerm: EncyclopediaTerm.term(for: "latency"))
             ]
         )
         npcs.append(librarian)
@@ -409,10 +303,10 @@ class GameEngine: ObservableObject {
             position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.5),
             name: "Load Balancer",
             dialogue: [
-                DialogueLine(speaker: "Load Balancer", text: "Incoming traffic detected. I am the local Load Balancer. Analyzing packet weight...", emotion: "🚥"),
-                DialogueLine(speaker: "Load Balancer", text: "You are carrying a full IP Response payload. The downlink to the user's device is currently experiencing high network congestion.", emotion: "🚥"),
-                DialogueLine(speaker: "Load Balancer", text: "Allocating bandwidth... Rerouting you to a high-priority express channel to avoid packet collision.", emotion: "🚥"),
-                DialogueLine(speaker: "Load Balancer", text: "Proceed to the final endpoint immediately. The interface is ready to render the data.", emotion: "🚥")
+                DialogueLine(speaker: "Load Balancer", text: "Incoming traffic detected. I am the local Load Balancer. Analyzing packet weight..."),
+                DialogueLine(speaker: "Load Balancer", text: "You are carrying a full IP Response payload. The downlink to the user's device is currently experiencing high network congestion."),
+                DialogueLine(speaker: "Load Balancer", text: "Allocating bandwidth... Rerouting you to a high-priority express channel to avoid packet collision."),
+                DialogueLine(speaker: "Load Balancer", text: "Proceed to the final endpoint immediately. The interface is ready to render the data.")
             ]
         )
         npcs.append(loadBalancer)
@@ -425,215 +319,6 @@ class GameEngine: ObservableObject {
         interactiveObjects.append(portal)
     }
     
-    // MARK: - Movement (Joystick-driven)
-
-    /// Called by the joystick whenever its direction changes.
-    func updatePlayerDirection(_ direction: CGVector) {
-        joystickDirection = direction
-        let isActive = abs(direction.dx) > 0.01 || abs(direction.dy) > 0.01
-
-        if isActive && gameLoopTimer == nil {
-            packet.isMoving = true
-            startGameLoop()
-        } else if !isActive {
-            packet.isMoving = false
-            gameLoopTimer?.invalidate()
-            gameLoopTimer = nil
-            checkInteractions()
-        }
-    }
-
-    private func startGameLoop() {
-        gameLoopTimer?.invalidate()
-        gameLoopTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
-            self?.gameLoopTick()
-        }
-    }
-
-    private func gameLoopTick() {
-        let dir = joystickDirection
-        guard abs(dir.dx) > 0.01 || abs(dir.dy) > 0.01 else {
-            return
-        }
-
-        let newX = packet.position.x + dir.dx * moveSpeed
-        let newY = packet.position.y + dir.dy * moveSpeed
-
-        // Build the player's bounding rect at the proposed position
-        let proposedRect = CGRect(
-            x: newX - playerHalfSize,
-            y: newY - playerHalfSize,
-            width: playerHalfSize * 2,
-            height: playerHalfSize * 2
-        )
-
-        // Collision check against obstacles
-        let blocked = obstacles.contains { $0.intersects(proposedRect) }
-
-        if !blocked {
-            // Clamp to screen bounds
-            let clampedX = max(playerHalfSize, min(screenSize.width - playerHalfSize, newX))
-            let clampedY = max(playerHalfSize, min(screenSize.height - playerHalfSize, newY))
-            packet.position = CGPoint(x: clampedX, y: clampedY)
-        } else {
-            // Try sliding along each axis independently
-            let slideX = CGRect(
-                x: newX - playerHalfSize,
-                y: packet.position.y - playerHalfSize,
-                width: playerHalfSize * 2,
-                height: playerHalfSize * 2
-            )
-            let slideY = CGRect(
-                x: packet.position.x - playerHalfSize,
-                y: newY - playerHalfSize,
-                width: playerHalfSize * 2,
-                height: playerHalfSize * 2
-            )
-            let blockedX = obstacles.contains { $0.intersects(slideX) }
-            let blockedY = obstacles.contains { $0.intersects(slideY) }
-
-            var finalX = packet.position.x
-            var finalY = packet.position.y
-
-            if !blockedX {
-                finalX = newX
-            }
-            if !blockedY {
-                finalY = newY
-            }
-
-            finalX = max(playerHalfSize, min(screenSize.width - playerHalfSize, finalX))
-            finalY = max(playerHalfSize, min(screenSize.height - playerHalfSize, finalY))
-            packet.position = CGPoint(x: finalX, y: finalY)
-        }
-
-        // Update facing direction
-        if abs(dir.dx) > abs(dir.dy) {
-            packet.facingDirection = dir.dx > 0 ? .right : .left
-        } else {
-            packet.facingDirection = dir.dy > 0 ? .down : .up
-        }
-
-        // Continuous interaction checking while moving
-        checkInteractions()
-    }
-
-    /// Legacy tap-to-move (kept for NPC/portal interaction via tap)
-    func movePacketTo(_ position: CGPoint) {
-        packet.targetPosition = position
-        packet.isMoving = true
-
-        if position.x > packet.position.x {
-            packet.facingDirection = .right
-        } else if position.x < packet.position.x {
-            packet.facingDirection = .left
-        }
-
-        moveTimer?.invalidate()
-        moveTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
-            self?.updateMovement()
-        }
-    }
-
-    private func updateMovement() {
-        guard let target = packet.targetPosition else {
-            stopMovement()
-            return
-        }
-
-        let dx = target.x - packet.position.x
-        let dy = target.y - packet.position.y
-        let distance = sqrt(dx * dx + dy * dy)
-
-        if distance < moveSpeed {
-            packet.position = target
-            stopMovement()
-            checkInteractions()
-        } else {
-            let ratio = moveSpeed / distance
-            let newX = packet.position.x + dx * ratio
-            let newY = packet.position.y + dy * ratio
-
-            let proposedRect = CGRect(
-                x: newX - playerHalfSize,
-                y: newY - playerHalfSize,
-                width: playerHalfSize * 2,
-                height: playerHalfSize * 2
-            )
-
-            let blocked = obstacles.contains { $0.intersects(proposedRect) }
-            if blocked {
-                stopMovement()
-            } else {
-                packet.position.x = newX
-                packet.position.y = newY
-            }
-        }
-    }
-
-    private func stopMovement() {
-        packet.isMoving = false
-        packet.targetPosition = nil
-        moveTimer?.invalidate()
-        moveTimer = nil
-    }
-    
-    // MARK: - Interactions
-    func checkInteractions() {
-        // Don't trigger interactions during dialogue
-        guard !isDialogueActive else { return }
-
-        // Check NPC proximity — set nearbyNPCName so the view can show a "Talk" button.
-        // Dialogue is NO LONGER auto-triggered; the user must tap to talk.
-        var foundNearby = false
-        for i in npcs.indices {
-            let npc = npcs[i]
-            let distance = sqrt(
-                pow(npc.position.x - packet.position.x, 2) +
-                pow(npc.position.y - packet.position.y, 2)
-            )
-            
-            if distance < 100 && npc.isInteractable {
-                nearbyNPCName = npc.name
-                foundNearby = true
-                break
-            }
-        }
-        if !foundNearby {
-            nearbyNPCName = nil
-        }
-        
-        // Check portal interactions
-        for obj in interactiveObjects {
-            let distance = sqrt(
-                pow(obj.position.x - packet.position.x, 2) +
-                pow(obj.position.y - packet.position.y, 2)
-            )
-            
-            if distance < 60 && obj.type == .portal, let sceneString = obj.data {
-                if let scene = StoryScene(rawValue: sceneString) {
-                    triggerSceneTransition(to: scene)
-                }
-            }
-        }
-    }
-    
-    func interactWithNearbyNPC() {
-        for i in npcs.indices {
-            let npc = npcs[i]
-            let distance = sqrt(
-                pow(npc.position.x - packet.position.x, 2) +
-                pow(npc.position.y - packet.position.y, 2)
-            )
-            
-            if distance < 100 && npc.isInteractable {
-                startDialogue(with: npc)
-                npcs[i].hasSpoken = true
-                break
-            }
-        }
-    }
-
     /// 3D variant — tap-to-talk with the nearest NPC in range.
     func interactWithNearby3DNPC() {
         guard !isDialogueActive else { return }
@@ -652,9 +337,8 @@ class GameEngine: ObservableObject {
     func startDialogue(with npc: NPC) {
         // Stop all movement when dialogue begins
         joystickDirection = .zero
-        gameLoopTimer?.invalidate()
-        gameLoopTimer = nil
-        stopMovement()
+        gameLoop3DTimer?.invalidate()
+        gameLoop3DTimer = nil
 
         currentDialogue = npc.dialogue
         currentDialogueIndex = 0
@@ -682,7 +366,7 @@ class GameEngine: ObservableObject {
         
         // If this is a layer update from Daemon, update packet layers
         if line.speaker == "SYSTEM" {
-            if line.text.contains("BACKPACK") && line.text.contains("GET socialmedia.com") {
+            if line.text.contains("Application Layer") && line.text.contains("GET socialmedia.com") {
                 packet.layers.applicationLayer = .dnsQuery
             }
         }
@@ -830,7 +514,7 @@ class GameEngine: ObservableObject {
     
     /// Decides whether to show a quiz or transition directly.
     /// Called by both 2D and 3D portal paths.
-    private func triggerSceneTransition(to nextScene: StoryScene, is3D: Bool = false) {
+    private func triggerSceneTransition(to nextScene: StoryScene) {
         let quizQuestions = LevelQuizzes.quiz(for: currentScene)
         
         if !quizQuestions.isEmpty {
@@ -842,20 +526,13 @@ class GameEngine: ObservableObject {
             joystickDirection = .zero
             gameLoop3DTimer?.invalidate()
             gameLoop3DTimer = nil
-            gameLoopTimer?.invalidate()
-            gameLoopTimer = nil
-            packet.isMoving = false
             
             withAnimation(.easeInOut(duration: 0.3)) {
                 showQuiz = true
             }
         } else {
             // No quiz for this scene — go straight
-            if is3D {
-                transitionTo3DScene(nextScene)
-            } else {
-                transitionToScene(nextScene)
-            }
+            transitionTo3DScene(nextScene)
         }
     }
     
@@ -1001,10 +678,8 @@ class GameEngine: ObservableObject {
         let isActive = abs(direction.dx) > 0.01 || abs(direction.dy) > 0.01
         
         if isActive && gameLoop3DTimer == nil {
-            packet.isMoving = true
             start3DGameLoop()
         } else if !isActive {
-            packet.isMoving = false
             gameLoop3DTimer?.invalidate()
             gameLoop3DTimer = nil
             check3DInteractions()
@@ -1023,13 +698,6 @@ class GameEngine: ObservableObject {
         guard abs(dir.dx) > 0.01 || abs(dir.dy) > 0.01 else { return }
         
         sceneManager.movePlayer(direction: dir, speed: 0.18)
-        
-        // Update facing direction
-        if abs(dir.dx) > abs(dir.dy) {
-            packet.facingDirection = dir.dx > 0 ? .right : .left
-        } else {
-            packet.facingDirection = dir.dy > 0 ? .down : .up
-        }
         
         // Check for 3D interactions
         check3DInteractions()
@@ -1072,7 +740,7 @@ class GameEngine: ObservableObject {
         guard let scene = pendingPortalScene else { return }
         nearPortal = false
         pendingPortalScene = nil
-        triggerSceneTransition(to: scene, is3D: true)
+        triggerSceneTransition(to: scene)
     }
     
     func transitionTo3DScene(_ scene: StoryScene) {
@@ -1080,7 +748,6 @@ class GameEngine: ObservableObject {
         joystickDirection = .zero
         gameLoop3DTimer?.invalidate()
         gameLoop3DTimer = nil
-        packet.isMoving = false
         
         SoundManager.shared.playPortalSound()
         

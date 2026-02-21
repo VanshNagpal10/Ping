@@ -383,8 +383,9 @@ struct JourneyRouteStrip: View {
                                 .frame(width: 10, height: 10)
                                 .shadow(color: scene.accentColor.opacity(0.7), radius: 6)
 
-                            Text(sceneIcon(for: scene))
+                            Image(systemName: sceneIcon(for: scene))
                                 .font(.system(size: 10))
+                                .foregroundColor(scene.accentColor)
                         }
                         .position(x: spacing * CGFloat(i + 1), y: 14)
                     }
@@ -411,14 +412,14 @@ struct JourneyRouteStrip: View {
 
     private func sceneIcon(for scene: StoryScene) -> String {
         switch scene {
-        case .frozenCafe: return "☕"
-        case .cpuCity: return "🏙️"
-        case .wifiAntenna: return "📡"
-        case .routerStation: return "🔀"
-        case .oceanCable: return "🌊"
-        case .dnsLibrary: return "📚"
-        case .returnJourney: return "🏠"
-        case .feedLoaded: return "✅"
+        case .frozenCafe: return "cup.and.saucer.fill"
+        case .cpuCity: return "cpu.fill"
+        case .wifiAntenna: return "antenna.radiowaves.left.and.right"
+        case .routerStation: return "arrow.triangle.branch"
+        case .oceanCable: return "water.waves"
+        case .dnsLibrary: return "book.closed.fill"
+        case .returnJourney: return "arrow.turn.up.left"
+        case .feedLoaded: return "checkmark.circle.fill"
         }
     }
 }

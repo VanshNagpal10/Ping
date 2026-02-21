@@ -36,8 +36,9 @@ struct EncyclopediaView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
-                                Text("📖")
+                                Image(systemName: "book.closed.fill")
                                     .font(.title)
+                                    .foregroundColor(.cyan)
                                 Text("DAEMON'S ENCYCLOPEDIA")
                                     .font(.system(size: 18, weight: .bold, design: .monospaced))
                                     .foregroundColor(.cyan)
@@ -187,8 +188,9 @@ struct TermCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(term.icon)
+                Image(systemName: term.icon)
                     .font(.title2)
+                    .foregroundColor(.cyan)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(term.term)

@@ -197,8 +197,9 @@ struct FirewallNPCView: View {
             .offset(y: -5)
             
             // "SECURITY" badge
-            Text("🛡️")
+            Image(systemName: "shield.checkered")
                 .font(.system(size: 20))
+                .foregroundColor(.orange)
                 .offset(y: -45)
         }
         .onAppear {
@@ -255,9 +256,10 @@ struct RouterGuardNPCView: View {
                                 Circle().fill(.black).frame(width: 5, height: 5)
                                 Circle().fill(.black).frame(width: 5, height: 5)
                             }
-                            // Mustache
-                            Text("👮")
+                            // Badge icon
+                            Image(systemName: "shield.checkered")
                                 .font(.system(size: 8))
+                                .foregroundColor(.orange)
                         }
                     )
                 
@@ -343,8 +345,9 @@ struct LibrarianNPCView: View {
             
             // Floating books
             ForEach(0..<3, id: \.self) { i in
-                Text("📖")
-                    .font(.system(size: 15))
+                Image(systemName: "book.closed.fill")
+                    .font(.system(size: 13))
+                    .foregroundColor(.purple.opacity(0.5))
                     .offset(
                         x: CGFloat([-40, 35, 0][i]),
                         y: CGFloat([-40, -35, -55][i])

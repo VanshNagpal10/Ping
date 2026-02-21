@@ -279,7 +279,7 @@ struct WiFiAntennaBackground: View {
                     .position(x: size.width * 0.3, y: size.height * 0.35)
             }
             
-            Text("📡 Wi-Fi Antenna")
+            Text("Wi-Fi Antenna")
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundColor(.green)
                 .position(x: size.width / 2, y: 40)
@@ -317,7 +317,7 @@ struct RouterStationBackground: View {
             }
             .position(x: size.width / 2, y: 60)
             
-            Text("🚇 Router Station")
+            Text("Router Station")
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundColor(.orange)
                 .position(x: size.width / 2, y: 30)
@@ -397,8 +397,9 @@ struct OceanCableBackground: View {
             
             // Fish swimming by
             ForEach(0..<3, id: \.self) { i in
-                Text(["🐟", "🦈", "🐠"][i])
-                    .font(.system(size: CGFloat([30, 50, 25][i])))
+                Image(systemName: ["fish.fill", "fish.fill", "fish.fill"][i])
+                    .font(.system(size: CGFloat([24, 36, 20][i])))
+                    .foregroundColor(.cyan.opacity(0.4))
                     .position(
                         x: (CGFloat(i * 200) + fishOffset).truncatingRemainder(dividingBy: size.width + 100) - 50,
                         y: size.height * CGFloat([0.2, 0.7, 0.85][i])
@@ -416,7 +417,7 @@ struct OceanCableBackground: View {
                     )
             }
             
-            Text("🌊 Ocean Floor - Fiber Optic Cable")
+            Text("Ocean Floor - Fiber Optic Cable")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .foregroundColor(.cyan)
                 .position(x: size.width / 2, y: 30)
@@ -461,16 +462,16 @@ struct DNSLibraryBackground: View {
             
             // Floating book particles
             ForEach(0..<5, id: \.self) { i in
-                Text("📖")
-                    .font(.system(size: 20))
-                    .opacity(0.4)
+                Image(systemName: "book.closed.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(.purple.opacity(0.3))
                     .position(
                         x: CGFloat.random(in: size.width * 0.5...size.width * 0.9),
                         y: CGFloat.random(in: 100...size.height - 100)
                     )
             }
             
-            Text("📚 DNS Library - The Internet's Phonebook")
+            Text("DNS Library - The Internet's Phonebook")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .foregroundColor(.purple)
                 .position(x: size.width / 2, y: 30)
@@ -503,7 +504,7 @@ struct ReturnJourneyBackground: View {
                     )
             }
             
-            Text("⚡ RETURN JOURNEY - Hurry back!")
+            Text("RETURN JOURNEY - Hurry back!")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundColor(.yellow)
                 .position(x: size.width / 2, y: 40)

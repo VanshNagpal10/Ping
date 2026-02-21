@@ -70,8 +70,9 @@ struct NewTermPopup: View {
     var body: some View {
         VStack {
             HStack(spacing: 12) {
-                Text(term.icon)
+                Image(systemName: term.icon)
                     .font(.title)
+                    .foregroundColor(.cyan)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("NEW TERM LEARNED!")
