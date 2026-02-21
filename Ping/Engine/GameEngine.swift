@@ -381,9 +381,9 @@ class GameEngine: ObservableObject {
         Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] timer in
             guard let self = self, charIndex < fullText.count else {
                 timer.invalidate()
-                // Stop the typewriter sound the moment text is fully displayed
-                SoundManager.shared.stopTypewriterSound()
                 DispatchQueue.main.async {
+                    // Stop the typewriter sound the moment text is fully displayed
+                    SoundManager.shared.stopTypewriterSound()
                     self?.isTyping = false
                     // After typewriter finishes, show choices if this line has them
                     if let choices = line.choices, !choices.isEmpty {
@@ -405,7 +405,9 @@ class GameEngine: ObservableObject {
             
             // Haptic tick every 3rd character for subtle typing feel
             if charIndex % 3 == 0 {
-                SoundManager.shared.playTypingHaptic()
+                DispatchQueue.main.async {
+                    SoundManager.shared.playTypingHaptic()
+                }
             }
         }
     }
