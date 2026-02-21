@@ -27,6 +27,7 @@ class SoundManager: ObservableObject {
     private var bgmPlayer: AVAudioPlayer?
     private var sfxPlayers: [AVAudioPlayer] = []
     private var currentBGMFile: String? = nil
+    private var typewriterPlayer: AVAudioPlayer?
     
     private init() {
         setupAudioSession()
@@ -102,13 +103,29 @@ class SoundManager: ObservableObject {
         generator.impactOccurred(intensity: 0.4)
     }
     
-    /// Play a single short typewriter click (use once per dialogue line, not per character)
-    func playTalkingSound() {
+    /// Start the typewriter sound for a dialogue line. Stops any previous instance first.
+    func startTypewriterSound() {
+        stopTypewriterSound()
+        
         let generator = UIImpactFeedbackGenerator(style: .soft)
         generator.impactOccurred()
         
         guard !isMuted else { return }
-        playSoundEffect(filename: "typewriter", volume: 0.2)
+        guard let url = Bundle.main.url(forResource: "typewriter", withExtension: "mp3") else { return }
+        
+        do {
+            typewriterPlayer = try AVAudioPlayer(contentsOf: url)
+            typewriterPlayer?.volume = 0.2
+            typewriterPlayer?.play()
+        } catch {
+            print("Failed to play typewriter: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Stop the typewriter sound immediately (called when text finishes or user skips)
+    func stopTypewriterSound() {
+        typewriterPlayer?.stop()
+        typewriterPlayer = nil
     }
     
     // MARK: - Scene Ambient Sounds

@@ -832,12 +832,14 @@ class GameEngine: ObservableObject {
         let fullText = line.text
         var charIndex = 0
         
-        // Single typing sound at the start of each line
-        SoundManager.shared.playTalkingSound()
+        // Start typewriter sound (stops any previous one)
+        SoundManager.shared.startTypewriterSound()
         
         Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] timer in
             guard let self = self, charIndex < fullText.count else {
                 timer.invalidate()
+                // Stop the typewriter sound the moment text is fully displayed
+                SoundManager.shared.stopTypewriterSound()
                 DispatchQueue.main.async {
                     self?.isTyping = false
                     // After typewriter finishes, show choices if this line has them
@@ -873,6 +875,7 @@ class GameEngine: ObservableObject {
         
         if isTyping {
             // Skip typewriter and show full text
+            SoundManager.shared.stopTypewriterSound()
             if currentDialogueIndex < currentDialogue.count {
                 let line = currentDialogue[currentDialogueIndex]
                 typewriterText = line.text
