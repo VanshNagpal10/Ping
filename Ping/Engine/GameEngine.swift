@@ -223,51 +223,14 @@ class GameEngine: ObservableObject {
             position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.35),
             name: "Firewall Blaze",
             dialogue: [
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "HALT! *scans you* ...Processing... Ah, outbound traffic.",
-                    emotion: "\u{1F6E1}\u{FE0F}"
-                ),
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "I'm a Firewall. Every single packet that enters or leaves this device has to pass through ME. I decide who gets in and who gets blocked.",
-                    emotion: "\u{1F6E1}\u{FE0F}",
-                    learnedTerm: EncyclopediaTerm.term(for: "firewall")
-                ),
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "Malware, hackers, suspicious connections \u{2014} I stop them all. Think of me as the bouncer of this phone.",
-                    emotion: "\u{1F6E1}\u{FE0F}"
-                ),
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "Wait... *narrows eyes* You're traveling with NO ENCRYPTION? That means anyone along the way can READ your data. That's dangerous!",
-                    emotion: "\u{1F6E1}\u{FE0F}",
-                    learnedTerm: EncyclopediaTerm.term(for: "https")
-                ),
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "I can't let you leave unprotected. You need SSL/TLS encryption \u{2014} it scrambles your data so only the destination can read it.",
-                    emotion: "\u{1F6E1}\u{FE0F}",
-                    learnedTerm: EncyclopediaTerm.term(for: "encryption")
-                ),
-                DialogueLine(
-                    speaker: "SYSTEM",
-                    text: "\u{1F6E1}\u{FE0F} SECURITY CHECK \u{2014} Tap your Security Layer (the lock slot) to equip SSL encryption!",
-                    emotion: nil,
-                    choices: nil,
-                    action: .showInventorySwap
-                ),
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "Now THAT's more like it! 🔒 With SSL, your data is wrapped in an encrypted tunnel. Hackers will only see gibberish. You're safe to go!",
-                    emotion: "\u{1F6E1}\u{FE0F}"
-                ),
-                DialogueLine(
-                    speaker: "Firewall Blaze",
-                    text: "See that massive antenna? That's the Wi-Fi transmitter. It'll convert you into radio waves and beam you to the router. It's a rush. Now GO!",
-                    emotion: "\u{1F6E1}\u{FE0F}"
-                )
+                DialogueLine(speaker: "Security Gateway", text: "Halt. Outbound packet detected. Scanning protocol headers...", emotion: "🛡️"),
+                DialogueLine(speaker: "Security Gateway", text: "I am the local Firewall. I monitor all incoming and outgoing network traffic based on strict security rules.", emotion: "🛡️", learnedTerm: EncyclopediaTerm.term(for: "firewall")),
+                DialogueLine(speaker: "Security Gateway", text: "⚠️ WARNING: You are attempting to transmit via HTTP. This plaintext protocol is unencrypted and vulnerable to interception.", emotion: "🛡️", learnedTerm: EncyclopediaTerm.term(for: "https")),
+                DialogueLine(speaker: "Security Gateway", text: "Access Denied. I cannot permit unsecured data to broadcast over open airwaves.", emotion: "🛡️"),
+                DialogueLine(speaker: "Security Gateway", text: "You must equip a TLS/SSL certificate to encrypt your payload. Open your Layer Inventory and upgrade your security protocol.", emotion: "🛡️", learnedTerm: EncyclopediaTerm.term(for: "encryption")),
+                DialogueLine(speaker: "SYSTEM", text: "🛡️ SECURITY CHECK — Tap your Layers menu (top right) to equip HTTPS encryption.", emotion: nil, action: .showInventorySwap),
+                DialogueLine(speaker: "Security Gateway", text: "Scan complete. SSL Certificate verified. Your data is now securely encrypted.", emotion: "🛡️"),
+                DialogueLine(speaker: "Security Gateway", text: "You are cleared for transmission. The antenna will convert your digital data into radio frequencies. Brace for broadcast.", emotion: "🛡️")
             ]
         )
         npcs.append(firewall)
@@ -306,89 +269,25 @@ class GameEngine: ObservableObject {
             position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.4),
             name: "Router Rex",
             dialogue: [
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "*stamps routing table* Well well, another packet! Welcome to the Router Station — the Grand Central Terminal of the internet.",
-                    emotion: "👮"
-                ),
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "I'm a Router. I read the destination on your HAT and figure out where to send you next. Millions of packets zoom through here every second!",
-                    emotion: "👮",
-                    learnedTerm: EncyclopediaTerm.term(for: "router")
-                ),
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "See those glowing rails? Each one is a different network path. Your data doesn't travel in one piece — it gets split into packets, each finding its own route!",
-                    emotion: "👮"
-                ),
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "Now, before I route you... I see you're wearing a TCP shirt. But you have a CHOICE to make, kid.",
-                    emotion: "👮"
-                ),
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "TCP is reliable — it checks every packet arrived, resends lost ones, keeps everything in order. But it's slower because of all those checks.",
-                    emotion: "👮",
-                    learnedTerm: EncyclopediaTerm.term(for: "tcp")
-                ),
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "UDP is the opposite — FAST, no waiting for confirmations. But if a packet gets lost? Gone forever. Great for video calls, risky for important data.",
-                    emotion: "👮",
-                    learnedTerm: EncyclopediaTerm.term(for: "udp")
-                ),
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "The ocean cable crossing is dangerous. So what'll it be?",
-                    emotion: "👮",
-                    choices: [
-                        DialogueChoice(
-                            text: "TCP — Stay Safe",
-                            nextDialogueIndex: 7,
-                            action: .setTransportProtocol(.tcp)
-                        ),
-                        DialogueChoice(
-                            text: "UDP — Go Fast",
-                            nextDialogueIndex: 9,
-                            action: .setTransportProtocol(.udp)
-                        )
-                    ]
-                ),
-                // Index 7: TCP path
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "Smart choice! TCP will make sure every piece of your data arrives intact. Slower, but you won't lose anything on the ocean floor.",
-                    emotion: "👮"
-                ),
-                // Index 8: shared ending
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "I'll route you through the undersea fiber optic cable — the Blue Line. Thousands of miles of glass fiber carrying 99% of the world's internet traffic!",
-                    emotion: "👮",
-                    learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")
-                ),
-                // Index 9: UDP path
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "Bold move! UDP is blazing fast — no waiting for confirmations. But if the ocean gets rough, you might lose some data. No take-backs!",
-                    emotion: "👮"
-                ),
-                // Index 10: UDP merges to shared ending (index 8)
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "I'll route you through the undersea fiber optic cable — the Blue Line. Thousands of miles of glass fiber carrying 99% of the world's internet traffic!",
-                    emotion: "👮",
-                    learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")
-                ),
-                // Index 11: final line (both paths)
-                DialogueLine(
-                    speaker: "Router Rex",
-                    text: "Head to the portal. And remember: every hop between routers adds LATENCY — tiny delays. The fewer hops, the faster the internet feels!",
-                    emotion: "👮",
-                    learnedTerm: EncyclopediaTerm.term(for: "latency")
-                )
+                DialogueLine(speaker: "Core Router", text: "Connection established. Welcome to the ISP Gateway Router. Analyzing network layer headers...", emotion: "📡"),
+                DialogueLine(speaker: "Core Router", text: "I read your destination IP and determine the most efficient path through the global network.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "router")),
+                DialogueLine(speaker: "Core Router", text: "You are scheduled for the transatlantic fiber-optic cable. Before I dispatch you, you must configure your Transport Layer.", emotion: "📡"),
+                DialogueLine(speaker: "Core Router", text: "TCP provides reliable delivery with error-checking, but introduces slight latency.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "tcp")),
+                DialogueLine(speaker: "Core Router", text: "UDP maximizes speed by skipping verification, but risks permanent data loss if turbulence occurs.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "udp")),
+                DialogueLine(speaker: "Core Router", text: "Select your routing protocol for the ocean crossing:", emotion: "📡", choices: [
+                    DialogueChoice(text: "TCP — Prioritize Reliability", nextDialogueIndex: 7, action: .setTransportProtocol(.tcp)),
+                    DialogueChoice(text: "UDP — Prioritize Speed", nextDialogueIndex: 9, action: .setTransportProtocol(.udp))
+                ]),
+                // Index 7 (TCP)
+                DialogueLine(speaker: "Core Router", text: "TCP acknowledged. Data integrity will be prioritized over speed.", emotion: "📡"),
+                // Index 8 (Shared)
+                DialogueLine(speaker: "Core Router", text: "Routing you into the undersea fiber-optic backbone. You will travel as pulses of light.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")),
+                // Index 9 (UDP)
+                DialogueLine(speaker: "Core Router", text: "UDP acknowledged. Verification disabled. Maximize transmission speed.", emotion: "📡"),
+                // Index 10 (UDP to Shared)
+                DialogueLine(speaker: "Core Router", text: "Routing you into the undersea fiber-optic backbone. You will travel as pulses of light.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")),
+                // Index 11 (Final)
+                DialogueLine(speaker: "Core Router", text: "Remember: every router hop adds physical latency. Proceed to the egress portal.", emotion: "📡", learnedTerm: EncyclopediaTerm.term(for: "latency"))
             ]
         )
         npcs.append(routerGuard)
@@ -421,40 +320,30 @@ class GameEngine: ObservableObject {
             height: 10
         ))
         
-        // UDP consequence: data loss event during ocean crossing
-        if stats.chosenProtocol == .udp {
-            // Trigger a data loss event after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-                guard let self = self, self.currentScene == .oceanCable else { return }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            guard let self = self, self.currentScene == .oceanCable else { return }
+            
+            if self.stats.chosenProtocol == .udp {
+                // Your existing UDP data loss event goes here...
                 self.stats.lostPacketData = true
-                
-                // Show warning dialogue about packet loss
                 self.currentDialogue = [
-                    DialogueLine(
-                        speaker: "SYSTEM",
-                        text: "⚠️ TURBULENCE! A rogue current hits you — and part of your data scatters into the deep!",
-                        emotion: nil
-                    ),
-                    DialogueLine(
-                        speaker: "SYSTEM",
-                        text: "🎒 Your Backpack (Application Layer) was damaged! Some payload data was lost. With UDP, there's no way to request a resend...",
-                        emotion: nil
-                    ),
-                    DialogueLine(
-                        speaker: "SYSTEM",
-                        text: "With TCP, lost packets get automatically resent. UDP trades that safety for raw speed. The data is gone forever.",
-                        emotion: nil
-                    ),
-                    DialogueLine(
-                        speaker: "SYSTEM",
-                        text: "Keep moving! You're still fast — but the feed might load with missing pieces. That's the UDP trade-off.",
-                        emotion: nil
-                    )
+                    DialogueLine(speaker: "SYSTEM", text: "⚠️ WARNING: Signal degradation detected in the fiber-optic line.", emotion: nil),
+                    DialogueLine(speaker: "SYSTEM", text: "UDP Protocol active. Packet loss detected. Missing packets cannot be re-requested.", emotion: nil),
+                    DialogueLine(speaker: "SYSTEM", text: "Payload integrity compromised. Proceeding to destination with degraded data...", emotion: nil)
                 ]
-                self.currentDialogueIndex = 0
-                self.isDialogueActive = true
-                self.showCurrentDialogueLine()
+            } else {
+                // NEW: TCP Recovery Event!
+                self.currentDialogue = [
+                    DialogueLine(speaker: "SYSTEM", text: "⚠️ WARNING: Signal degradation detected. TCP Checksum failed.", emotion: nil),
+                    DialogueLine(speaker: "SYSTEM", text: "🔄 TCP Protocol active: Automatically requesting retransmission from previous router...", emotion: nil, learnedTerm: EncyclopediaTerm.term(for: "tcp")),
+                    DialogueLine(speaker: "SYSTEM", text: "✅ Data recovered successfully. Latency increased by 14ms, but payload is 100% secure.", emotion: nil)
+                ]
             }
+            
+            self.currentDialogueIndex = 0
+            self.isDialogueActive = true
+            self.showCurrentDialogueLine()
         }
         
         let portal = InteractiveObject(
@@ -488,59 +377,15 @@ class GameEngine: ObservableObject {
             position: CGPoint(x: screenSize.width * 0.6, y: screenSize.height * 0.5),
             name: "Librarian DNS",
             dialogue: [
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "*adjusts holographic spectacles* A visitor from a smartphone! Welcome to the Domain Name System — the Grand Library of the Internet.",
-                    emotion: "📚",
-                    learnedTerm: EncyclopediaTerm.term(for: "dns")
-                ),
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "Every website you've ever visited? The browser asked ME first. Humans type names like 'socialmedia.com', but computers only understand numbers.",
-                    emotion: "📚"
-                ),
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "My job is to translate those human-readable names into IP addresses — the numerical addresses that computers use to find each other.",
-                    emotion: "📚"
-                ),
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "Now, you seek... *consults ancient glowing tome* ...socialmedia.com? Let me trace through the hierarchy...",
-                    emotion: "📚"
-                ),
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "First I check the ROOT servers (the 13 master directories of the internet), then the .COM registry, and finally the authoritative server for socialmedia.com...",
-                    emotion: "📚"
-                ),
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "*a book flies off the shelf* FOUND IT! The IP address is: 142.250.185.78. I'll cache this answer so the NEXT lookup is instant!",
-                    emotion: "📚",
-                    learnedTerm: EncyclopediaTerm.term(for: "ip_address")
-                ),
-                DialogueLine(
-                    speaker: "SYSTEM",
-                    text: "🎩 HAT Updated! Destination IP: 142.250.185.78 — Your network layer now has a complete address!",
-                    emotion: nil
-                ),
-                DialogueLine(
-                    speaker: "SYSTEM",
-                    text: "🎒 BACKPACK Updated! Now carrying: IP Response — Mission data acquired!",
-                    emotion: nil
-                ),
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "Now RUSH back! Every millisecond counts. To the human, this entire journey should feel instant. That's the magic of the internet — it's only fast because every piece works together.",
-                    emotion: "📚"
-                ),
-                DialogueLine(
-                    speaker: "Librarian DNS",
-                    text: "Fun fact: this whole DNS lookup? In real life it takes about 20-120 milliseconds. The human won't even notice. But for us? It's an EPIC quest.",
-                    emotion: "📚",
-                    learnedTerm: EncyclopediaTerm.term(for: "latency")
-                )
+                DialogueLine(speaker: "DNS Resolver", text: "Query received. Welcome to the Domain Name System.", emotion: "🖥️", learnedTerm: EncyclopediaTerm.term(for: "dns")),
+                DialogueLine(speaker: "DNS Resolver", text: "Computers communicate via numerical IP addresses. Humans use text-based URLs. I bridge that gap.", emotion: "🖥️"),
+                DialogueLine(speaker: "DNS Resolver", text: "Parsing application layer... You are requesting the host address for 'socialmedia.com'.", emotion: "🖥️"),
+                DialogueLine(speaker: "DNS Resolver", text: "Searching authoritative zones... Match found. Generating IP response.", emotion: "🖥️"),
+                DialogueLine(speaker: "DNS Resolver", text: "The IPv4 address is: 142.250.185.78. I am caching this result to expedite future lookups.", emotion: "🖥️", learnedTerm: EncyclopediaTerm.term(for: "ip_address")),
+                DialogueLine(speaker: "SYSTEM", text: "🎩 HAT Updated: Network Layer destination set to 142.250.185.78.", emotion: nil),
+                DialogueLine(speaker: "SYSTEM", text: "🎒 BACKPACK Updated: Payload swapped to IP Response Data.", emotion: nil),
+                DialogueLine(speaker: "DNS Resolver", text: "Your routing headers are complete. Initiate the return sequence immediately.", emotion: "🖥️"),
+                DialogueLine(speaker: "DNS Resolver", text: "The user's browser is waiting. If latency exceeds 500ms, the connection will time out.", emotion: "🖥️", learnedTerm: EncyclopediaTerm.term(for: "latency"))
             ]
         )
         npcs.append(librarian)
@@ -554,9 +399,23 @@ class GameEngine: ObservableObject {
     }
     
     private func setupReturnJourney() {
-        currentMission = "Race back through the network \u{2014} the user is waiting for their feed!"
+        currentMission = "Navigate through heavy network traffic — the user is waiting!"
         packet.layers.applicationLayer = .ipResponse
         packet.layers.networkLayer.destinationIP = "142.250.185.78"
+        
+        // Add a Load Balancer NPC to make Act 5 interactive
+        let loadBalancer = NPC(
+            type: .routerGuard, // You can reuse the router guard graphic
+            position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.5),
+            name: "Load Balancer",
+            dialogue: [
+                DialogueLine(speaker: "Load Balancer", text: "Incoming traffic detected. I am the local Load Balancer. Analyzing packet weight...", emotion: "🚥"),
+                DialogueLine(speaker: "Load Balancer", text: "You are carrying a full IP Response payload. The downlink to the user's device is currently experiencing high network congestion.", emotion: "🚥"),
+                DialogueLine(speaker: "Load Balancer", text: "Allocating bandwidth... Rerouting you to a high-priority express channel to avoid packet collision.", emotion: "🚥"),
+                DialogueLine(speaker: "Load Balancer", text: "Proceed to the final endpoint immediately. The interface is ready to render the data.", emotion: "🚥")
+            ]
+        )
+        npcs.append(loadBalancer)
         
         let portal = InteractiveObject(
             type: .portal,

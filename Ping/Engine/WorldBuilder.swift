@@ -18,13 +18,13 @@ struct WorldBuilder {
         manager.clearSceneContent()
         
         switch scene {
-        case .cpuCity:       buildCPUCity(in: manager)
-        case .wifiAntenna:   buildWiFiAntenna(in: manager)
-        case .routerStation: buildRouterStation(in: manager)
-        case .oceanCable:    buildOceanCable(in: manager)
-        case .dnsLibrary:    buildDNSLibrary(in: manager)
-        case .returnJourney: buildReturnJourney(in: manager)
-        default:             buildDefaultFloor(in: manager)
+            case .cpuCity:       buildCPUCity(in: manager)
+            case .wifiAntenna:   buildWiFiAntenna(in: manager)
+            case .routerStation: buildRouterStation(in: manager)
+            case .oceanCable:    buildOceanCable(in: manager)
+            case .dnsLibrary:    buildDNSLibrary(in: manager)
+            case .returnJourney: buildReturnJourney(in: manager)
+            default:             buildDefaultFloor(in: manager)
         }
     }
     
