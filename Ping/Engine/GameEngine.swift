@@ -78,6 +78,8 @@ class GameEngine: ObservableObject {
     }
     
     func transitionToScene(_ scene: StoryScene) {
+        SoundManager.shared.playPortalSound()
+        
         withAnimation(.easeInOut(duration: 0.5)) {
             currentScene = scene
             stats.scenesVisited.append(scene)
@@ -86,6 +88,7 @@ class GameEngine: ObservableObject {
         // Setup scene content
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.setupSceneContent(for: scene)
+            SoundManager.shared.playAmbientSound(for: scene)
         }
     }
     
@@ -829,6 +832,9 @@ class GameEngine: ObservableObject {
         let fullText = line.text
         var charIndex = 0
         
+        // Single typing sound at the start of each line
+        SoundManager.shared.playTalkingSound()
+        
         Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] timer in
             guard let self = self, charIndex < fullText.count else {
                 timer.invalidate()
@@ -851,6 +857,11 @@ class GameEngine: ObservableObject {
             let index = fullText.index(fullText.startIndex, offsetBy: charIndex)
             self.typewriterText += String(fullText[index])
             charIndex += 1
+            
+            // Haptic tick every 3rd character for subtle typing feel
+            if charIndex % 3 == 0 {
+                SoundManager.shared.playTypingHaptic()
+            }
         }
     }
     
@@ -885,6 +896,7 @@ class GameEngine: ObservableObject {
     
     /// Called when the player selects a dialogue choice
     func selectChoice(_ choice: DialogueChoice) {
+        SoundManager.shared.playButtonSound()
         stats.choicesMade.append(choice.text)
         
         // Execute the choice's action
@@ -1010,6 +1022,8 @@ class GameEngine: ObservableObject {
             stats.termsLearned.append(term)
             latestTerm = term
             
+            SoundManager.shared.playTermLearnedSound()
+            
             withAnimation(.spring()) {
                 showNewTermPopup = true
             }
@@ -1029,6 +1043,7 @@ class GameEngine: ObservableObject {
     
     func startGame() {
         stats = JourneyStats()
+        SoundManager.shared.playPortalSound()
         transitionTo3DScene(.cpuCity)
     }
     
@@ -1050,6 +1065,8 @@ class GameEngine: ObservableObject {
     
     func completeMission() {
         stats.missionComplete = true
+        SoundManager.shared.playMissionCompleteSound()
+        SoundManager.shared.stopBGM()
         phase = .epilogue
     }
     
@@ -1203,6 +1220,8 @@ class GameEngine: ObservableObject {
         gameLoop3DTimer = nil
         packet.isMoving = false
         
+        SoundManager.shared.playPortalSound()
+        
         // Mark as setup so ExplorationView3D.onAppear won't double-build
         has3DSceneBeenSetup = true
         
@@ -1213,5 +1232,7 @@ class GameEngine: ObservableObject {
         // then build 3D world synchronously to avoid race conditions
         setupSceneContent(for: scene)
         build3DWorld(for: scene)
+        
+        SoundManager.shared.playAmbientSound(for: scene)
     }
 }

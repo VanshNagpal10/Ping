@@ -181,7 +181,12 @@ struct QuizOverlay: View {
             // Brief delay then reveal answer
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 answeredCorrectly = index == question.correctIndex
-                if answeredCorrectly { correctCount += 1 }
+                if answeredCorrectly {
+                    correctCount += 1
+                    SoundManager.shared.playQuizCorrectSound()
+                } else {
+                    SoundManager.shared.playQuizWrongSound()
+                }
                 totalAnswered += 1
                 
                 // Record result

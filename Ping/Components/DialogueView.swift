@@ -348,6 +348,7 @@ struct ExplorationHUD: View {
     let termsCount: Int
     let onEncyclopedia: () -> Void
     let onInventory: () -> Void
+    @ObservedObject private var soundManager = SoundManager.shared
     
     var body: some View {
         VStack {
@@ -417,6 +418,24 @@ struct ExplorationHUD: View {
                                 .foregroundColor(.cyan)
                             
                             Text("Layers")
+                                .font(.system(size: 9, design: .rounded))
+                                .foregroundColor(.gray)
+                        }
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.black.opacity(0.5))
+                        )
+                    }
+                    
+                    // Mute Toggle
+                    Button(action: { soundManager.toggleMute() }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: soundManager.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                                .font(.title2)
+                                .foregroundColor(soundManager.isMuted ? .gray : .orange)
+                            
+                            Text(soundManager.isMuted ? "Muted" : "Sound")
                                 .font(.system(size: 9, design: .rounded))
                                 .foregroundColor(.gray)
                         }
