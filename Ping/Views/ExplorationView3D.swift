@@ -71,6 +71,12 @@ struct ExplorationView3D: View {
                     DialogueOverlay(engine: engine)
                 }
                 
+                // Quiz overlay (appears before scene transitions)
+                if engine.showQuiz {
+                    QuizOverlay(engine: engine, scene: engine.quizScene)
+                        .transition(.opacity)
+                }
+                
                 // Layer inventory panel
                 if engine.showLayerInventory {
                     LayerInventoryPanel(

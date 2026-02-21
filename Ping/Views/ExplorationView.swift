@@ -66,6 +66,12 @@ struct ExplorationView: View {
                     DialogueOverlay(engine: engine)
                 }
                 
+                // Quiz overlay
+                if engine.showQuiz {
+                    QuizOverlay(engine: engine, scene: engine.quizScene)
+                        .transition(.opacity)
+                }
+                
                 // Layer inventory panel
                 if engine.showLayerInventory {
                     LayerInventoryPanel(

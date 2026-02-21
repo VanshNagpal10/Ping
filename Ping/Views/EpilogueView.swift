@@ -863,6 +863,17 @@ struct JourneyStatsPanel: View {
                         revealed: revealedStats >= 5
                     )
                     .frame(maxWidth: .infinity)
+                    
+                    StatDivider(color: accentColor)
+                    
+                    StatBadge(
+                        icon: "brain.head.profile",
+                        value: "\(Int(stats.quizAccuracy * 100))%",
+                        label: "Quiz",
+                        accent: stats.quizAccuracy >= 0.8 ? .green : stats.quizAccuracy >= 0.5 ? .yellow : .orange,
+                        revealed: revealedStats >= 5
+                    )
+                    .frame(maxWidth: .infinity)
                 }
             }
         }

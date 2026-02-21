@@ -522,7 +522,7 @@ extension EncyclopediaTerm {
         EncyclopediaTerm(
             id: "dns",
             term: "DNS",
-            definition: "Domain Name System — the internet's phone book. When you type 'google.com', DNS translates that into a numeric IP address (like 142.250.185.78) that computers understand. Without DNS, you'd have to memorize numbers for every website!",
+            definition: "Domain Name System - the internet's phone book. When you type 'google.com', DNS translates that into a numeric IP address (like 142.250.185.78) that computers understand. Without DNS, you'd have to memorize numbers for every website!",
             icon: "📚",
             category: .infrastructure
         ),

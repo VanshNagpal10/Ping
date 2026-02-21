@@ -46,6 +46,11 @@ class GameEngine: ObservableObject {
     @Published var nearPortal: Bool = false
     private var pendingPortalScene: StoryScene? = nil
     
+    // Quiz State
+    @Published var showQuiz: Bool = false
+    @Published var quizScene: StoryScene = .frozenCafe       // which scene's quiz is showing
+    private var pendingSceneAfterQuiz: StoryScene? = nil     // scene to transition to after quiz
+    
     // Movement
     private var moveTimer: Timer?
     private let moveSpeed: CGFloat = 5.0
@@ -745,7 +750,7 @@ class GameEngine: ObservableObject {
             
             if distance < 60 && obj.type == .portal, let sceneString = obj.data {
                 if let scene = StoryScene(rawValue: sceneString) {
-                    transitionToScene(scene)
+                    triggerSceneTransition(to: scene)
                 }
             }
         }
@@ -947,6 +952,57 @@ class GameEngine: ObservableObject {
         inventorySwapCompleted = false
     }
     
+    // MARK: - Quiz System
+    
+    /// Decides whether to show a quiz or transition directly.
+    /// Called by both 2D and 3D portal paths.
+    private func triggerSceneTransition(to nextScene: StoryScene, is3D: Bool = false) {
+        let quizQuestions = LevelQuizzes.quiz(for: currentScene)
+        
+        if !quizQuestions.isEmpty {
+            // Store where to go after quiz
+            pendingSceneAfterQuiz = nextScene
+            quizScene = currentScene
+            
+            // Stop movement
+            joystickDirection = .zero
+            gameLoop3DTimer?.invalidate()
+            gameLoop3DTimer = nil
+            gameLoopTimer?.invalidate()
+            gameLoopTimer = nil
+            packet.isMoving = false
+            
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showQuiz = true
+            }
+        } else {
+            // No quiz for this scene — go straight
+            if is3D {
+                transitionTo3DScene(nextScene)
+            } else {
+                transitionToScene(nextScene)
+            }
+        }
+    }
+    
+    /// Record a single quiz answer.
+    func recordQuizResult(_ result: QuizResult) {
+        stats.quizResults.append(result)
+    }
+    
+    /// Called when the quiz results screen is dismissed.
+    func dismissQuiz() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showQuiz = false
+        }
+        
+        // Transition to the pending scene
+        if let next = pendingSceneAfterQuiz {
+            pendingSceneAfterQuiz = nil
+            transitionTo3DScene(next)
+        }
+    }
+    
     // MARK: - Encyclopedia
     func learnTerm(_ term: EncyclopediaTerm) {
         if !learnedTerms.contains(term) {
@@ -1137,7 +1193,7 @@ class GameEngine: ObservableObject {
         guard let scene = pendingPortalScene else { return }
         nearPortal = false
         pendingPortalScene = nil
-        transitionTo3DScene(scene)
+        triggerSceneTransition(to: scene, is3D: true)
     }
     
     func transitionTo3DScene(_ scene: StoryScene) {
