@@ -1105,10 +1105,11 @@ struct WorldBuilder {
         for shelf in shelfPositions {
             let shelfNode = SCNNode()
             
-            // Frame — dark metallic (cyberpunk style)
+            // Frame — dark metallic (cyberpunk style) with violet edge glow
             let frame = SCNBox(width: 2.2, height: shelf.h, length: 0.7, chamferRadius: 0.03)
             let frameMat = SCNMaterial()
             frameMat.diffuse.contents = shelfColor
+            frameMat.emission.contents = P.violet.withAlphaComponent(0.08)
             frameMat.roughness.contents = 0.4
             frameMat.metalness.contents = 0.6
             frame.materials = [frameMat]
@@ -1120,13 +1121,25 @@ struct WorldBuilder {
             let wireFrame = SCNBox(width: 2.22, height: shelf.h + 0.02, length: 0.72, chamferRadius: 0.04)
             let wireMat = SCNMaterial()
             wireMat.diffuse.contents = UIColor.clear
-            wireMat.emission.contents = P.violet.withAlphaComponent(0.5)
+            wireMat.emission.contents = P.violet.withAlphaComponent(0.7)
             wireMat.fillMode = .lines
-            wireMat.transparency = 0.08
+            wireMat.transparency = 0.5
             wireFrame.materials = [wireMat]
             let wireNode = SCNNode(geometry: wireFrame)
             wireNode.position = SCNVector3(0, Float(shelf.h / 2), 0)
             shelfNode.addChildNode(wireNode)
+            
+            // Small omni light on each shelf so books are visible
+            let shelfLight = SCNLight()
+            shelfLight.type = .omni
+            shelfLight.color = P.violet
+            shelfLight.intensity = 80
+            shelfLight.attenuationStartDistance = 0.5
+            shelfLight.attenuationEndDistance = 5
+            let shelfLightNode = SCNNode()
+            shelfLightNode.light = shelfLight
+            shelfLightNode.position = SCNVector3(0, Float(shelf.h / 2), 1.0)
+            shelfNode.addChildNode(shelfLightNode)
             
             // Books — colorful spines
             let bookCount = max(1, Int(shelf.h) - 1)
@@ -1135,8 +1148,8 @@ struct WorldBuilder {
                     let bookColor: UIColor = [P.coral, P.violet, P.cyan, P.amber, P.magenta, P.lime].randomElement()!
                     let book = SCNBox(width: 0.3, height: 0.6, length: 0.5, chamferRadius: 0.01)
                     let bMat = SCNMaterial()
-                    bMat.diffuse.contents = bookColor.withAlphaComponent(0.5)
-                    bMat.emission.contents = bookColor.withAlphaComponent(0.1)
+                    bMat.diffuse.contents = bookColor.withAlphaComponent(0.6)
+                    bMat.emission.contents = bookColor.withAlphaComponent(0.35)
                     book.materials = [bMat]
                     let bNode = SCNNode(geometry: book)
                     bNode.position = SCNVector3(Float(col) * 0.4 - 0.6, Float(row) + 0.5, 0)
@@ -1153,6 +1166,7 @@ struct WorldBuilder {
         let desk = SCNBox(width: 4, height: 0.8, length: 2.5, chamferRadius: 0.08)
         let deskMat = SCNMaterial()
         deskMat.diffuse.contents = P.charcoal
+        deskMat.emission.contents = P.violet.withAlphaComponent(0.06)
         deskMat.roughness.contents = 0.35
         deskMat.metalness.contents = 0.55
         desk.materials = [deskMat]
@@ -1165,13 +1179,28 @@ struct WorldBuilder {
         let deskLight = SCNLight()
         deskLight.type = .omni
         deskLight.color = P.violet
-        deskLight.intensity = 300
-        deskLight.attenuationStartDistance = 1
-        deskLight.attenuationEndDistance = 6
+        deskLight.intensity = 600
+        deskLight.attenuationStartDistance = 2
+        deskLight.attenuationEndDistance = 12
         let deskLightNode = SCNNode()
         deskLightNode.light = deskLight
-        deskLightNode.position = SCNVector3(0, 2, 0)
+        deskLightNode.position = SCNVector3(0, 3, 0)
         root.addChildNode(deskLightNode)
+        
+        // Scene-wide violet spot lights for visibility
+        let librarySpots: [(x: Float, z: Float)] = [(-10, -5), (-10, 5), (10, -5), (10, 5), (0, -8), (0, 8)]
+        for spot in librarySpots {
+            let sLight = SCNLight()
+            sLight.type = .omni
+            sLight.color = P.violet
+            sLight.intensity = 200
+            sLight.attenuationStartDistance = 3
+            sLight.attenuationEndDistance = 14
+            let sNode = SCNNode()
+            sNode.light = sLight
+            sNode.position = SCNVector3(spot.x, 5, spot.z)
+            root.addChildNode(sNode)
+        }
         
         // Floating knowledge orbs
         for _ in 0..<12 {
