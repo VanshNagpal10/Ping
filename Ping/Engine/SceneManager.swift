@@ -315,17 +315,11 @@ class SceneManager: ObservableObject {
         
         playerNode.position = SCNVector3(finalX, playerNode.position.y, finalZ)
         
-        // Rotate to face movement direction
+        // Rotate to face movement direction (quaternion slerp — no gimbal flip)
         if abs(dx) > 0.001 || abs(dz) > 0.001 {
             let angle = atan2(dx, dz)
-            let rotateAction = SCNAction.rotateTo(
-                x: 0,
-                y: CGFloat(angle),
-                z: 0,
-                duration: 0.15,
-                usesShortestUnitArc: true
-            )
-            playerNode.runAction(rotateAction, forKey: "rotate")
+            let target = simd_quatf(angle: angle, axis: simd_float3(0, 1, 0))
+            playerNode.simdOrientation = simd_slerp(playerNode.simdOrientation, target, 0.25)
         }
         
         // Camera follow smoothly
@@ -542,6 +536,13 @@ class SceneManager: ObservableObject {
         
         portal.position = position
         portalNodes[id] = portal
+        // Gentle floating animation for the whole portal
+        let floatAction = SCNAction.sequence([
+            SCNAction.moveBy(x: 0, y: 0.2, z: 0, duration: 1.5),
+            SCNAction.moveBy(x: 0, y: -0.2, z: 0, duration: 1.5)
+        ])
+        floatAction.timingMode = .easeInEaseOut
+        portal.runAction(SCNAction.repeatForever(floatAction))
         scene.rootNode.addChildNode(portal)
     }
     

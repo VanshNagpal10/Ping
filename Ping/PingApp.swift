@@ -1,4 +1,3 @@
-//
 //  PingApp.swift
 //  Ping - Packet World
 //
@@ -22,7 +21,10 @@ struct PingApp: App {
                     // Request landscape on first window scene
                     guard let windowScene = UIApplication.shared.connectedScenes
                         .compactMap({ $0 as? UIWindowScene }).first else { return }
-                    windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape))
+                    
+                    windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape)) { error in
+                        print("Failed to request landscape orientation: \(error)")
+                    }
                 }
                 #endif
         }

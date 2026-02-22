@@ -289,65 +289,76 @@ struct WorldBuilder {
         let yMin = yRange.lowerBound == 0 && yRange.upperBound == 0 ? Float(0) : yRange.lowerBound
         let yMax = yRange.lowerBound == 0 && yRange.upperBound == 0 ? Float(0) : yRange.upperBound
         
+        // --- OPTIMIZATION: Create base geometries ONCE ---
+        let baseBody = SCNBox(width: 0.6, height: 0.7, length: 0.5, chamferRadius: 0.1)
+        let bodyMat = SCNMaterial()
+        bodyMat.diffuse.contents = UIColor(red: 0.12, green: 0.1, blue: 0.2, alpha: 1)
+        bodyMat.metalness.contents = 0.5
+        bodyMat.roughness.contents = 0.3
+        baseBody.materials = [bodyMat]
+        
+        let baseHead = SCNBox(width: 0.5, height: 0.35, length: 0.4, chamferRadius: 0.1)
+        let headMat = SCNMaterial()
+        headMat.diffuse.contents = UIColor(red: 0.14, green: 0.12, blue: 0.24, alpha: 1)
+        headMat.metalness.contents = 0.5
+        baseHead.materials = [headMat]
+        
+        let baseEye = SCNSphere(radius: 0.03)
+        let baseStripe = SCNBox(width: 0.62, height: 0.03, length: 0.52, chamferRadius: 0.1)
+        let baseVisor = SCNBox(width: 0.38, height: 0.16, length: 0.02, chamferRadius: 0.04)
+        // --------------------------------------------------
+        
         for i in 0..<count {
             let color = colors[i % colors.count]
-            let scale = Float.random(in: 0.25...0.4) // Small relative to player
-            
+            let scale = Float.random(in: 0.25...0.4)
             let packetNode = SCNNode()
             
-            // Body — rounded box
-            let body = SCNBox(width: CGFloat(0.6 * scale), height: CGFloat(0.7 * scale), length: CGFloat(0.5 * scale), chamferRadius: CGFloat(0.1 * scale))
-            let bodyMat = SCNMaterial()
-            bodyMat.diffuse.contents = UIColor(red: 0.12, green: 0.1, blue: 0.2, alpha: 1)
-            bodyMat.metalness.contents = 0.5
-            bodyMat.roughness.contents = 0.3
-            body.materials = [bodyMat]
-            let bodyNode = SCNNode(geometry: body)
-            bodyNode.position = SCNVector3(0, 0.35 * scale, 0)
+            // Body
+            let bodyNode = SCNNode(geometry: baseBody)
+            bodyNode.position = SCNVector3(0, 0.35, 0)
             packetNode.addChildNode(bodyNode)
             
-            // Head — smaller rounded box
-            let head = SCNBox(width: CGFloat(0.5 * scale), height: CGFloat(0.35 * scale), length: CGFloat(0.4 * scale), chamferRadius: CGFloat(0.1 * scale))
-            let headMat = SCNMaterial()
-            headMat.diffuse.contents = UIColor(red: 0.14, green: 0.12, blue: 0.24, alpha: 1)
-            headMat.metalness.contents = 0.5
-            head.materials = [headMat]
-            let headNode = SCNNode(geometry: head)
-            headNode.position = SCNVector3(0, 0.78 * scale, 0)
+            // Head
+            let headNode = SCNNode(geometry: baseHead)
+            headNode.position = SCNVector3(0, 0.78, 0)
             packetNode.addChildNode(headNode)
             
-            // Visor — colored glow plate (this is what makes each packet distinct)
-            let visor = SCNBox(width: CGFloat(0.38 * scale), height: CGFloat(0.16 * scale), length: CGFloat(0.02 * scale), chamferRadius: CGFloat(0.04 * scale))
+            // Visor (Needs unique material per color)
             let visorMat = SCNMaterial()
             visorMat.diffuse.contents = color.withAlphaComponent(0.3)
             visorMat.emission.contents = color
-            visor.materials = [visorMat]
-            let visorNode = SCNNode(geometry: visor)
-            visorNode.position = SCNVector3(0, 0.76 * scale, 0.22 * scale)
+            let visorNode = SCNNode(geometry: baseVisor)
+            visorNode.geometry?.materials = [visorMat]
+            visorNode.position = SCNVector3(0, 0.76, 0.22)
             packetNode.addChildNode(visorNode)
             
-            // Tiny eyes
-            let eyeGeo = SCNSphere(radius: CGFloat(0.03 * scale))
+            // Eyes (Needs unique material per color)
             let eyeMat = SCNMaterial()
             eyeMat.diffuse.contents = color
             eyeMat.emission.contents = color
-            eyeGeo.materials = [eyeMat]
-            let leftEye = SCNNode(geometry: eyeGeo)
-            leftEye.position = SCNVector3(-0.08 * scale, 0.78 * scale, 0.21 * scale)
-            let rightEye = SCNNode(geometry: eyeGeo)
-            rightEye.position = SCNVector3(0.08 * scale, 0.78 * scale, 0.21 * scale)
+            
+            let leftEye = SCNNode(geometry: baseEye)
+            leftEye.geometry?.materials = [eyeMat]
+            leftEye.position = SCNVector3(-0.08, 0.78, 0.21)
+            
+            let rightEye = SCNNode(geometry: baseEye)
+            rightEye.geometry?.materials = [eyeMat]
+            rightEye.position = SCNVector3(0.08, 0.78, 0.21)
+            
             packetNode.addChildNode(leftEye)
             packetNode.addChildNode(rightEye)
             
-            // Accent stripe on body
-            let stripe = SCNBox(width: CGFloat(0.62 * scale), height: CGFloat(0.03 * scale), length: CGFloat(0.52 * scale), chamferRadius: CGFloat(0.1 * scale))
+            // Stripe
             let stripeMat = SCNMaterial()
             stripeMat.diffuse.contents = color.withAlphaComponent(0.2)
             stripeMat.emission.contents = color
-            stripe.materials = [stripeMat]
-            let stripeNode = SCNNode(geometry: stripe)
-            stripeNode.position = SCNVector3(0, 0.3 * scale, 0)
+            let stripeNode = SCNNode(geometry: baseStripe)
+            stripeNode.geometry?.materials = [stripeMat]
+            stripeNode.position = SCNVector3(0, 0.3, 0)
             packetNode.addChildNode(stripeNode)
+            
+            // Scale the whole packet at once instead of multiplying every float
+            packetNode.scale = SCNVector3(scale, scale, scale)
             
             // Small ground glow
             if i % 3 == 0 {
@@ -359,7 +370,7 @@ struct WorldBuilder {
                 glow.attenuationEndDistance = 2.0
                 let glowNode = SCNNode()
                 glowNode.light = glow
-                glowNode.position = SCNVector3(0, 0.4 * scale, 0)
+                glowNode.position = SCNVector3(0, 0.4, 0)
                 packetNode.addChildNode(glowNode)
             }
             
@@ -384,11 +395,10 @@ struct WorldBuilder {
             
             // Subtle hover bob
             let bob = SCNAction.sequence([
-                SCNAction.moveBy(x: 0, y: CGFloat(0.08 * scale), z: 0, duration: 0.6),
-                SCNAction.moveBy(x: 0, y: CGFloat(-0.08 * scale), z: 0, duration: 0.6)
+                SCNAction.moveBy(x: 0, y: 0.08, z: 0, duration: 0.6),
+                SCNAction.moveBy(x: 0, y: -0.08, z: 0, duration: 0.6)
             ])
-            bodyNode.runAction(SCNAction.repeatForever(bob))
-            headNode.runAction(SCNAction.repeatForever(bob))
+            packetNode.runAction(SCNAction.repeatForever(bob))
             
             root.addChildNode(packetNode)
         }
@@ -1280,6 +1290,34 @@ struct WorldBuilder {
         makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.coral, yRange: 0.5...3.5, flowDirection: SCNVector3(-1, 0, 0))
         
         manager.resetPlayerPosition(to: SCNVector3(-12, 0, 0))
+        // Data Congestion Blocks (Obstacles)
+        let blockPositions: [(x: Float, z: Float)] = [
+            (-5, -2), (2, 3), (8, -4)
+        ]
+        for pos in blockPositions {
+            let block = SCNBox(width: 2, height: 2, length: 2, chamferRadius: 0.2)
+            let bMat = SCNMaterial()
+            bMat.diffuse.contents = UIColor(red: 0.2, green: 0.05, blue: 0.05, alpha: 1)
+            bMat.emission.contents = P.coral.withAlphaComponent(0.2)
+            bMat.metalness.contents = 0.8
+            block.materials = [bMat]
+            
+            let bNode = SCNNode(geometry: block)
+            bNode.position = SCNVector3(pos.x, 1, pos.z)
+            
+            // Add a warning light to the block
+            let warnLight = SCNLight()
+            warnLight.type = .omni
+            warnLight.color = P.coral
+            warnLight.intensity = 150
+            let wNode = SCNNode()
+            wNode.light = warnLight
+            wNode.position = SCNVector3(0, 1.5, 0)
+            bNode.addChildNode(wNode)
+            
+            root.addChildNode(bNode)
+            registerBox(manager, x: pos.x, z: pos.z, w: 2.2, l: 2.2) // slightly larger collision box
+        }
     }
     
     // MARK: - Default Floor (Fallback)

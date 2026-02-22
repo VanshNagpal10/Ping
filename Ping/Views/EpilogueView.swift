@@ -2,7 +2,7 @@
 //  EpilogueView.swift
 //  Ping - Packet World
 //
-//  Mission complete — the coffee cup finally falls.
+//  Mission complete — the payload is delivered.
 //  Full cyberpunk epilogue with cinematic sequence,
 //  animated stats, journey recap, and replay prompt.
 //
@@ -22,9 +22,7 @@ struct EpilogueView: View {
 
     // Phase timing
     @State private var phase: EpiloguePhase = .blackout
-    @State private var showCoffee = false
-    @State private var coffeeFall: CGFloat = 0
-    @State private var showSmile = false
+    @State private var showDevice = false
     @State private var feedLoaded = false
     @State private var showMissionComplete = false
     @State private var showSubtitle = false
@@ -38,7 +36,7 @@ struct EpilogueView: View {
     @State private var particleSeed: Double = 0
     
     private enum EpiloguePhase {
-        case blackout, cafeScene, missionTitle, statsReveal
+        case blackout, deliveryScene, missionTitle, statsReveal
     }
 
     var body: some View {
@@ -48,7 +46,7 @@ struct EpilogueView: View {
                 Color(red: 0.02, green: 0.01, blue: 0.06)
                     .ignoresSafeArea()
 
-                // ── Layer 1: Cyber grid floor (same as prologue) ──
+                // ── Layer 1: Cyber grid floor ──
                 EpilogueCyberGrid(scroll: gridScroll, color: nCyan)
                     .opacity(phase != .blackout ? 0.25 : 0)
 
@@ -73,31 +71,21 @@ struct EpilogueView: View {
                 EpilogueScanLines()
                     .opacity(phase != .blackout ? 0.05 : 0)
 
-                // ── Layer 6: Café scene (girl + coffee + phone) ──
+                // ── Layer 6: Holographic Device (Center) ──
                 VStack {
                     Spacer()
-                    HStack(spacing: 36) {
-                        // Coffee cup falling & splashing
-                        ZStack {
-                            if showCoffee {
-                                FallingCoffeeCup(fallProgress: coffeeFall, accentColor: nAmber)
-                                if coffeeFall >= 1.0 {
-                                    CoffeeSplash(accentColor: nAmber)
-                                        .transition(.scale.combined(with: .opacity))
-                                }
-                            }
-                        }
-                        .frame(width: 80)
-                        .offset(y: -80)
-
-                        // The girl — now smiling
-                        EpilogueGirl(smiling: showSmile, feedLoaded: feedLoaded, accentColor: nCyan, magentaColor: nMagenta)
+                    if showDevice {
+                        HolographicFeedView(
+                            isLoaded: feedLoaded,
+                            cyan: nCyan,
+                            magenta: nMagenta
+                        )
+                        .transition(.scale(scale: 0.8).combined(with: .opacity))
                     }
-                    .padding(.bottom, geo.size.height * 0.13)
+                    Spacer().frame(height: geo.size.height * 0.15)
                 }
-                .opacity(phase == .blackout ? 0 : 1)
 
-                // ── Layer 7: Expanding ring pulses behind title ──
+                // ── Layer 7: Expanding ring pulses ──
                 if showMissionComplete {
                     ForEach(0..<3, id: \.self) { i in
                         Circle()
@@ -136,26 +124,20 @@ struct EpilogueView: View {
                     }
 
                     if showSubtitle {
-                        EpilogueTypewriterText(
-                            text: "The feed loaded in the blink of an eye.",
+                        EpilogueSafeTypewriter(
+                            text: "Payload delivered. The feed loaded in 114ms.",
                             font: .system(size: 16, weight: .regular, design: .monospaced)
                         )
                         .foregroundColor(.white.opacity(0.6))
                         .shadow(color: nCyan.opacity(0.2), radius: 8)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                        .transition(.opacity)
                     }
 
                     if showPerspective {
-                        EpilogueTypewriterText(
-                            text: "To her, it was instant. To you, it was an adventure.",
+                        EpilogueSafeTypewriter(
+                            text: "To the user, it was instant. To you, it was an epic journey.",
                             font: .system(size: 13, weight: .medium, design: .monospaced)
                         )
-                        .foregroundColor(nMagenta.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                        .transition(.opacity)
+                        .foregroundColor(nMagenta.opacity(0.8))
                     }
 
                     Spacer()
@@ -188,7 +170,10 @@ struct EpilogueView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
 
                         if showReplay {
-                            Button(action: onReplay) {
+                            Button(action: {
+                                SoundManager.shared.playButtonSound()
+                                onReplay()
+                            }) {
                                 HStack(spacing: 12) {
                                     Text("Replay Journey")
                                         .font(.system(size: 17, weight: .bold, design: .monospaced))
@@ -210,10 +195,7 @@ struct EpilogueView: View {
                                             )
                                         )
                                 )
-                                .overlay(
-                                    Capsule()
-                                        .stroke(nCyan.opacity(0.6), lineWidth: 1)
-                                )
+                                .overlay(Capsule().stroke(nCyan.opacity(0.6), lineWidth: 1))
                                 .shadow(color: nCyan.opacity(0.5), radius: 25, y: 4)
                                 .shadow(color: nMagenta.opacity(0.15), radius: 40, y: 8)
                             }
@@ -226,7 +208,7 @@ struct EpilogueView: View {
                     }
                 }
 
-                // ── Layer 10: Title badge (top-left, matches prologue) ──
+                // ── Layer 10: Title badge ──
                 VStack {
                     HStack {
                         VStack(alignment: .leading, spacing: 3) {
@@ -255,36 +237,35 @@ struct EpilogueView: View {
 
     // MARK: – Cinematic Timeline
     private func startEpilogue() {
-        // Continuous grid scroll
+        SoundManager.shared.playAmbientSound(for: .cpuCity) // Switch back to a cool synth
+        
         withAnimation(.linear(duration: 25).repeatForever(autoreverses: false)) {
             gridScroll = 1
         }
 
         // 0.0s — Fade in scene
         withAnimation(.easeOut(duration: 1.0)) {
-            phase = .cafeScene
+            phase = .deliveryScene
         }
 
-        // 0.4s — Coffee appears
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            withAnimation(.easeIn(duration: 0.3)) { showCoffee = true }
+        // 0.5s — Holographic Device appears
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                showDevice = true
+            }
         }
 
-        // 0.8s — Coffee falls
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            withAnimation(.easeIn(duration: 0.7)) { coffeeFall = 1.0 }
-        }
-
-        // 1.6s — Girl smiles, feed loads
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+        // 1.5s — Feed Loads on device
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            SoundManager.shared.playMissionCompleteSound() // Success chime!
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                showSmile = true
                 feedLoaded = true
             }
         }
 
-        // 2.4s — MISSION COMPLETE title
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) {
+        // 2.5s — MISSION COMPLETE title drops
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            SoundManager.shared.playPortalSound() // Heavy boom
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                 phase = .missionTitle
                 showMissionComplete = true
@@ -294,31 +275,31 @@ struct EpilogueView: View {
             }
         }
 
-        // 3.4s — Subtitle typewriter
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.4) {
+        // 3.5s — Subtitle typewriter
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
             withAnimation(.easeIn(duration: 0.6)) { showSubtitle = true }
         }
 
-        // 5.0s — Perspective line
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        // 5.5s — Perspective line
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
             withAnimation(.easeIn(duration: 0.6)) { showPerspective = true }
         }
 
-        // 6.6s — Stats panel
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6.6) {
+        // 7.5s — Stats panel
+        DispatchQueue.main.asyncAfter(deadline: .now() + 7.5) {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 phase = .statsReveal
                 showStats = true
             }
         }
 
-        // 7.2s — Journey route
-        DispatchQueue.main.asyncAfter(deadline: .now() + 7.2) {
+        // 8.2s — Journey route
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8.2) {
             withAnimation(.easeOut(duration: 0.6)) { showJourneyRoute = true }
         }
 
-        // 8.0s — Replay button
-        DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) {
+        // 9.0s — Replay button
+        DispatchQueue.main.asyncAfter(deadline: .now() + 9.0) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 showReplay = true
             }
@@ -329,8 +310,123 @@ struct EpilogueView: View {
     }
 }
 
+// MARK: - Holographic Feed View
+struct HolographicFeedView: View {
+    let isLoaded: Bool
+    let cyan: Color
+    let magenta: Color
+    
+    @State private var floatOffset: CGFloat = 0
+    
+    var body: some View {
+        ZStack {
+            // Glowing Aura
+            RoundedRectangle(cornerRadius: 16)
+                .fill(isLoaded ? cyan.opacity(0.15) : magenta.opacity(0.1))
+                .frame(width: 140, height: 220)
+                .blur(radius: 20)
+            
+            // Device Frame
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.9))
+                .frame(width: 130, height: 210)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: isLoaded ? [cyan, cyan.opacity(0.3)] : [magenta, magenta.opacity(0.3)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ), lineWidth: 2
+                        )
+                )
+            
+            // Screen Content
+            VStack(spacing: 12) {
+                if !isLoaded {
+                    // Loading State
+                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: magenta))
+                        .scaleEffect(1.5)
+                    Text("RESOLVING IP...")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundColor(magenta)
+                        .tracking(1)
+                    Spacer()
+                } else {
+                    // Loaded Feed State
+                    HStack {
+                        Image(systemName: "checkmark.shield.fill")
+                            .foregroundColor(cyan)
+                        Text("SECURE CONNECTION")
+                            .font(.system(size: 8, weight: .bold, design: .monospaced))
+                            .foregroundColor(cyan)
+                    }
+                    .padding(.top, 8)
+                    
+                    // Mock Social Media Posts
+                    VStack(spacing: 8) {
+                        ForEach(0..<3) { i in
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Circle().fill(Color.gray.opacity(0.4)).frame(width: 16, height: 16)
+                                    RoundedRectangle(cornerRadius: 2).fill(Color.gray.opacity(0.4)).frame(width: 50, height: 6)
+                                }
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(
+                                        LinearGradient(colors: [.cyan.opacity(0.3), .purple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                    )
+                                    .frame(height: i == 0 ? 50 : 30) // First post is taller
+                            }
+                            .padding(8)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.05)))
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    Spacer()
+                }
+            }
+        }
+        .offset(y: floatOffset)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                floatOffset = -10
+            }
+        }
+    }
+}
+
+// MARK: - Safe Typewriter Text
+struct EpilogueSafeTypewriter: View {
+    let text: String
+    let font: Font
+    
+    @State private var displayedText = ""
+    
+    var body: some View {
+        Text(displayedText)
+            .font(font)
+            .multilineTextAlignment(.center)
+            .task { await typeText() }
+    }
+    
+    private func typeText() async {
+        displayedText = ""
+        for (index, char) in text.enumerated() {
+            if Task.isCancelled { break }
+            displayedText.append(char)
+            if index % 4 == 0 {
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+            }
+            do {
+                try await Task.sleep(nanoseconds: 30_000_000)
+            } catch { break }
+        }
+    }
+}
+
 // MARK: - Journey Route Strip
-/// Horizontal strip showing each scene the player visited, connected by neon lines.
 struct JourneyRouteStrip: View {
     let scenes: [StoryScene]
     let accentColor: Color
@@ -424,342 +520,7 @@ struct JourneyRouteStrip: View {
     }
 }
 
-// MARK: - Falling Coffee Cup (Improved)
-struct FallingCoffeeCup: View {
-    let fallProgress: CGFloat
-    let accentColor: Color
-
-    var body: some View {
-        ZStack {
-            // Handle
-            RoundedRectangle(cornerRadius: 3)
-                .stroke(Color.white.opacity(0.8), lineWidth: 2)
-                .frame(width: 12, height: 16)
-                .offset(x: 18, y: -4)
-
-            // Cup body
-            UnevenRoundedRectangle(
-                topLeadingRadius: 2,
-                bottomLeadingRadius: 6,
-                bottomTrailingRadius: 6,
-                topTrailingRadius: 2
-            )
-            .fill(Color.white)
-            .frame(width: 30, height: 38)
-
-            // Coffee surface
-            RoundedRectangle(cornerRadius: 2)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.45, green: 0.25, blue: 0.1), Color(red: 0.35, green: 0.18, blue: 0.05)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: 24, height: 28)
-                .offset(y: 2)
-
-            // Steam wisps (only before falling)
-            if fallProgress < 0.1 {
-                ForEach(0..<3, id: \.self) { i in
-                    SteamWisp()
-                        .offset(x: CGFloat(i - 1) * 8, y: -26)
-                }
-            }
-        }
-        .rotationEffect(.degrees(Double(fallProgress) * 110))
-        .offset(y: fallProgress * 140)
-        .opacity(fallProgress >= 1.0 ? 0.3 : 1.0)
-    }
-}
-
-struct SteamWisp: View {
-    @State private var rise: CGFloat = 0
-    @State private var fade: CGFloat = 0.5
-
-    var body: some View {
-        Circle()
-            .fill(Color.white.opacity(fade))
-            .frame(width: 4, height: 4)
-            .offset(y: rise)
-            .onAppear {
-                withAnimation(.easeOut(duration: 1.5).repeatForever(autoreverses: false)) {
-                    rise = -18
-                    fade = 0
-                }
-            }
-    }
-}
-
-// MARK: - Coffee Splash (Improved)
-struct CoffeeSplash: View {
-    let accentColor: Color
-    @State private var expand = false
-
-    var body: some View {
-        ZStack {
-            // Spray droplets
-            ForEach(0..<12, id: \.self) { i in
-                Circle()
-                    .fill(Color(red: 0.45, green: 0.25, blue: 0.1).opacity(0.7))
-                    .frame(width: CGFloat(4 + i % 4 * 2), height: CGFloat(4 + i % 4 * 2))
-                    .offset(
-                        x: expand ? cos(CGFloat(i) * .pi / 6) * CGFloat(20 + i * 3) : 0,
-                        y: expand ? sin(CGFloat(i) * .pi / 6) * CGFloat(15 + i * 2) + 140 : 140
-                    )
-                    .opacity(expand ? 0 : 0.8)
-            }
-
-            // Impact ring
-            Circle()
-                .stroke(Color(red: 0.45, green: 0.25, blue: 0.1).opacity(expand ? 0 : 0.5), lineWidth: 2)
-                .frame(width: expand ? 80 : 10, height: expand ? 80 : 10)
-                .offset(y: 150)
-
-            // Puddle
-            Ellipse()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color(red: 0.45, green: 0.25, blue: 0.1).opacity(0.5),
-                            Color(red: 0.35, green: 0.18, blue: 0.05).opacity(0.2)
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 35
-                    )
-                )
-                .frame(width: expand ? 70 : 15, height: expand ? 18 : 4)
-                .offset(y: 158)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.5)) {
-                expand = true
-            }
-        }
-    }
-}
-
-// MARK: - Epilogue Girl (Improved)
-struct EpilogueGirl: View {
-    let smiling: Bool
-    let feedLoaded: Bool
-    let accentColor: Color
-    let magentaColor: Color
-
-    @State private var bob: CGFloat = 0
-    
-    private let skin = Color(red: 0.95, green: 0.82, blue: 0.72)
-    private let hair = Color(red: 0.22, green: 0.14, blue: 0.08)
-
-    var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // Head
-                ZStack {
-                    // Hair back
-                    Ellipse()
-                        .fill(hair)
-                        .frame(width: 58, height: 40)
-                        .offset(y: -10)
-
-                    // Face
-                    Circle()
-                        .fill(skin)
-                        .frame(width: 50, height: 50)
-
-                    // Hair bangs
-                    Ellipse()
-                        .fill(hair)
-                        .frame(width: 54, height: 22)
-                        .offset(y: -18)
-
-                    // Side hair
-                    HStack(spacing: 36) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(hair)
-                            .frame(width: 10, height: 30)
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(hair)
-                            .frame(width: 10, height: 30)
-                    }
-                    .offset(y: 8)
-
-                    // Face features
-                    VStack(spacing: 5) {
-                        HStack(spacing: 14) {
-                            if smiling {
-                                // Happy eyes (arcs)
-                                EyeArc().frame(width: 8, height: 5)
-                                EyeArc().frame(width: 8, height: 5)
-                            } else {
-                                Circle().fill(.black).frame(width: 5, height: 5)
-                                Circle().fill(.black).frame(width: 5, height: 5)
-                            }
-                        }
-
-                        // Mouth
-                        if smiling {
-                            SmileArc()
-                                .frame(width: 14, height: 7)
-                        } else {
-                            Capsule()
-                                .fill(Color(red: 0.9, green: 0.55, blue: 0.55))
-                                .frame(width: 10, height: 3)
-                        }
-
-                        // Blush when smiling
-                        if smiling {
-                            HStack(spacing: 18) {
-                                Circle()
-                                    .fill(Color.pink.opacity(0.35))
-                                    .frame(width: 10, height: 10)
-                                Circle()
-                                    .fill(Color.pink.opacity(0.35))
-                                    .frame(width: 10, height: 10)
-                            }
-                            .offset(y: -6)
-                        }
-                    }
-                    .offset(y: 4)
-                }
-
-                // Body
-                ZStack {
-                    // Torso
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: 14,
-                        bottomLeadingRadius: 6,
-                        bottomTrailingRadius: 6,
-                        topTrailingRadius: 14
-                    )
-                    .fill(
-                        LinearGradient(
-                            colors: [magentaColor.opacity(0.7), Color.pink.opacity(0.6)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: 55, height: 70)
-                }
-
-                // Legs
-                HStack(spacing: 6) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(red: 0.2, green: 0.2, blue: 0.3))
-                        .frame(width: 14, height: 30)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(red: 0.2, green: 0.2, blue: 0.3))
-                        .frame(width: 14, height: 30)
-                }
-            }
-
-            // Arms (holding phone)
-            HStack(spacing: 24) {
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(skin)
-                    .frame(width: 12, height: 36)
-                    .rotationEffect(.degrees(25))
-
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(skin)
-                    .frame(width: 12, height: 36)
-                    .rotationEffect(.degrees(-25))
-            }
-            .offset(y: 18)
-
-            // Phone
-            PhoneWithFeed(feedLoaded: feedLoaded, accentColor: accentColor, magenta: magentaColor)
-                .offset(y: 32)
-        }
-        .offset(y: bob)
-        .onAppear {
-            withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
-                bob = -4
-            }
-        }
-    }
-}
-
-// MARK: - Eye Arc (Happy Eyes)
-struct EyeArc: View {
-    var body: some View {
-        Path { p in
-            p.move(to: CGPoint(x: 0, y: 5))
-            p.addQuadCurve(to: CGPoint(x: 8, y: 5), control: CGPoint(x: 4, y: 0))
-        }
-        .stroke(Color.black, lineWidth: 1.5)
-    }
-}
-
-// MARK: - Smile Arc
-struct SmileArc: View {
-    var body: some View {
-        Path { p in
-            p.move(to: CGPoint(x: 0, y: 0))
-            p.addQuadCurve(to: CGPoint(x: 14, y: 0), control: CGPoint(x: 7, y: 9))
-        }
-        .stroke(Color(red: 0.85, green: 0.4, blue: 0.4), lineWidth: 1.5)
-    }
-}
-
-// MARK: - Phone With Feed
-struct PhoneWithFeed: View {
-    let feedLoaded: Bool
-    let accentColor: Color
-    let magenta: Color
-
-    var body: some View {
-        ZStack {
-            // Phone body
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(red: 0.1, green: 0.08, blue: 0.14))
-                .frame(width: 36, height: 62)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(
-                            feedLoaded
-                                ? LinearGradient(colors: [accentColor, magenta], startPoint: .top, endPoint: .bottom)
-                                : LinearGradient(colors: [Color.white.opacity(0.1), Color.white.opacity(0.05)], startPoint: .top, endPoint: .bottom),
-                            lineWidth: feedLoaded ? 1.5 : 0.5
-                        )
-                )
-                .shadow(color: feedLoaded ? accentColor.opacity(0.4) : .clear, radius: 12)
-
-            // Screen
-            RoundedRectangle(cornerRadius: 7)
-                .fill(feedLoaded
-                      ? LinearGradient(colors: [Color.white, Color(red: 0.95, green: 0.95, blue: 1.0)], startPoint: .top, endPoint: .bottom)
-                      : LinearGradient(colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.1)], startPoint: .top, endPoint: .bottom)
-                )
-                .frame(width: 30, height: 54)
-
-            // Feed content
-            if feedLoaded {
-                VStack(spacing: 3) {
-                    // Header bar
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(accentColor.opacity(0.3))
-                        .frame(width: 26, height: 5)
-
-                    // Feed posts
-                    ForEach(0..<3, id: \.self) { i in
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill([Color.pink, Color.blue, Color.green][i].opacity(0.45))
-                            .frame(width: 26, height: 12)
-                    }
-                }
-            } else {
-                // Loading spinner placeholder
-                ProgressView()
-                    .scaleEffect(0.4)
-                    .tint(.white.opacity(0.4))
-            }
-        }
-    }
-}
-
-// MARK: - Journey Stats Panel (Redesigned)
+// MARK: - Journey Stats Panel (Glassmorphism)
 struct JourneyStatsPanel: View {
     let stats: JourneyStats
     let accentColor: Color
@@ -770,111 +531,44 @@ struct JourneyStatsPanel: View {
     var body: some View {
         VStack(spacing: 16) {
             HStack(spacing: 8) {
-                Rectangle()
-                    .fill(accentColor.opacity(0.4))
-                    .frame(height: 1)
+                Rectangle().fill(accentColor.opacity(0.4)).frame(height: 1)
                 Text("YOUR JOURNEY")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .foregroundColor(accentColor)
                     .tracking(4)
-                Rectangle()
-                    .fill(accentColor.opacity(0.4))
-                    .frame(height: 1)
+                Rectangle().fill(accentColor.opacity(0.4)).frame(height: 1)
             }
 
             HStack(spacing: 0) {
-                StatBadge(
-                    icon: "clock",
-                    value: stats.formattedDuration,
-                    label: "Time",
-                    accent: accentColor,
-                    revealed: revealedStats >= 1
-                )
-                .frame(maxWidth: .infinity)
-
+                StatBadge(icon: "clock", value: stats.formattedDuration, label: "Time", accent: accentColor, revealed: revealedStats >= 1)
+                    .frame(maxWidth: .infinity)
                 StatDivider(color: accentColor)
-
-                StatBadge(
-                    icon: "book.fill",
-                    value: "\(stats.termsLearned.count)",
-                    label: "Terms",
-                    accent: Color(red: 1.0, green: 0.75, blue: 0.0),
-                    revealed: revealedStats >= 2
-                )
-                .frame(maxWidth: .infinity)
-
+                StatBadge(icon: "book.fill", value: "\(stats.termsLearned.count)", label: "Terms", accent: Color(red: 1.0, green: 0.75, blue: 0.0), revealed: revealedStats >= 2)
+                    .frame(maxWidth: .infinity)
                 StatDivider(color: accentColor)
-
-                StatBadge(
-                    icon: "person.2.fill",
-                    value: "\(stats.npcsSpokenTo.count)",
-                    label: "NPCs",
-                    accent: magenta,
-                    revealed: revealedStats >= 3
-                )
-                .frame(maxWidth: .infinity)
-
+                StatBadge(icon: "person.2.fill", value: "\(stats.npcsSpokenTo.count)", label: "NPCs", accent: magenta, revealed: revealedStats >= 3)
+                    .frame(maxWidth: .infinity)
                 StatDivider(color: accentColor)
-
-                StatBadge(
-                    icon: "map.fill",
-                    value: "\(stats.scenesVisited.count)",
-                    label: "Places",
-                    accent: Color(red: 0.6, green: 0.2, blue: 1.0),
-                    revealed: revealedStats >= 4
-                )
-                .frame(maxWidth: .infinity)
+                StatBadge(icon: "map.fill", value: "\(stats.scenesVisited.count)", label: "Places", accent: Color(red: 0.6, green: 0.2, blue: 1.0), revealed: revealedStats >= 4)
+                    .frame(maxWidth: .infinity)
             }
             
             // Choice outcomes row
             if !stats.choicesMade.isEmpty {
-                Rectangle()
-                    .fill(accentColor.opacity(0.3))
-                    .frame(height: 1)
-                    .padding(.vertical, 4)
+                Rectangle().fill(accentColor.opacity(0.2)).frame(height: 1).padding(.vertical, 4)
                 
                 HStack(spacing: 0) {
-                    StatBadge(
-                        icon: stats.chosenProtocol == .udp ? "bolt.fill" : "checkmark.shield.fill",
-                        value: stats.chosenProtocol.rawValue,
-                        label: "Protocol",
-                        accent: stats.chosenProtocol == .udp ? .orange : .green,
-                        revealed: revealedStats >= 5
-                    )
-                    .frame(maxWidth: .infinity)
-                    
+                    StatBadge(icon: stats.chosenProtocol == .udp ? "bolt.fill" : "checkmark.shield.fill", value: stats.chosenProtocol.rawValue, label: "Protocol", accent: stats.chosenProtocol == .udp ? .orange : .green, revealed: revealedStats >= 5)
+                        .frame(maxWidth: .infinity)
                     StatDivider(color: accentColor)
-                    
-                    StatBadge(
-                        icon: stats.upgradedToSSL ? "lock.fill" : "lock.open.fill",
-                        value: stats.upgradedToSSL ? "SSL" : "None",
-                        label: "Security",
-                        accent: stats.upgradedToSSL ? .green : .red,
-                        revealed: revealedStats >= 5
-                    )
-                    .frame(maxWidth: .infinity)
-                    
+                    StatBadge(icon: stats.upgradedToSSL ? "lock.fill" : "lock.open.fill", value: stats.upgradedToSSL ? "SSL" : "None", label: "Security", accent: stats.upgradedToSSL ? .green : .red, revealed: revealedStats >= 5)
+                        .frame(maxWidth: .infinity)
                     StatDivider(color: accentColor)
-                    
-                    StatBadge(
-                        icon: stats.lostPacketData ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
-                        value: stats.lostPacketData ? "Lost" : "Intact",
-                        label: "Data",
-                        accent: stats.lostPacketData ? .red : .green,
-                        revealed: revealedStats >= 5
-                    )
-                    .frame(maxWidth: .infinity)
-                    
+                    StatBadge(icon: stats.lostPacketData ? "exclamationmark.triangle.fill" : "checkmark.circle.fill", value: stats.lostPacketData ? "Lost" : "Intact", label: "Data", accent: stats.lostPacketData ? .red : .green, revealed: revealedStats >= 5)
+                        .frame(maxWidth: .infinity)
                     StatDivider(color: accentColor)
-                    
-                    StatBadge(
-                        icon: "brain.head.profile",
-                        value: "\(Int(stats.quizAccuracy * 100))%",
-                        label: "Quiz",
-                        accent: stats.quizAccuracy >= 0.8 ? .green : stats.quizAccuracy >= 0.5 ? .yellow : .orange,
-                        revealed: revealedStats >= 5
-                    )
-                    .frame(maxWidth: .infinity)
+                    StatBadge(icon: "brain.head.profile", value: "\(Int(stats.quizAccuracy * 100))%", label: "Quiz", accent: stats.quizAccuracy >= 0.8 ? .green : stats.quizAccuracy >= 0.5 ? .yellow : .orange, revealed: revealedStats >= 5)
+                        .frame(maxWidth: .infinity)
                 }
             }
         }
@@ -882,17 +576,11 @@ struct JourneyStatsPanel: View {
         .padding(.horizontal, 16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.black.opacity(0.85))
+                .fill(Color.black.opacity(0.5))
+                .background(.ultraThinMaterial) // Added glassmorphism!
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(
-                            LinearGradient(
-                                colors: [accentColor.opacity(0.5), magenta.opacity(0.3)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            lineWidth: 1
-                        )
+                        .stroke(LinearGradient(colors: [accentColor.opacity(0.5), magenta.opacity(0.3)], startPoint: .leading, endPoint: .trailing), lineWidth: 1)
                 )
                 .shadow(color: accentColor.opacity(0.15), radius: 20, y: 5)
         )
@@ -900,7 +588,7 @@ struct JourneyStatsPanel: View {
     }
 
     private func revealStatsSequentially() {
-        for i in 1...4 {
+        for i in 1...5 {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.25) {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                     revealedStats = i
@@ -1041,33 +729,6 @@ struct EpilogueScanLines: View {
             }
         }
         .allowsHitTesting(false)
-    }
-}
-
-// MARK: - Epilogue Typewriter Text
-struct EpilogueTypewriterText: View {
-    let text: String
-    let font: Font
-
-    @State private var displayedText = ""
-
-    var body: some View {
-        Text(displayedText)
-            .font(font)
-            .multilineTextAlignment(.center)
-            .onAppear {
-                displayedText = ""
-                var charIndex = 0
-                Timer.scheduledTimer(withTimeInterval: 0.04, repeats: true) { timer in
-                    if charIndex < text.count {
-                        let index = text.index(text.startIndex, offsetBy: charIndex)
-                        displayedText += String(text[index])
-                        charIndex += 1
-                    } else {
-                        timer.invalidate()
-                    }
-                }
-            }
     }
 }
 

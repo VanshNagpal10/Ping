@@ -38,19 +38,21 @@ struct ContentView: View {
                 }
                 .animation(.easeInOut(duration: 0.5), value: engine.phase)
                 
-                // Encyclopedia overlay
+                // Encyclopedia overlay (Updated transition for the new floating modal design)
                 if engine.showEncyclopedia {
                     EncyclopediaView(
                         terms: Array(engine.learnedTerms),
                         onClose: { engine.showEncyclopedia = false }
                     )
-                    .transition(.move(edge: .trailing))
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .zIndex(100) // Ensures it sits above everything else
                 }
                 
-                // New term popup
+                // New term popup notification
                 if engine.showNewTermPopup, let term = engine.latestTerm {
                     NewTermPopup(term: term)
                         .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(200)
                 }
             }
             .onAppear {
@@ -63,21 +65,30 @@ struct ContentView: View {
     }
 }
 
-// MARK: - New Term Popup
+// MARK: - New Term Popup (Upgraded with Glassmorphism)
 struct NewTermPopup: View {
     let term: EncyclopediaTerm
     
     var body: some View {
         VStack {
-            HStack(spacing: 12) {
-                Image(systemName: term.icon)
-                    .font(.title)
-                    .foregroundColor(.cyan)
+            HStack(spacing: 16) {
+                // Glowing Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.cyan.opacity(0.2))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: term.icon)
+                        .font(.system(size: 20))
+                        .foregroundColor(.cyan)
+                        .shadow(color: .cyan.opacity(0.6), radius: 4)
+                }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("NEW TERM LEARNED!")
+                    Text("NEW DATA FRAGMENT ACQUIRED")
                         .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundColor(.yellow)
+                        .foregroundColor(.cyan)
+                        .tracking(1)
                     
                     Text(term.term)
                         .font(.system(size: 16, weight: .bold, design: .rounded))
@@ -86,20 +97,35 @@ struct NewTermPopup: View {
                 
                 Spacer()
                 
-                Image(systemName: "book.fill")
-                    .foregroundColor(.yellow)
+                // Tech decor
+                VStack(spacing: 3) {
+                    ForEach(0..<3) { i in
+                        Rectangle()
+                            .fill(Color.cyan.opacity(0.5))
+                            .frame(width: 4, height: 4)
+                    }
+                }
             }
-            .padding()
+            .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.black.opacity(0.9))
+                    .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.85))
+                    .background(.ultraThinMaterial) // Glassmorphism blur
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.yellow, lineWidth: 2)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.cyan.opacity(0.8), .purple.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
                     )
+                    .shadow(color: .cyan.opacity(0.2), radius: 15, y: 5)
             )
             .padding(.horizontal, 40)
-            .padding(.top, 60)
+            .padding(.top, 40) // Adjusted slightly to account for notch/dynamic island on newer iPads
             
             Spacer()
         }

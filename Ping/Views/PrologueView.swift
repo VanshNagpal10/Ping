@@ -121,10 +121,30 @@ struct PrologueView: View {
                                 .shadow(color: nCyan.opacity(0.4), radius: 40)
                                 .shadow(color: nMagenta.opacity(0.25), radius: 60)
                                 .tracking(10)
+                                .onAppear {
+                                    // Heavy cinematic boom when title drops
+                                    SoundManager.shared.playPortalSound()
+                                }
                         }
                         .transition(.scale(scale: 0.7).combined(with: .opacity))
                     }
                     
+                    Spacer()
+                }
+                
+                // Skip Button (Top Right)
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button("SKIP") {
+                            SoundManager.shared.playButtonSound()
+                            onStartGame()
+                        }
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.4))
+                        .padding(20)
+                        .opacity(showScene && !showButton ? 1 : 0) // Hides once final button appears
+                    }
                     Spacer()
                 }
                 
@@ -134,6 +154,7 @@ struct PrologueView: View {
                         Spacer()
                         
                         Button(action: {
+                            SoundManager.shared.playButtonSound()
                             withAnimation(.easeInOut(duration: 0.5)) {
                                 onStartGame()
                             }
@@ -203,6 +224,9 @@ struct PrologueView: View {
     }
     
     private func startCinematic() {
+        // Start atmospheric drone music
+        SoundManager.shared.playAmbientSound(for: .frozenCafe)
+        
         // Grid scroll animation
         withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
             gridScroll = 1

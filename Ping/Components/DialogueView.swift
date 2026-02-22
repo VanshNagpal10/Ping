@@ -116,6 +116,9 @@ struct DialogueOverlay: View {
             .padding(.bottom, 40)
         }
         .background(Color.black.opacity(0.3))
+        .onTapGesture {
+            engine.advanceDialogue()
+        }
     }
     
     private func speakerColor(for speaker: String) -> Color {
@@ -124,11 +127,11 @@ struct DialogueOverlay: View {
             return .yellow
         case _ where speaker.contains("Daemon"):
             return .cyan
-        case _ where speaker.contains("Firewall"):
+        case _ where speaker.contains("Security Gateway"):
             return .orange
-        case _ where speaker.contains("Router"):
+        case _ where speaker.contains("Router") || speaker.contains("Load Balancer"):
             return .orange
-        case _ where speaker.contains("Librarian"):
+        case _ where speaker.contains("DNS Resolver"):
             return .purple
         default:
             return .white

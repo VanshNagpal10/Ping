@@ -36,7 +36,6 @@ class GameEngine: ObservableObject {
     
     // UI State
     @Published var showLayerInventory: Bool = false
-    @Published var showMissionBrief: Bool = false
     @Published var currentMission: String = ""
     @Published var screenSize: CGSize = .zero
     
@@ -413,8 +412,11 @@ class GameEngine: ObservableObject {
     }
     
     func advanceDialogue() {
-        // Don't advance if choices are showing — player must pick one
-        if activeChoices != nil { return }
+        // If choices are showing, auto-select the first choice (TCP default)
+        if let choices = activeChoices, let firstChoice = choices.first {
+            selectChoice(firstChoice)
+            return
+        }
         // Don't advance if inventory swap is pending
         if showInventorySwap && !inventorySwapCompleted { return }
         
@@ -450,6 +452,23 @@ class GameEngine: ObservableObject {
         // Execute the choice's action
         if let action = choice.action {
             executeChoiceAction(action)
+            
+            // For transport protocol choices, replace dialogue with branch-specific lines
+            // to prevent crossing into the other branch
+            if case .setTransportProtocol(let proto) = action {
+                let ackText = proto == .tcp
+                    ? "TCP acknowledged. Data integrity will be prioritized over speed."
+                    : "UDP acknowledged. Verification disabled. Maximize transmission speed."
+                currentDialogue = [
+                    DialogueLine(speaker: "Core Router", text: ackText),
+                    DialogueLine(speaker: "Core Router", text: "Routing you into the undersea fiber-optic backbone. You will travel as pulses of light.", learnedTerm: EncyclopediaTerm.term(for: "fiber_optic")),
+                    DialogueLine(speaker: "Core Router", text: "Remember: every router hop adds physical latency. Proceed to the egress portal.", learnedTerm: EncyclopediaTerm.term(for: "latency"))
+                ]
+                activeChoices = nil
+                currentDialogueIndex = 0
+                showCurrentDialogueLine()
+                return
+            }
         }
         
         activeChoices = nil
