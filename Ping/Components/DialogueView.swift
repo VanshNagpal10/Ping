@@ -99,7 +99,12 @@ struct DialogueOverlay: View {
             .padding(20)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.black.opacity(0.9))
+                    .fill(.ultraThinMaterial)
+                    .opacity(0.85)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.black.opacity(0.35))
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(

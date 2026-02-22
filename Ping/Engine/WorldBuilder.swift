@@ -45,8 +45,8 @@ struct WorldBuilder {
         let plane = SCNPlane(width: visibleSize, height: visibleSize)
         let baseMat = SCNMaterial()
         baseMat.diffuse.contents = baseColor
-        baseMat.roughness.contents = 0.6
-        baseMat.metalness.contents = 0.15
+        baseMat.roughness.contents = 0.1
+        baseMat.metalness.contents = 0.8
         plane.materials = [baseMat]
         let baseNode = SCNNode(geometry: plane)
         baseNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
@@ -444,7 +444,7 @@ struct WorldBuilder {
         }
         
         // ── Server Monoliths — tall dark towers lining corridors ──
-        let darkColor = UIColor(red: 0.04, green: 0.03, blue: 0.08, alpha: 1)
+        let darkColor = UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1)
         
         // Left corridor wall
         let leftWall: [(x: Float, z: Float, w: CGFloat, h: CGFloat, l: CGFloat)] = [
@@ -1101,20 +1101,32 @@ struct WorldBuilder {
             (12, -5, 7), (12, 2, 6), (12, 7, 8),
         ]
         
-        let shelfColor = UIColor(red: 0.18, green: 0.1, blue: 0.06, alpha: 1)
+        let shelfColor = P.slate
         for shelf in shelfPositions {
             let shelfNode = SCNNode()
             
-            // Frame — dark wood
+            // Frame — dark metallic (cyberpunk style)
             let frame = SCNBox(width: 2.2, height: shelf.h, length: 0.7, chamferRadius: 0.03)
             let frameMat = SCNMaterial()
             frameMat.diffuse.contents = shelfColor
-            frameMat.roughness.contents = 0.7
-            frameMat.metalness.contents = 0.1
+            frameMat.roughness.contents = 0.4
+            frameMat.metalness.contents = 0.6
             frame.materials = [frameMat]
             let frameNode = SCNNode(geometry: frame)
             frameNode.position = SCNVector3(0, Float(shelf.h / 2), 0)
             shelfNode.addChildNode(frameNode)
+            
+            // Glowing violet wireframe edge on bookshelf
+            let wireFrame = SCNBox(width: 2.22, height: shelf.h + 0.02, length: 0.72, chamferRadius: 0.04)
+            let wireMat = SCNMaterial()
+            wireMat.diffuse.contents = UIColor.clear
+            wireMat.emission.contents = P.violet.withAlphaComponent(0.5)
+            wireMat.fillMode = .lines
+            wireMat.transparency = 0.08
+            wireFrame.materials = [wireMat]
+            let wireNode = SCNNode(geometry: wireFrame)
+            wireNode.position = SCNVector3(0, Float(shelf.h / 2), 0)
+            shelfNode.addChildNode(wireNode)
             
             // Books — colorful spines
             let bookCount = max(1, Int(shelf.h) - 1)
@@ -1140,9 +1152,9 @@ struct WorldBuilder {
         // Central reading desk
         let desk = SCNBox(width: 4, height: 0.8, length: 2.5, chamferRadius: 0.08)
         let deskMat = SCNMaterial()
-        deskMat.diffuse.contents = UIColor(red: 0.22, green: 0.13, blue: 0.08, alpha: 1)
-        deskMat.roughness.contents = 0.6
-        deskMat.metalness.contents = 0.15
+        deskMat.diffuse.contents = P.charcoal
+        deskMat.roughness.contents = 0.35
+        deskMat.metalness.contents = 0.55
         desk.materials = [deskMat]
         let deskNode = SCNNode(geometry: desk)
         deskNode.position = SCNVector3(0, 0.4, 0)

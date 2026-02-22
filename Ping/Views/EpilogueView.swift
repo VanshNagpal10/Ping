@@ -223,6 +223,16 @@ struct EpilogueView: View {
                                 .foregroundColor(.white.opacity(0.3))
                                 .tracking(1)
                         }
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.black.opacity(0.5))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(nCyan.opacity(0.2), lineWidth: 1)
+                                )
+                        )
                         Spacer()
                     }
                     .padding(.horizontal, 24)
@@ -353,7 +363,7 @@ struct HolographicFeedView: View {
                         .foregroundColor(magenta)
                         .tracking(1)
                     Spacer()
-                } else {
+                } else if isLoaded {
                     // Loaded Feed State
                     HStack {
                         Image(systemName: "checkmark.shield.fill")
@@ -530,12 +540,13 @@ struct JourneyStatsPanel: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            HStack(spacing: 8) {
+            HStack(spacing: 12) {
                 Rectangle().fill(accentColor.opacity(0.4)).frame(height: 1)
                 Text("YOUR JOURNEY")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .foregroundColor(accentColor)
                     .tracking(4)
+                    .fixedSize(horizontal: true, vertical: false)
                 Rectangle().fill(accentColor.opacity(0.4)).frame(height: 1)
             }
 

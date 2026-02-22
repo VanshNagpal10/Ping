@@ -91,8 +91,8 @@ class SceneManager: ObservableObject {
         
         cameraNode = SCNNode()
         cameraNode.camera = camera
-        cameraNode.position = SCNVector3(0, 14, 12)
-        cameraNode.eulerAngles = SCNVector3(-Float.pi / 3.5, 0, 0)
+        cameraNode.position = SCNVector3(0, 8, 14)
+        cameraNode.eulerAngles = SCNVector3(-Float.pi / 6, 0, 0)
         
         // Rig so we can smoothly follow player
         cameraRig = SCNNode()
