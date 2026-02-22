@@ -302,87 +302,104 @@ struct QuizOverlay: View {
     }
     
     // MARK: - Quiz Results
-    @ViewBuilder
-    private var quizResultsView: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            
-            VStack(spacing: 20) {
-                // Score icon
-                ZStack {
-                    Circle()
-                        .fill(scoreColor.opacity(0.15))
-                        .frame(width: 70, height: 70)
-                    
-                    Circle()
-                        .stroke(scoreColor.opacity(0.4), lineWidth: 2)
-                        .frame(width: 70, height: 70)
-                    
-                    Image(systemName: scoreIcon)
-                        .font(.system(size: 30))
-                        .foregroundColor(scoreColor)
-                }
+    // MARK: - Quiz Results
+        @ViewBuilder
+        private var quizResultsView: some View {
+            VStack(spacing: 24) {
+                Spacer()
                 
-                Text(scoreMessage)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                
-                // Score
-                HStack(spacing: 4) {
-                    Text("\(correctCount)")
-                        .font(.system(size: 36, weight: .black, design: .rounded))
-                        .foregroundColor(scoreColor)
-                    Text("/")
-                        .font(.system(size: 24, weight: .light))
-                        .foregroundColor(.white.opacity(0.3))
-                    Text("\(questions.count)")
-                        .font(.system(size: 36, weight: .black, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
-                }
-                
-                Text("from \(scene.displayName)")
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.4))
-                    .tracking(1)
-                
-                // Continue button
-                Button {
-                    engine.dismissQuiz()
-                } label: {
-                    HStack(spacing: 8) {
-                        Text("CONTINUE JOURNEY")
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
-                            .tracking(2)
-                        Image(systemName: "arrow.right.circle.fill")
-                            .font(.system(size: 16))
+                VStack(spacing: 20) {
+                    // Score icon
+                    ZStack {
+                        // This is the pulsing background ring for perfect scores!
+                        if correctCount == questions.count && questions.count > 0 {
+                            Circle()
+                                .stroke(scoreColor.opacity(0.4), lineWidth: 4)
+                                .frame(width: 70, height: 70)
+                                .scaleEffect(progressPulse ? 1.4 : 1.0)
+                                .opacity(progressPulse ? 0.0 : 1.0)
+                                .animation(
+                                    .easeOut(duration: 1.5).repeatForever(autoreverses: false),
+                                    value: progressPulse
+                                )
+                                .onAppear {
+                                    progressPulse = true
+                                }
+                        }
+
+                        Circle()
+                            .fill(scoreColor.opacity(0.15))
+                            .frame(width: 70, height: 70)
+                        
+                        Circle()
+                            .stroke(scoreColor.opacity(0.4), lineWidth: 2)
+                            .frame(width: 70, height: 70)
+                        
+                        Image(systemName: scoreIcon)
+                            .font(.system(size: 30))
+                            .foregroundColor(scoreColor)
                     }
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 14)
-                    .background(
-                        Capsule()
-                            .fill(scene.accentColor)
-                            .shadow(color: scene.accentColor.opacity(0.4), radius: 12)
-                    )
+                    
+                    Text(scoreMessage)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    
+                    // Score
+                    HStack(spacing: 4) {
+                        Text("\(correctCount)")
+                            .font(.system(size: 36, weight: .black, design: .rounded))
+                            .foregroundColor(scoreColor)
+                        Text("/")
+                            .font(.system(size: 24, weight: .light))
+                            .foregroundColor(.white.opacity(0.3))
+                        Text("\(questions.count)")
+                            .font(.system(size: 36, weight: .black, design: .rounded))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    
+                    Text("from \(scene.displayName)")
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.4))
+                        .tracking(1)
+                    
+                    // Continue button
+                    Button {
+                        engine.dismissQuiz()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text("CONTINUE JOURNEY")
+                                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                .tracking(2)
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.system(size: 16))
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 14)
+                        .background(
+                            Capsule()
+                                .fill(scene.accentColor)
+                                .shadow(color: scene.accentColor.opacity(0.4), radius: 12)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 8)
                 }
-                .buttonStyle(.plain)
-                .padding(.top, 8)
+                .padding(32)
+                .frame(maxWidth: 400)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(red: 0.06, green: 0.04, blue: 0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(scoreColor.opacity(0.3), lineWidth: 1.5)
+                        )
+                        .shadow(color: scoreColor.opacity(0.1), radius: 30)
+                )
+                
+                Spacer()
             }
-            .padding(32)
-            .frame(maxWidth: 400)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color(red: 0.06, green: 0.04, blue: 0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(scoreColor.opacity(0.3), lineWidth: 1.5)
-                    )
-                    .shadow(color: scoreColor.opacity(0.1), radius: 30)
-            )
-            
-            Spacer()
         }
-    }
     
     // MARK: - Helpers
     private func advanceQuiz() {

@@ -12,33 +12,43 @@ struct JoystickView: View {
     /// Returns .zero when the player releases the stick.
     var onDirectionChanged: (CGVector) -> Void
 
-    private let baseRadius: CGFloat = 50
-    private let knobRadius: CGFloat = 22
+    private let baseRadius: CGFloat = 60 // Slightly larger for easier iPad tapping
+    private let knobRadius: CGFloat = 25
 
     @State private var dragOffset: CGSize = .zero
+    @State private var hasHitEdge: Bool = false // Tracks haptic state
+    
+    // Local haptic generator for the joystick "bump"
+    private let hapticFeedback = UIImpactFeedbackGenerator(style: .rigid)
 
     var body: some View {
         ZStack {
-            // Base circle
+            // Base circle (Glassmorphism Cyberpunk style)
             Circle()
-                .fill(Color.white.opacity(0.08))
+                .fill(Color.black.opacity(0.4))
                 .frame(width: baseRadius * 2, height: baseRadius * 2)
                 .overlay(
                     Circle()
-                        .stroke(Color.white.opacity(0.25), lineWidth: 2)
+                        .stroke(Color.cyan.opacity(0.5), lineWidth: 2)
+                        .shadow(color: .cyan.opacity(0.5), radius: 5)
                 )
 
-            // Knob
+            // Knob (Glowing Orb)
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color.white.opacity(0.5), Color.white.opacity(0.2)],
+                        colors: [Color.cyan.opacity(0.9), Color.blue.opacity(0.6)],
                         center: .center,
                         startRadius: 0,
                         endRadius: knobRadius
                     )
                 )
                 .frame(width: knobRadius * 2, height: knobRadius * 2)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                )
+                .shadow(color: .cyan, radius: hasHitEdge ? 10 : 3) // Glows brighter when pushed
                 .offset(dragOffset)
         }
         .gesture(
@@ -50,6 +60,7 @@ struct JoystickView: View {
 
                     if distance <= maxDistance {
                         dragOffset = translation
+                        hasHitEdge = false
                     } else {
                         // Clamp to circle boundary
                         let ratio = maxDistance / distance
@@ -57,6 +68,12 @@ struct JoystickView: View {
                             width: translation.width * ratio,
                             height: translation.height * ratio
                         )
+                        
+                        // Trigger haptic bump ONLY once when hitting the edge
+                        if !hasHitEdge {
+                            hapticFeedback.impactOccurred()
+                            hasHitEdge = true
+                        }
                     }
 
                     // Normalize to 0–1 magnitude
@@ -70,10 +87,15 @@ struct JoystickView: View {
                     ))
                 }
                 .onEnded { _ in
-                    withAnimation(.easeOut(duration: 0.15)) {
+                    // Snap back to center with a spring
+                    withAnimation(.interactiveSpring(response: 0.25, dampingFraction: 0.6)) {
                         dragOffset = .zero
                     }
+                    hasHitEdge = false
                     onDirectionChanged(.zero)
+                    
+                    // Light haptic when returning to center
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 }
         )
     }
@@ -81,9 +103,9 @@ struct JoystickView: View {
 
 #Preview {
     ZStack {
-        Color.black
+        Color(red: 0.04, green: 0.02, blue: 0.08).edgesIgnoringSafeArea(.all)
         JoystickView { direction in
-            print("Direction: \(direction)")
+            // print("Direction: \(direction)")
         }
     }
 }

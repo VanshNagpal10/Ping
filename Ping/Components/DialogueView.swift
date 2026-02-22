@@ -443,7 +443,8 @@ struct ExplorationHUD: View {
                     }
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 24) // slightly more breathing room on the sides
+            .padding(.top, 24)
             
             Spacer()
         }
