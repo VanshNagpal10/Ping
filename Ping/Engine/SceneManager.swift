@@ -134,7 +134,7 @@ class SceneManager: ObservableObject {
         let ambient = SCNLight()
         ambient.type = .ambient
         ambient.color = UIColor(red: 0.10, green: 0.06, blue: 0.18, alpha: 1)
-        ambient.intensity = 200
+        ambient.intensity = 350
         let ambientNode = SCNNode()
         ambientNode.light = ambient
         scene.rootNode.addChildNode(ambientNode)

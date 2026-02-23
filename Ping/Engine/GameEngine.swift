@@ -166,7 +166,7 @@ class GameEngine: ObservableObject {
         
         let firewall = NPC(
             type: .firewall,
-            position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.35),
+            position: CGPoint(x: screenSize.width * 0.85, y: screenSize.height * 0.5),
             name: "Firewall Blaze",
             dialogue: [
                 DialogueLine(speaker: "Security Gateway", text: "Halt. Outbound packet detected. Scanning protocol headers..."),
@@ -181,9 +181,10 @@ class GameEngine: ObservableObject {
         )
         npcs.append(firewall)
         
+        // Portal near the antenna (center of scene)
         let portal = InteractiveObject(
             type: .portal,
-            position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
+            position: CGPoint(x: screenSize.width * 0.55, y: screenSize.height * 0.45),
             data: "router_station"
         )
         interactiveObjects.append(portal)

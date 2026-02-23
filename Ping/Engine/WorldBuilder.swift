@@ -126,7 +126,7 @@ struct WorldBuilder {
         wireMat.diffuse.contents = UIColor.clear
         wireMat.emission.contents = emissionColor // Glowing color
         wireMat.fillMode = .lines
-        wireMat.transparency = 0.4 // Brighter edges
+        wireMat.transparency = 0.9 // Brighter edges
         wireBox.materials = [wireMat]
         let wireNode = SCNNode(geometry: wireBox)
         node.addChildNode(wireNode)
@@ -691,71 +691,183 @@ struct WorldBuilder {
     }
     
     // MARK: - WiFi Antenna (Act 2a)
-    // Industrial rooftop — massive antenna, satellite dishes, cable runs
+    // Dramatic industrial rooftop broadcast tower — antenna dominates the center,
+    // elevated catwalks, equipment racks, satellite dishes, pulsing signal waves
     private static func buildWiFiAntenna(in manager: SceneManager) {
-        manager.worldBounds = CGSize(width: 30, height: 22)
+        manager.worldBounds = CGSize(width: 34, height: 26)
         let root = manager.scene.rootNode
         
-        // Concrete rooftop floor
-        let floor = makeGroundPlane(width: 34, length: 26, baseColor: UIColor(red: 0.08, green: 0.07, blue: 0.1, alpha: 1), accentColor: P.lime)
+        // Atmosphere — dark sky with green tint
+        manager.scene.background.contents = UIColor(red: 0.01, green: 0.03, blue: 0.02, alpha: 1)
+        manager.scene.fogColor = UIColor(red: 0.02, green: 0.05, blue: 0.03, alpha: 1)
+        manager.scene.fogStartDistance = 20
+        manager.scene.fogEndDistance = 55
+        
+        // ── Ground: industrial rooftop with lime grid ──
+        let floor = makeGroundPlane(width: 40, length: 32, baseColor: UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1), accentColor: P.lime)
         root.addChildNode(floor)
         
-        // Main antenna tower
-        let towerBase = SCNCylinder(radius: 0.5, height: 2)
-        let tbMat = SCNMaterial()
-        tbMat.diffuse.contents = UIColor(red: 0.15, green: 0.13, blue: 0.18, alpha: 1)
-        tbMat.metalness.contents = 0.8
-        tbMat.roughness.contents = 0.3
-        towerBase.materials = [tbMat]
-        let tbNode = SCNNode(geometry: towerBase)
-        tbNode.position = SCNVector3(-4, 1, -4)
-        root.addChildNode(tbNode)
+        // Shared dark metal material
+        let metalMat = SCNMaterial()
+        metalMat.diffuse.contents = UIColor(red: 0.12, green: 0.10, blue: 0.14, alpha: 1)
+        metalMat.metalness.contents = 0.85
+        metalMat.roughness.contents = 0.25
         
-        let towerShaft = SCNCylinder(radius: 0.2, height: 10)
-        towerShaft.materials = [tbMat]
-        let tsNode = SCNNode(geometry: towerShaft)
-        tsNode.position = SCNVector3(-4, 7, -4)
-        root.addChildNode(tsNode)
+        // ══════════════════════════════════════════════
+        // ── CENTRAL ANTENNA TOWER (centered at origin) ──
+        // ══════════════════════════════════════════════
+        
+        // Heavy octagonal base platform
+        let basePlatform = SCNCylinder(radius: 2.5, height: 0.4)
+        basePlatform.radialSegmentCount = 8
+        let basePlatMat = SCNMaterial()
+        basePlatMat.diffuse.contents = UIColor(red: 0.08, green: 0.08, blue: 0.1, alpha: 1)
+        basePlatMat.metalness.contents = 0.9
+        basePlatMat.roughness.contents = 0.2
+        basePlatform.materials = [basePlatMat]
+        let basePlatNode = SCNNode(geometry: basePlatform)
+        basePlatNode.position = SCNVector3(0, 0.2, 0)
+        root.addChildNode(basePlatNode)
+        
+        // Base wireframe glow
+        let baseWire = SCNCylinder(radius: 2.52, height: 0.42)
+        baseWire.radialSegmentCount = 8
+        let baseWireMat = SCNMaterial()
+        baseWireMat.diffuse.contents = UIColor.clear
+        baseWireMat.emission.contents = P.lime
+        baseWireMat.fillMode = .lines
+        baseWireMat.transparency = 0.6
+        baseWire.materials = [baseWireMat]
+        let baseWireNode = SCNNode(geometry: baseWire)
+        baseWireNode.position = SCNVector3(0, 0.2, 0)
+        root.addChildNode(baseWireNode)
+        
+        // Tower lower section — thick
+        let towerLower = SCNCylinder(radius: 0.6, height: 3)
+        towerLower.materials = [metalMat]
+        let towerLowerNode = SCNNode(geometry: towerLower)
+        towerLowerNode.position = SCNVector3(0, 1.9, 0)
+        root.addChildNode(towerLowerNode)
+        
+        // Tower mid section — medium
+        let towerMid = SCNCylinder(radius: 0.35, height: 5)
+        towerMid.materials = [metalMat]
+        let towerMidNode = SCNNode(geometry: towerMid)
+        towerMidNode.position = SCNVector3(0, 5.9, 0)
+        root.addChildNode(towerMidNode)
+        
+        // Tower upper section — thin
+        let towerUpper = SCNCylinder(radius: 0.15, height: 4)
+        towerUpper.materials = [metalMat]
+        let towerUpperNode = SCNNode(geometry: towerUpper)
+        towerUpperNode.position = SCNVector3(0, 10.4, 0)
+        root.addChildNode(towerUpperNode)
+        
+        // Antenna cross-arms at mid height
+        for angle: Float in [0, Float.pi / 2, Float.pi, Float.pi * 1.5] {
+            let arm = SCNBox(width: 3, height: 0.08, length: 0.08, chamferRadius: 0)
+            arm.materials = [metalMat]
+            let armNode = SCNNode(geometry: arm)
+            armNode.position = SCNVector3(0, 8.5, 0)
+            armNode.eulerAngles = SCNVector3(0, angle, 0)
+            root.addChildNode(armNode)
+            
+            // Arm tip light
+            let armTipSphere = SCNSphere(radius: 0.08)
+            let armTipMat = SCNMaterial()
+            armTipMat.diffuse.contents = P.lime
+            armTipMat.emission.contents = P.lime
+            armTipSphere.materials = [armTipMat]
+            let armTip = SCNNode(geometry: armTipSphere)
+            armTip.position = SCNVector3(1.5, 0, 0)
+            armNode.addChildNode(armTip)
+            
+            // Blinking light on each arm tip
+            let blinkOn = SCNAction.fadeOpacity(to: 1.0, duration: 0.3)
+            let blinkOff = SCNAction.fadeOpacity(to: 0.2, duration: 0.3)
+            let wait = SCNAction.wait(duration: Double.random(in: 0.5...1.5))
+            armTip.runAction(SCNAction.repeatForever(SCNAction.sequence([blinkOn, wait, blinkOff, wait])))
+        }
+        
+        // Support struts — diagonal braces from base to mid tower
+        for angle: Float in [Float.pi / 4, Float.pi * 3 / 4, Float.pi * 5 / 4, Float.pi * 7 / 4] {
+            let strut = SCNCylinder(radius: 0.04, height: 6)
+            strut.materials = [metalMat]
+            let strutNode = SCNNode(geometry: strut)
+            let dx = sin(angle) * 1.8
+            let dz = cos(angle) * 1.8
+            strutNode.position = SCNVector3(dx, 3.5, dz)
+            strutNode.eulerAngles = SCNVector3(cos(angle) * 0.35, 0, -sin(angle) * 0.35)
+            root.addChildNode(strutNode)
+        }
         
         // Antenna tip — bright glowing sphere
-        let tip = SCNSphere(radius: 0.35)
+        let tip = SCNSphere(radius: 0.4)
         let tipMat = SCNMaterial()
         tipMat.diffuse.contents = P.lime
         tipMat.emission.contents = P.lime
         tip.materials = [tipMat]
         let tipNode = SCNNode(geometry: tip)
-        tipNode.position = SCNVector3(-4, 12.5, -4)
+        tipNode.position = SCNVector3(0, 12.8, 0)
         root.addChildNode(tipNode)
+        
+        // Tip glow pulsing
+        let glowUp = SCNAction.customAction(duration: 1.5) { node, t in
+            let progress = Float(t) / 1.5
+            node.geometry?.firstMaterial?.emission.intensity = CGFloat(0.6 + 0.4 * sin(progress * .pi))
+        }
+        tipNode.runAction(SCNAction.repeatForever(glowUp))
         
         let tipLight = SCNLight()
         tipLight.type = .omni
         tipLight.color = P.lime
-        tipLight.intensity = 600
-        tipLight.attenuationStartDistance = 2
-        tipLight.attenuationEndDistance = 12
+        tipLight.intensity = 800
+        tipLight.attenuationStartDistance = 3
+        tipLight.attenuationEndDistance = 18
         tipNode.light = tipLight
         
-        // WiFi wave rings — visible torus rings that pulse outward
-        for i in 0..<4 {
-            let ringRadius = CGFloat(1.5 + Double(i) * 1.8)
-            let ring = SCNTorus(ringRadius: ringRadius, pipeRadius: 0.06)
+        // Warning beacon at top — rotating red blink
+        let beacon = SCNSphere(radius: 0.12)
+        let beaconMat = SCNMaterial()
+        beaconMat.diffuse.contents = UIColor.red
+        beaconMat.emission.contents = UIColor.red
+        beacon.materials = [beaconMat]
+        let beaconNode = SCNNode(geometry: beacon)
+        beaconNode.position = SCNVector3(0, 13.3, 0)
+        root.addChildNode(beaconNode)
+        let beaconBlink = SCNAction.sequence([
+            SCNAction.fadeOpacity(to: 1.0, duration: 0.15),
+            SCNAction.fadeOpacity(to: 0.0, duration: 0.15),
+            SCNAction.wait(duration: 1.5)
+        ])
+        beaconNode.runAction(SCNAction.repeatForever(beaconBlink))
+        
+        // Tower base collision
+        registerBox(manager, x: 0, z: 0, w: 2.5, l: 2.5)
+        
+        // ══════════════════════════════════════════════
+        // ── WiFi WAVE RINGS — dramatic pulsing signal ──
+        // ══════════════════════════════════════════════
+        for i in 0..<5 {
+            let ringRadius = CGFloat(1.8 + Double(i) * 2.0)
+            let ring = SCNTorus(ringRadius: ringRadius, pipeRadius: 0.08)
             let ringMat = SCNMaterial()
-            ringMat.diffuse.contents = P.lime.withAlphaComponent(0.3)
+            ringMat.diffuse.contents = P.lime.withAlphaComponent(0.35)
             ringMat.emission.contents = P.lime
-            ringMat.transparency = CGFloat(0.7 - Double(i) * 0.12)
+            ringMat.transparency = CGFloat(0.8 - Double(i) * 0.12)
             ring.materials = [ringMat]
             let ringNode = SCNNode(geometry: ring)
-            ringNode.position = SCNVector3(-4, 10 + Float(i) * 0.5, -4)
+            ringNode.position = SCNVector3(0, 10.5 + Float(i) * 0.6, 0)
             root.addChildNode(ringNode)
             
-            // Pulsing scale animation with staggered delay
-            let delay = Double(i) * 0.6
-            let expand = SCNAction.scale(to: 1.6, duration: 1.8)
+            // Staggered pulse: expand + fade, then snap back
+            let delay = Double(i) * 0.5
+            let expand = SCNAction.scale(to: 1.8, duration: 2.0)
             expand.timingMode = .easeOut
-            let fadeOut = SCNAction.fadeOpacity(to: 0.15, duration: 1.8)
+            let fadeOut = SCNAction.fadeOpacity(to: 0.08, duration: 2.0)
             let expandAndFade = SCNAction.group([expand, fadeOut])
             let reset = SCNAction.group([
-                SCNAction.scale(to: 0.6, duration: 0),
+                SCNAction.scale(to: 0.5, duration: 0),
                 SCNAction.fadeOpacity(to: 1.0, duration: 0)
             ])
             let pulse = SCNAction.sequence([
@@ -765,64 +877,289 @@ struct WorldBuilder {
             ])
             ringNode.runAction(SCNAction.repeatForever(pulse))
             
-            // Add a point light on the outermost ring for glow
+            // Light on first ring for extra glow
             if i == 0 {
                 let waveLight = SCNLight()
                 waveLight.type = .omni
                 waveLight.color = P.lime
-                waveLight.intensity = 200
-                waveLight.attenuationStartDistance = 1
-                waveLight.attenuationEndDistance = 8
+                waveLight.intensity = 300
+                waveLight.attenuationStartDistance = 2
+                waveLight.attenuationEndDistance = 12
                 ringNode.light = waveLight
             }
         }
         
-        // Satellite dishes
-        let dishPositions: [(Float, Float)] = [(6, -3), (8, 4), (-8, 5)]
-        for (dx, dz) in dishPositions {
-            let dish = SCNSphere(radius: 1.0)
-            dish.segmentCount = 12
+        // ══════════════════════════════════════════════
+        // ── ELEVATED CATWALKS — adds depth & verticality ──
+        // ══════════════════════════════════════════════
+        
+        // Catwalk ring around the antenna at height 1.5
+        let catwalkAngles: [Float] = [0, Float.pi / 2, Float.pi, Float.pi * 1.5]
+        for angle in catwalkAngles {
+            let walkway = SCNBox(width: 6, height: 0.06, length: 1.2, chamferRadius: 0)
+            let walkMat = SCNMaterial()
+            walkMat.diffuse.contents = UIColor(red: 0.07, green: 0.07, blue: 0.09, alpha: 1)
+            walkMat.metalness.contents = 0.8
+            walkMat.roughness.contents = 0.3
+            walkway.materials = [walkMat]
+            let walkNode = SCNNode(geometry: walkway)
+            let wx = sin(angle) * 5
+            let wz = cos(angle) * 5
+            walkNode.position = SCNVector3(wx, 1.5, wz)
+            walkNode.eulerAngles = SCNVector3(0, angle, 0)
+            root.addChildNode(walkNode)
+            
+            // Catwalk wireframe edge
+            let walkWire = SCNBox(width: 6.02, height: 0.08, length: 1.22, chamferRadius: 0)
+            let walkWireMat = SCNMaterial()
+            walkWireMat.diffuse.contents = UIColor.clear
+            walkWireMat.emission.contents = P.lime.withAlphaComponent(0.6)
+            walkWireMat.fillMode = .lines
+            walkWireMat.transparency = 0.4
+            walkWire.materials = [walkWireMat]
+            let walkWireNode = SCNNode(geometry: walkWire)
+            walkWireNode.position = SCNVector3(wx, 1.5, wz)
+            walkWireNode.eulerAngles = SCNVector3(0, angle, 0)
+            root.addChildNode(walkWireNode)
+            
+            // Railing posts
+            for offset: Float in [-2.5, -1.0, 0.5, 2.0] {
+                let post = SCNCylinder(radius: 0.03, height: 0.8)
+                post.materials = [metalMat]
+                let postNode = SCNNode(geometry: post)
+                let px = sin(angle) * 5 + cos(angle) * offset
+                let pz = cos(angle) * 5 - sin(angle) * offset
+                postNode.position = SCNVector3(px, 1.9, pz)
+                root.addChildNode(postNode)
+            }
+        }
+        
+        // ══════════════════════════════════════════════
+        // ── SATELLITE DISHES — larger, more dramatic ──
+        // ══════════════════════════════════════════════
+        let dishPositions: [(x: Float, z: Float, scale: Float, tilt: Float)] = [
+            (8, -6, 1.3, -0.4),
+            (10, 4, 1.0, -0.3),
+            (-9, 6, 1.1, -0.35),
+            (-7, -8, 0.9, -0.5)
+        ]
+        for dish in dishPositions {
+            let dishGeo = SCNSphere(radius: CGFloat(dish.scale))
+            dishGeo.segmentCount = 12
             let dMat = SCNMaterial()
-            dMat.diffuse.contents = UIColor(red: 0.2, green: 0.18, blue: 0.25, alpha: 1)
-            dMat.metalness.contents = 0.7
+            dMat.diffuse.contents = UIColor(red: 0.14, green: 0.12, blue: 0.18, alpha: 1)
+            dMat.metalness.contents = 0.8
+            dMat.roughness.contents = 0.2
             dMat.isDoubleSided = true
-            dish.materials = [dMat]
-            let dNode = SCNNode(geometry: dish)
-            dNode.position = SCNVector3(dx, 1.5, dz)
-            dNode.scale = SCNVector3(1, 0.4, 1)
+            dishGeo.materials = [dMat]
+            let dNode = SCNNode(geometry: dishGeo)
+            dNode.position = SCNVector3(dish.x, 1.8, dish.z)
+            dNode.scale = SCNVector3(1, 0.35, 1)
+            dNode.eulerAngles = SCNVector3(dish.tilt, 0, 0)
             root.addChildNode(dNode)
             
             // Dish stem
-            let stem = SCNCylinder(radius: 0.08, height: 1.5)
-            stem.materials = [tbMat]
+            let stem = SCNCylinder(radius: 0.1, height: 1.8)
+            stem.materials = [metalMat]
             let sNode = SCNNode(geometry: stem)
-            sNode.position = SCNVector3(dx, 0.75, dz)
+            sNode.position = SCNVector3(dish.x, 0.9, dish.z)
             root.addChildNode(sNode)
+            
+            // Dish receiver arm
+            let arm = SCNCylinder(radius: 0.03, height: 1.2)
+            arm.materials = [metalMat]
+            let armNode = SCNNode(geometry: arm)
+            armNode.position = SCNVector3(dish.x, 2.2, dish.z - 0.3)
+            armNode.eulerAngles = SCNVector3(0.6, 0, 0)
+            root.addChildNode(armNode)
+            
+            // Receiver glow dot
+            let rcv = SCNSphere(radius: 0.06)
+            let rcvMat = SCNMaterial()
+            rcvMat.diffuse.contents = P.lime
+            rcvMat.emission.contents = P.lime
+            rcv.materials = [rcvMat]
+            let rcvNode = SCNNode(geometry: rcv)
+            rcvNode.position = SCNVector3(dish.x, 2.8, dish.z - 0.8)
+            root.addChildNode(rcvNode)
         }
         
-        // Rooftop structures — AC units, vents
-        root.addChildNode(makeBuilding(width: 2, height: 1.5, length: 2, color: P.slate, emissionColor: P.lime, at: SCNVector3(3, 0, -6)))
-        registerBox(manager, x: 3, z: -6, w: 2, l: 2)
-        root.addChildNode(makeBuilding(width: 1.5, height: 1, length: 1.5, color: P.slate, emissionColor: P.lime, at: SCNVector3(-10, 0, 3)))
-        registerBox(manager, x: -10, z: 3, w: 1.5, l: 1.5)
-        root.addChildNode(makeBuilding(width: 3, height: 0.4, length: 2, color: UIColor.darkGray, emissionColor: P.lime, at: SCNVector3(5, 0, 6)))
-        registerBox(manager, x: 5, z: 6, w: 3, l: 2)
+        // ══════════════════════════════════════════════
+        // ── EQUIPMENT RACKS & ROOFTOP STRUCTURES ──
+        // ══════════════════════════════════════════════
         
-        // Tower base obstacle
-        registerBox(manager, x: -4, z: -4, w: 1.2, l: 1.2)
+        // Equipment racks along left side (player spawn side)
+        root.addChildNode(makeBuilding(width: 2, height: 2.5, length: 1.5, color: P.slate, emissionColor: P.lime, at: SCNVector3(-12, 0, -4)))
+        registerBox(manager, x: -12, z: -4, w: 2, l: 1.5)
+        root.addChildNode(makeBuilding(width: 1.5, height: 2, length: 1.5, color: P.slate, emissionColor: P.lime, at: SCNVector3(-12, 0, 2)))
+        registerBox(manager, x: -12, z: 2, w: 1.5, l: 1.5)
         
-        // Cable runs across rooftop
-        for z: Float in [-2, 3, 7] {
-            root.addChildNode(makePipe(from: SCNVector3(-12, 0.3, z), to: SCNVector3(12, 0.3, z), radius: 0.04, color: P.lime))
+        // Equipment racks along right side (firewall side)
+        root.addChildNode(makeBuilding(width: 2.5, height: 3, length: 2, color: P.slate, emissionColor: P.lime, at: SCNVector3(12, 0, -3)))
+        registerBox(manager, x: 12, z: -3, w: 2.5, l: 2)
+        root.addChildNode(makeBuilding(width: 2, height: 2, length: 1.5, color: P.slate, emissionColor: P.lime, at: SCNVector3(12, 0, 4)))
+        registerBox(manager, x: 12, z: 4, w: 2, l: 1.5)
+        
+        // Low vent units scattered around
+        root.addChildNode(makeBuilding(width: 1.5, height: 0.6, length: 1.5, color: UIColor.darkGray, emissionColor: P.lime, at: SCNVector3(-6, 0, 8)))
+        registerBox(manager, x: -6, z: 8, w: 1.5, l: 1.5)
+        root.addChildNode(makeBuilding(width: 2, height: 0.5, length: 1, color: UIColor.darkGray, emissionColor: P.lime, at: SCNVector3(5, 0, -9)))
+        registerBox(manager, x: 5, z: -9, w: 2, l: 1)
+        
+        // ══════════════════════════════════════════════
+        // ── CABLE CONDUITS — across the rooftop ──
+        // ══════════════════════════════════════════════
+        for z: Float in [-5, 0, 5, 9] {
+            root.addChildNode(makePipe(from: SCNVector3(-14, 0.2, z), to: SCNVector3(14, 0.2, z), radius: 0.04, color: P.lime))
+        }
+        // Cross cables
+        for x: Float in [-8, -3, 3, 8] {
+            root.addChildNode(makePipe(from: SCNVector3(x, 0.2, -10), to: SCNVector3(x, 0.2, 10), radius: 0.03, color: P.lime.withAlphaComponent(0.5)))
         }
         
-        // Sign
-        root.addChildNode(makeSignPanel(color: P.lime, width: 5, height: 1.2, at: SCNVector3(-6, 5, -10)))
+        // Overhead cables at height
+        root.addChildNode(makePipe(from: SCNVector3(-14, 4, -6), to: SCNVector3(14, 4, -6), radius: 0.05, color: P.lime))
+        root.addChildNode(makePipe(from: SCNVector3(-14, 5, 6), to: SCNVector3(14, 5, 6), radius: 0.05, color: P.lime))
         
-        // Ambient packets floating across the rooftop
-        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.lime, yRange: 1.5...8.0, flowDirection: SCNVector3(0, 1, 0))
+        // ══════════════════════════════════════════════
+        // ── SIGNAL STRENGTH INDICATORS — vertical light bars ──
+        // ══════════════════════════════════════════════
+        let barPositions: [(x: Float, z: Float)] = [(-4, -10), (4, -10), (-4, 10), (4, 10)]
+        for barPos in barPositions {
+            for barIdx in 0..<5 {
+                let barH: CGFloat = 0.3
+                let bar = SCNBox(width: 0.3, height: barH, length: 0.1, chamferRadius: 0.02)
+                let barMat = SCNMaterial()
+                let intensity = CGFloat(barIdx + 1) / 5.0
+                barMat.diffuse.contents = P.lime.withAlphaComponent(0.2)
+                barMat.emission.contents = P.lime
+                barMat.transparency = intensity
+                bar.materials = [barMat]
+                let barNode = SCNNode(geometry: bar)
+                barNode.position = SCNVector3(barPos.x, 0.5 + Float(barIdx) * 0.4, barPos.z)
+                root.addChildNode(barNode)
+                
+                // Cascading blink animation
+                let delay = Double(barIdx) * 0.3
+                let on = SCNAction.fadeOpacity(to: 1.0, duration: 0.2)
+                let hold = SCNAction.wait(duration: 0.5)
+                let off = SCNAction.fadeOpacity(to: 0.3, duration: 0.4)
+                let wait = SCNAction.wait(duration: 2.0 - delay)
+                barNode.runAction(SCNAction.repeatForever(SCNAction.sequence([
+                    SCNAction.wait(duration: delay), on, hold, off, wait
+                ])))
+            }
+        }
         
-        manager.resetPlayerPosition(to: SCNVector3(8, 0, 5))
+        // ══════════════════════════════════════════════
+        // ── ROOFTOP EDGE — low wall perimeter ──
+        // ══════════════════════════════════════════════
+        let edgePositions: [(x: Float, z: Float, w: CGFloat, l: CGFloat)] = [
+            (0, -12, 30, 0.3),   // back edge
+            (0, 12, 30, 0.3),    // front edge
+            (-15, 0, 0.3, 24),   // left edge
+            (15, 0, 0.3, 24)     // right edge
+        ]
+        for edge in edgePositions {
+            let wall = SCNBox(width: edge.w, height: 0.6, length: edge.l, chamferRadius: 0)
+            let wallMat = SCNMaterial()
+            wallMat.diffuse.contents = UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1)
+            wallMat.metalness.contents = 0.7
+            wallMat.roughness.contents = 0.3
+            wall.materials = [wallMat]
+            let wallNode = SCNNode(geometry: wall)
+            wallNode.position = SCNVector3(edge.x, 0.3, edge.z)
+            root.addChildNode(wallNode)
+            
+            // Edge wireframe
+            let wireWall = SCNBox(width: edge.w + 0.02, height: 0.62, length: edge.l + 0.02, chamferRadius: 0)
+            let wireWallMat = SCNMaterial()
+            wireWallMat.diffuse.contents = UIColor.clear
+            wireWallMat.emission.contents = P.lime.withAlphaComponent(0.4)
+            wireWallMat.fillMode = .lines
+            wireWallMat.transparency = 0.3
+            wireWall.materials = [wireWallMat]
+            let wireWallNode = SCNNode(geometry: wireWall)
+            wireWallNode.position = SCNVector3(edge.x, 0.3, edge.z)
+            root.addChildNode(wireWallNode)
+        }
+        
+        // ══════════════════════════════════════════════
+        // ── SIGN & DECOR ──
+        // ══════════════════════════════════════════════
+        root.addChildNode(makeSignPanel(color: P.lime, width: 6, height: 1.5, at: SCNVector3(0, 7, -11)))
+        
+        // Floating data particles around the antenna
+        for _ in 0..<15 {
+            let px = Float.random(in: -14...14)
+            let py = Float.random(in: 2...10)
+            let pz = Float.random(in: -11...11)
+            root.addChildNode(makeDataParticle(color: P.lime, at: SCNVector3(px, py, pz), size: 0.08))
+        }
+        
+        // ══════════════════════════════════════════════
+        // ── LIGHTING — dramatic multi-color setup ──
+        // ══════════════════════════════════════════════
+        
+        // Main lime spot from above-front
+        let mainSpot = SCNLight()
+        mainSpot.type = .spot
+        mainSpot.color = P.lime
+        mainSpot.intensity = 300
+        mainSpot.spotInnerAngle = 20
+        mainSpot.spotOuterAngle = 60
+        mainSpot.castsShadow = true
+        mainSpot.shadowRadius = 4
+        let mainSpotNode = SCNNode()
+        mainSpotNode.light = mainSpot
+        mainSpotNode.position = SCNVector3(0, 14, -8)
+        mainSpotNode.eulerAngles = SCNVector3(-Float.pi / 3, 0, 0)
+        root.addChildNode(mainSpotNode)
+        
+        // Cyan accent from the left
+        let leftSpot = SCNLight()
+        leftSpot.type = .spot
+        leftSpot.color = P.cyan
+        leftSpot.intensity = 150
+        leftSpot.spotInnerAngle = 15
+        leftSpot.spotOuterAngle = 50
+        let leftSpotNode = SCNNode()
+        leftSpotNode.light = leftSpot
+        leftSpotNode.position = SCNVector3(-12, 8, 0)
+        leftSpotNode.eulerAngles = SCNVector3(-Float.pi / 4, -Float.pi / 4, 0)
+        root.addChildNode(leftSpotNode)
+        
+        // Amber warm from the right (firewall side)
+        let rightSpot = SCNLight()
+        rightSpot.type = .spot
+        rightSpot.color = P.amber
+        rightSpot.intensity = 120
+        rightSpot.spotInnerAngle = 15
+        rightSpot.spotOuterAngle = 45
+        let rightSpotNode = SCNNode()
+        rightSpotNode.light = rightSpot
+        rightSpotNode.position = SCNVector3(12, 8, 0)
+        rightSpotNode.eulerAngles = SCNVector3(-Float.pi / 4, Float.pi / 4, 0)
+        root.addChildNode(rightSpotNode)
+        
+        // Violet rim from behind for depth
+        let backSpot = SCNLight()
+        backSpot.type = .spot
+        backSpot.color = P.violet
+        backSpot.intensity = 80
+        backSpot.spotInnerAngle = 20
+        backSpot.spotOuterAngle = 60
+        let backSpotNode = SCNNode()
+        backSpotNode.light = backSpot
+        backSpotNode.position = SCNVector3(0, 6, 12)
+        backSpotNode.eulerAngles = SCNVector3(-Float.pi / 5, Float.pi, 0)
+        root.addChildNode(backSpotNode)
+        
+        // Ambient NPC packets rising upward toward the antenna
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.lime, yRange: 1.0...9.0, flowDirection: SCNVector3(0, 1, 0))
+        
+        // Player spawns at far LEFT (opposite of firewall at right)
+        manager.resetPlayerPosition(to: SCNVector3(-12, 0, 0))
     }
     
     // MARK: - Router Station (Act 2b)
