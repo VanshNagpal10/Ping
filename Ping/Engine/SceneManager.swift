@@ -73,10 +73,51 @@ class SceneManager: ObservableObject {
     
     // MARK: - Base Scene
     private func setupScene() {
-        scene.background.contents = Palette.void
-        scene.fogStartDistance = 25
-        scene.fogEndDistance = 55
-        scene.fogColor = Palette.void
+        // Atmospheric gradient sky — deep indigo/purple cyberpunk sky, NOT pitch black
+        scene.background.contents = Self.makeGradientSky(
+            topColor: UIColor(red: 0.06, green: 0.04, blue: 0.18, alpha: 1),
+            midColor: UIColor(red: 0.10, green: 0.06, blue: 0.24, alpha: 1),
+            bottomColor: UIColor(red: 0.16, green: 0.10, blue: 0.32, alpha: 1)
+        )
+        
+        // Environment lighting — gives PBR/metallic surfaces something to reflect
+        scene.lightingEnvironment.contents = Self.makeGradientSky(
+            topColor: UIColor(red: 0.10, green: 0.08, blue: 0.22, alpha: 1),
+            midColor: UIColor(red: 0.14, green: 0.10, blue: 0.28, alpha: 1),
+            bottomColor: UIColor(red: 0.20, green: 0.15, blue: 0.35, alpha: 1)
+        )
+        scene.lightingEnvironment.intensity = 1.8
+        
+        scene.fogStartDistance = 30
+        scene.fogEndDistance = 65
+        scene.fogColor = UIColor(red: 0.07, green: 0.05, blue: 0.16, alpha: 1)
+    }
+    
+    /// Creates a vertical gradient sky image for the scene background.
+    /// Keeps the cyberpunk aesthetic but provides enough ambient brightness
+    /// for reflections, shadows, and visual depth.
+    static func makeGradientSky(
+        topColor: UIColor,
+        midColor: UIColor,
+        bottomColor: UIColor,
+        size: CGSize = CGSize(width: 2, height: 512)
+    ) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { ctx in
+            let colors = [topColor.cgColor, midColor.cgColor, bottomColor.cgColor]
+            let locations: [CGFloat] = [0.0, 0.45, 1.0]
+            guard let gradient = CGGradient(
+                colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                colors: colors as CFArray,
+                locations: locations
+            ) else { return }
+            ctx.cgContext.drawLinearGradient(
+                gradient,
+                start: .zero,
+                end: CGPoint(x: 0, y: size.height),
+                options: [.drawsAfterEndLocation, .drawsBeforeStartLocation]
+            )
+        }
     }
     
     // MARK: - Camera
@@ -105,36 +146,46 @@ class SceneManager: ObservableObject {
     
     // MARK: - Lighting
     private func setupLighting() {
-        // Key light — warm amber from above-right
+        // Key light — warm amber from above-right, boosted for visibility
         let keyLight = SCNLight()
         keyLight.type = .directional
-        keyLight.color = UIColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
-        keyLight.intensity = 600
+        keyLight.color = UIColor(red: 1.0, green: 0.95, blue: 0.88, alpha: 1)
+        keyLight.intensity = 1000
         keyLight.castsShadow = true
         keyLight.shadowMode = .deferred
-        keyLight.shadowRadius = 4
+        keyLight.shadowRadius = 5
         keyLight.shadowSampleCount = 16
-        keyLight.shadowColor = UIColor.black.withAlphaComponent(0.8)
+        keyLight.shadowColor = UIColor.black.withAlphaComponent(0.55)
         let keyNode = SCNNode()
         keyNode.light = keyLight
         keyNode.eulerAngles = SCNVector3(-Float.pi / 3, Float.pi / 5, 0)
         scene.rootNode.addChildNode(keyNode)
         
-        // Fill light — cool cyan from left (kept subtle to avoid washing everything)
+        // Fill light — cool cyan from left, stronger for visible bounce
         let fillLight = SCNLight()
         fillLight.type = .directional
         fillLight.color = Palette.cyan
-        fillLight.intensity = 80
+        fillLight.intensity = 250
         let fillNode = SCNNode()
         fillNode.light = fillLight
         fillNode.eulerAngles = SCNVector3(-Float.pi / 4, -Float.pi / 3, 0)
         scene.rootNode.addChildNode(fillNode)
         
-        // Ambient — dark purple tint, low intensity for deep shadows
+        // Back/rim light — violet from behind for cyberpunk edge glow
+        let rimLight = SCNLight()
+        rimLight.type = .directional
+        rimLight.color = Palette.violet
+        rimLight.intensity = 180
+        let rimNode = SCNNode()
+        rimNode.light = rimLight
+        rimNode.eulerAngles = SCNVector3(-Float.pi / 5, Float.pi, 0)
+        scene.rootNode.addChildNode(rimNode)
+        
+        // Ambient — brighter purple tint, lifts everything out of pure darkness
         let ambient = SCNLight()
         ambient.type = .ambient
-        ambient.color = UIColor(red: 0.10, green: 0.06, blue: 0.18, alpha: 1)
-        ambient.intensity = 350
+        ambient.color = UIColor(red: 0.18, green: 0.14, blue: 0.30, alpha: 1)
+        ambient.intensity = 700
         let ambientNode = SCNNode()
         ambientNode.light = ambient
         scene.rootNode.addChildNode(ambientNode)

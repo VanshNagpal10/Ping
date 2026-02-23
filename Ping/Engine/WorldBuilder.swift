@@ -253,8 +253,8 @@ struct WorldBuilder {
     private static func makeAmbientPacket(in root: SCNNode, bounds: CGSize, accentColor: UIColor, yRange: ClosedRange<Float> = 0.0...0.0, flowDirection: SCNVector3 = SCNVector3(1, 0, 0)) {
         let colors: [UIColor] = [P.cyan, P.magenta, P.amber, P.lime, P.violet, P.coral]
         let count = Int.random(in: 8...14)
-        let halfW = Float(bounds.width) / 2 - 2
-        let halfH = Float(bounds.height) / 2 - 2
+        let halfW = max(1, Float(bounds.width) / 2 - 2)
+        let halfH = max(1, Float(bounds.height) / 2 - 2)
         let yMin = yRange.lowerBound == 0 && yRange.upperBound == 0 ? Float(0) : yRange.lowerBound
         let yMax = yRange.lowerBound == 0 && yRange.upperBound == 0 ? Float(0) : yRange.upperBound
         
@@ -381,10 +381,15 @@ struct WorldBuilder {
         manager.worldBounds = CGSize(width: 36, height: 24)
         let root = manager.scene.rootNode
         
-        // Tighter fog for this scene — makes it feel enclosed & deep
-        manager.scene.fogStartDistance = 20
-        manager.scene.fogEndDistance = 50
-        manager.scene.fogColor = UIColor(red: 0.02, green: 0.01, blue: 0.06, alpha: 1)
+        // Cyberpunk sky — deep indigo with cyan horizon glow
+        manager.scene.background.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.05, green: 0.03, blue: 0.16, alpha: 1),
+            midColor: UIColor(red: 0.08, green: 0.06, blue: 0.22, alpha: 1),
+            bottomColor: UIColor(red: 0.10, green: 0.14, blue: 0.30, alpha: 1)
+        )
+        manager.scene.fogStartDistance = 30
+        manager.scene.fogEndDistance = 60
+        manager.scene.fogColor = UIColor(red: 0.07, green: 0.05, blue: 0.16, alpha: 1)
         
         // ── Ground: dark hex-grid platform ──
         let floor = makeGroundPlane(width: 44, length: 34, accentColor: P.cyan)
@@ -697,11 +702,15 @@ struct WorldBuilder {
         manager.worldBounds = CGSize(width: 34, height: 26)
         let root = manager.scene.rootNode
         
-        // Atmosphere — dark sky with green tint
-        manager.scene.background.contents = UIColor(red: 0.01, green: 0.03, blue: 0.02, alpha: 1)
-        manager.scene.fogColor = UIColor(red: 0.02, green: 0.05, blue: 0.03, alpha: 1)
-        manager.scene.fogStartDistance = 20
-        manager.scene.fogEndDistance = 55
+        // Atmosphere — dark sky with green/teal gradient
+        manager.scene.background.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.03, green: 0.06, blue: 0.05, alpha: 1),
+            midColor: UIColor(red: 0.05, green: 0.10, blue: 0.08, alpha: 1),
+            bottomColor: UIColor(red: 0.08, green: 0.18, blue: 0.12, alpha: 1)
+        )
+        manager.scene.fogColor = UIColor(red: 0.05, green: 0.10, blue: 0.07, alpha: 1)
+        manager.scene.fogStartDistance = 30
+        manager.scene.fogEndDistance = 65
         
         // ── Ground: industrial rooftop with lime grid ──
         let floor = makeGroundPlane(width: 40, length: 32, baseColor: UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1), accentColor: P.lime)
@@ -1178,6 +1187,22 @@ struct WorldBuilder {
         manager.worldBounds = CGSize(width: 32, height: 20)
         let root = manager.scene.rootNode
         
+        // Station atmosphere — warm amber-tinted sky, brighter than default
+        manager.scene.background.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.08, green: 0.06, blue: 0.16, alpha: 1),
+            midColor: UIColor(red: 0.14, green: 0.10, blue: 0.22, alpha: 1),
+            bottomColor: UIColor(red: 0.24, green: 0.18, blue: 0.10, alpha: 1)
+        )
+        manager.scene.lightingEnvironment.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.12, green: 0.10, blue: 0.22, alpha: 1),
+            midColor: UIColor(red: 0.18, green: 0.14, blue: 0.28, alpha: 1),
+            bottomColor: UIColor(red: 0.28, green: 0.22, blue: 0.14, alpha: 1)
+        )
+        manager.scene.lightingEnvironment.intensity = 2.2
+        manager.scene.fogColor = UIColor(red: 0.10, green: 0.08, blue: 0.16, alpha: 1)
+        manager.scene.fogStartDistance = 35
+        manager.scene.fogEndDistance = 70
+        
         let floor = makeGroundPlane(width: 36, length: 24, baseColor: UIColor(red: 0.06, green: 0.05, blue: 0.1, alpha: 1), accentColor: P.amber)
         root.addChildNode(floor)
         
@@ -1210,8 +1235,9 @@ struct WorldBuilder {
         for z: Float in [-10, 10] {
             let wall = SCNBox(width: 32, height: 6, length: 0.3, chamferRadius: 0)
             let wMat = SCNMaterial()
-            wMat.diffuse.contents = UIColor(red: 0.08, green: 0.06, blue: 0.12, alpha: 1)
-            wMat.metalness.contents = 0.3
+            wMat.diffuse.contents = UIColor(red: 0.12, green: 0.10, blue: 0.18, alpha: 1)
+            wMat.metalness.contents = 0.4
+            wMat.roughness.contents = 0.35
             wall.materials = [wMat]
             let wNode = SCNNode(geometry: wall)
             wNode.position = SCNVector3(0, 3, z)
@@ -1242,14 +1268,16 @@ struct WorldBuilder {
             }
         }
         
-        // Spot lights from ceiling
+        // Spot lights from ceiling — boosted for visibility
         for x: Float in [-8, 0, 8] {
             let spot = SCNLight()
             spot.type = .spot
             spot.color = P.amber
-            spot.intensity = 200
-            spot.spotInnerAngle = 15
-            spot.spotOuterAngle = 50
+            spot.intensity = 500
+            spot.spotInnerAngle = 20
+            spot.spotOuterAngle = 65
+            spot.castsShadow = true
+            spot.shadowRadius = 3
             let sNode = SCNNode()
             sNode.light = spot
             sNode.position = SCNVector3(x, 5.8, 0)
@@ -1257,162 +1285,321 @@ struct WorldBuilder {
             root.addChildNode(sNode)
         }
         
+        // Extra amber omni lights between pillars for warmth
+        for x: Float in [-10, -4, 4, 10] {
+            let omni = SCNLight()
+            omni.type = .omni
+            omni.color = P.amber
+            omni.intensity = 250
+            omni.attenuationStartDistance = 2
+            omni.attenuationEndDistance = 12
+            let oNode = SCNNode()
+            oNode.light = omni
+            oNode.position = SCNVector3(x, 3.5, 0)
+            root.addChildNode(oNode)
+        }
+        
         root.addChildNode(makeSignPanel(color: P.amber, at: SCNVector3(0, 4.5, -9.5)))
         
         // Packets rushing through the station
         makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.amber, yRange: 0.5...3.0, flowDirection: SCNVector3(1, 0, 0))
         
-        // Pull camera back for a wider view of the station
-        manager.setCameraOverride(
-            position: SCNVector3(0, 10, 14),
-            eulerAngles: SCNVector3(-Float.pi / 3.5, 0, 0)
-        )
+        // Use default camera — matches all other scenes for consistent framing
         
         manager.resetPlayerPosition(to: SCNVector3(-10, 0, 0))
     }
     
     // MARK: - Ocean Cable (Act 3)
-    // Deep underwater — bioluminescence, coral, glass fiber tube, caustics
+    // Undersea fiber optic cable run — player travels INSIDE a long glowing tube
+    // across the ocean floor. Bioluminescent deep-sea environment outside the glass.
     private static func buildOceanCable(in manager: SceneManager) {
-        manager.worldBounds = CGSize(width: 36, height: 16)
+        // Long corridor — player is constrained inside the cable tube
+        let cableLength: Float = 80
+        let cableRadius: Float = 2.8
+        manager.worldBounds = CGSize(width: CGFloat(cableLength), height: CGFloat(cableRadius * 1.4))
         let root = manager.scene.rootNode
         
-        // Deep ocean floor — vast seamless seabed
-        let oceanFloor = SCNPlane(width: 200, height: 200)
+        // ── Bright underwater atmosphere ──
+        manager.scene.background.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.04, green: 0.08, blue: 0.24, alpha: 1),
+            midColor: UIColor(red: 0.06, green: 0.14, blue: 0.36, alpha: 1),
+            bottomColor: UIColor(red: 0.08, green: 0.22, blue: 0.48, alpha: 1)
+        )
+        manager.scene.lightingEnvironment.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.08, green: 0.12, blue: 0.30, alpha: 1),
+            midColor: UIColor(red: 0.10, green: 0.18, blue: 0.40, alpha: 1),
+            bottomColor: UIColor(red: 0.14, green: 0.26, blue: 0.50, alpha: 1)
+        )
+        manager.scene.lightingEnvironment.intensity = 2.5
+        manager.scene.fogColor = UIColor(red: 0.05, green: 0.12, blue: 0.28, alpha: 1)
+        manager.scene.fogStartDistance = 35
+        manager.scene.fogEndDistance = 80
+        
+        // ── Deep ocean floor — visible far below through the glass ──
+        let oceanFloor = SCNPlane(width: 300, height: 300)
         let floorMat = SCNMaterial()
-        floorMat.diffuse.contents = UIColor(red: 0.03, green: 0.05, blue: 0.12, alpha: 1)
-        floorMat.roughness.contents = 0.9
+        floorMat.diffuse.contents = UIColor(red: 0.04, green: 0.08, blue: 0.18, alpha: 1)
+        floorMat.roughness.contents = 0.8
+        floorMat.metalness.contents = 0.1
         oceanFloor.materials = [floorMat]
         let floorNode = SCNNode(geometry: oceanFloor)
         floorNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
-        floorNode.position = SCNVector3(0, -0.01, 0)
+        floorNode.position = SCNVector3(0, -2.0, 0)
         root.addChildNode(floorNode)
         
-        // Underwater atmosphere
-        manager.scene.background.contents = UIColor(red: 0.01, green: 0.02, blue: 0.08, alpha: 1)
-        manager.scene.fogColor = UIColor(red: 0.01, green: 0.04, blue: 0.12, alpha: 1)
-        manager.scene.fogStartDistance = 15
-        manager.scene.fogEndDistance = 40
+        // ══════════════════════════════════════════════
+        // ── MAIN FIBER OPTIC CABLE — glass tube the player runs through ──
+        // ══════════════════════════════════════════════
+        let tubeLength = CGFloat(cableLength + 20)
         
-        // Fiber optic cable — horizontal glowing cylinder
-        let cable = SCNCylinder(radius: 1.5, height: 30)
-        let cableMat = SCNMaterial()
-        cableMat.diffuse.contents = UIColor(red: 0.0, green: 0.15, blue: 0.25, alpha: 0.3)
-        cableMat.emission.contents = P.cyan.withAlphaComponent(0.15)
-        cableMat.transparency = 0.35
-        cableMat.isDoubleSided = true
-        cable.materials = [cableMat]
-        let cableNode = SCNNode(geometry: cable)
-        cableNode.position = SCNVector3(0, 1.5, 0)
-        cableNode.eulerAngles = SCNVector3(0, 0, Float.pi / 2)
-        root.addChildNode(cableNode)
+        // Outer glass shell — translucent, glowing blue-green
+        let outerTube = SCNCylinder(radius: CGFloat(cableRadius), height: tubeLength)
+        outerTube.radialSegmentCount = 32
+        let outerMat = SCNMaterial()
+        outerMat.diffuse.contents = UIColor(red: 0.0, green: 0.20, blue: 0.30, alpha: 0.12)
+        outerMat.emission.contents = P.cyan.withAlphaComponent(0.08)
+        outerMat.transparency = 0.25
+        outerMat.isDoubleSided = true
+        outerMat.blendMode = .add
+        outerTube.materials = [outerMat]
+        let outerNode = SCNNode(geometry: outerTube)
+        outerNode.position = SCNVector3(0, Float(cableRadius) * 0.5, 0)
+        outerNode.eulerAngles = SCNVector3(0, 0, Float.pi / 2)
+        root.addChildNode(outerNode)
         
-        // Light pulses inside cable
-        for i in 0..<5 {
-            let pulse = SCNSphere(radius: 0.3)
+        // Wireframe overlay on the tube — hexagonal feel
+        let wireTube = SCNCylinder(radius: CGFloat(cableRadius) + 0.02, height: tubeLength)
+        wireTube.radialSegmentCount = 6
+        let wireMat = SCNMaterial()
+        wireMat.diffuse.contents = UIColor.clear
+        wireMat.emission.contents = P.cyan.withAlphaComponent(0.4)
+        wireMat.fillMode = .lines
+        wireMat.transparency = 0.6
+        wireTube.materials = [wireMat]
+        let wireNode = SCNNode(geometry: wireTube)
+        wireNode.position = outerNode.position
+        wireNode.eulerAngles = outerNode.eulerAngles
+        root.addChildNode(wireNode)
+        
+        // Inner floor walkway — the actual surface the player walks on
+        let walkway = SCNBox(width: tubeLength, height: 0.08, length: CGFloat(cableRadius) * 1.4, chamferRadius: 0.02)
+        let walkMat = SCNMaterial()
+        walkMat.diffuse.contents = UIColor(red: 0.06, green: 0.12, blue: 0.22, alpha: 1)
+        walkMat.metalness.contents = 0.7
+        walkMat.roughness.contents = 0.2
+        walkway.materials = [walkMat]
+        let walkNode = SCNNode(geometry: walkway)
+        walkNode.position = SCNVector3(0, -0.04, 0)
+        root.addChildNode(walkNode)
+        
+        // Glowing center stripe on the walkway
+        let stripe = SCNBox(width: tubeLength, height: 0.01, length: 0.15, chamferRadius: 0)
+        let stripeMat = SCNMaterial()
+        stripeMat.diffuse.contents = P.cyan.withAlphaComponent(0.3)
+        stripeMat.emission.contents = P.cyan
+        stripe.materials = [stripeMat]
+        let stripeNode = SCNNode(geometry: stripe)
+        stripeNode.position = SCNVector3(0, 0.01, 0)
+        root.addChildNode(stripeNode)
+        
+        // Side guide stripes
+        for side: Float in [-1, 1] {
+            let sideStripe = SCNBox(width: tubeLength, height: 0.01, length: 0.08, chamferRadius: 0)
+            let sMat = SCNMaterial()
+            sMat.diffuse.contents = P.cyan.withAlphaComponent(0.15)
+            sMat.emission.contents = P.cyan.withAlphaComponent(0.5)
+            sideStripe.materials = [sMat]
+            let sNode = SCNNode(geometry: sideStripe)
+            sNode.position = SCNVector3(0, 0.01, side * Float(cableRadius) * 0.55)
+            root.addChildNode(sNode)
+        }
+        
+        // ══════════════════════════════════════════════
+        // ── DATA PULSES — light orbs racing through the cable ──
+        // ══════════════════════════════════════════════
+        let pulseColors: [UIColor] = [P.cyan, P.cyan, P.lime, P.cyan, P.magenta, P.cyan, P.violet, P.cyan]
+        for i in 0..<8 {
+            let pulse = SCNSphere(radius: 0.2)
             let pMat = SCNMaterial()
-            pMat.diffuse.contents = P.cyan
-            pMat.emission.contents = P.cyan
+            let color = pulseColors[i % pulseColors.count]
+            pMat.diffuse.contents = color
+            pMat.emission.contents = color
             pulse.materials = [pMat]
             let pNode = SCNNode(geometry: pulse)
-            pNode.position = SCNVector3(-15 + Float(i) * 7, 1.5, 0)
+            let startX = -cableLength / 2 + Float(i) * 10
+            pNode.position = SCNVector3(startX, 0.5, Float.random(in: -1.0...1.0))
             root.addChildNode(pNode)
             
-            // Glow around pulse
             let pLight = SCNLight()
             pLight.type = .omni
-            pLight.color = P.cyan
-            pLight.intensity = 100
-            pLight.attenuationStartDistance = 0.5
-            pLight.attenuationEndDistance = 3
+            pLight.color = color
+            pLight.intensity = 200
+            pLight.attenuationStartDistance = 1
+            pLight.attenuationEndDistance = 6
             pNode.light = pLight
             
-            let travel = SCNAction.moveBy(x: 32, y: 0, z: 0, duration: Double(3 + i))
-            let reset = SCNAction.moveBy(x: -32, y: 0, z: 0, duration: 0)
+            let speed = Double.random(in: 3.0...6.0)
+            let travel = SCNAction.moveBy(x: CGFloat(cableLength + 10), y: 0, z: 0, duration: speed)
+            let reset = SCNAction.moveBy(x: -CGFloat(cableLength + 10), y: 0, z: 0, duration: 0)
             pNode.runAction(SCNAction.repeatForever(SCNAction.sequence([travel, reset])))
         }
         
-        // Coral formations — colorful bumpy shapes
-        let coralData: [(Float, Float, UIColor, CGFloat)] = [
-            (-12, -5, P.coral, 1.2),  (-8, 5, P.magenta, 0.9),
-            (5, -4, P.violet, 1.0),   (10, 5, P.coral, 1.3),
-            (14, -2, P.magenta, 0.8), (-5, -6, P.violet, 0.7),
-            (3, 6, P.coral, 1.1),
+        // ══════════════════════════════════════════════
+        // ── RING MARKERS — periodic glowing rings inside the tube ──
+        // ══════════════════════════════════════════════
+        let ringSpacing: Float = 8
+        var ringX: Float = -cableLength / 2
+        while ringX <= cableLength / 2 {
+            let ring = SCNTorus(ringRadius: CGFloat(cableRadius) * 0.85, pipeRadius: 0.04)
+            let ringMat = SCNMaterial()
+            ringMat.diffuse.contents = P.cyan.withAlphaComponent(0.2)
+            ringMat.emission.contents = P.cyan
+            ring.materials = [ringMat]
+            let ringNode = SCNNode(geometry: ring)
+            ringNode.position = SCNVector3(ringX, Float(cableRadius) * 0.5, 0)
+            ringNode.eulerAngles = SCNVector3(0, 0, Float.pi / 2)
+            root.addChildNode(ringNode)
+            
+            // Subtle pulse animation staggered by position
+            let delay = SCNAction.wait(duration: Double(abs(ringX)).truncatingRemainder(dividingBy: 3))
+            let fadeOut = SCNAction.fadeOpacity(to: 0.3, duration: 1.0)
+            let fadeIn = SCNAction.fadeOpacity(to: 1.0, duration: 1.0)
+            ringNode.runAction(SCNAction.sequence([delay, SCNAction.repeatForever(SCNAction.sequence([fadeOut, fadeIn]))]))
+            
+            ringX += ringSpacing
+        }
+        
+        // ══════════════════════════════════════════════
+        // ── OCEAN SCENERY OUTSIDE THE CABLE (decorative, no collision) ──
+        // ══════════════════════════════════════════════
+        
+        // Coral formations outside the tube — visible through the glass
+        let coralPositions: [(x: Float, z: Float, color: UIColor, size: CGFloat)] = [
+            (-30, -8, P.coral, 1.8),  (-20, 9, P.magenta, 1.4),
+            (-10, -10, P.violet, 1.6), (0, 10, P.coral, 2.0),
+            (10, -9, P.magenta, 1.3), (20, 8, P.violet, 1.5),
+            (30, -7, P.coral, 1.7),   (-25, 7, P.lime, 1.2),
+            (15, 11, P.magenta, 1.0), (25, -11, P.violet, 1.4),
         ]
-        for (cx, cz, color, size) in coralData {
+        for (cx, cz, color, size) in coralPositions {
             let coralNode = SCNNode()
-            // Base rock
             let rock = SCNSphere(radius: size)
             let rMat = SCNMaterial()
-            rMat.diffuse.contents = UIColor(red: 0.12, green: 0.08, blue: 0.06, alpha: 1)
-            rMat.roughness.contents = 1.0
+            rMat.diffuse.contents = UIColor(red: 0.10, green: 0.06, blue: 0.04, alpha: 1)
+            rMat.roughness.contents = 0.9
             rock.materials = [rMat]
             let rNode = SCNNode(geometry: rock)
-            rNode.position = SCNVector3(0, Float(size) * 0.5, 0)
-            rNode.scale = SCNVector3(1, 0.6, 1)
+            rNode.position = SCNVector3(0, Float(size) * 0.4, 0)
+            rNode.scale = SCNVector3(1, 0.5, 1)
             coralNode.addChildNode(rNode)
             
-            // Glowing coral tips
-            for _ in 0..<3 {
-                let tip = SCNCylinder(radius: CGFloat.random(in: 0.06...0.12), height: CGFloat.random(in: 0.4...0.8))
+            for _ in 0..<5 {
+                let tip = SCNCylinder(radius: CGFloat.random(in: 0.08...0.18), height: CGFloat.random(in: 0.5...1.2))
                 let tMat = SCNMaterial()
                 tMat.diffuse.contents = color.withAlphaComponent(0.6)
                 tMat.emission.contents = color
                 tip.materials = [tMat]
                 let tNode = SCNNode(geometry: tip)
-                tNode.position = SCNVector3(Float.random(in: -0.3...0.3), Float(size) * 0.4 + Float.random(in: 0.2...0.5), Float.random(in: -0.3...0.3))
+                tNode.position = SCNVector3(Float.random(in: -0.5...0.5), Float(size) * 0.3 + Float.random(in: 0.2...0.7), Float.random(in: -0.5...0.5))
                 coralNode.addChildNode(tNode)
             }
-            
-            coralNode.position = SCNVector3(cx, 0, cz)
+            coralNode.position = SCNVector3(cx, -1.5, cz)
             root.addChildNode(coralNode)
-            registerBox(manager, x: cx, z: cz, w: size * 2, l: size * 2)
         }
         
-        // Bubbles
-        for _ in 0..<20 {
-            let bubble = SCNSphere(radius: CGFloat.random(in: 0.04...0.12))
+        // Bioluminescent jellyfish-like particles floating outside
+        for _ in 0..<30 {
+            let jelly = SCNSphere(radius: CGFloat.random(in: 0.15...0.4))
+            let jMat = SCNMaterial()
+            let jellyColor = [P.cyan, P.magenta, P.violet, P.lime].randomElement()!
+            jMat.diffuse.contents = jellyColor.withAlphaComponent(0.3)
+            jMat.emission.contents = jellyColor
+            jMat.transparency = 0.6
+            jelly.materials = [jMat]
+            let jNode = SCNNode(geometry: jelly)
+            jNode.position = SCNVector3(
+                Float.random(in: -cableLength/2...cableLength/2),
+                Float.random(in: 0...8),
+                Float.random(in: -15...(-5)) // outside the cable on one side
+            )
+            // Randomize which side
+            if Bool.random() { jNode.position.z = -jNode.position.z }
+            root.addChildNode(jNode)
+            
+            // Gentle floating
+            let drift = SCNAction.moveBy(
+                x: CGFloat.random(in: -2...2),
+                y: CGFloat.random(in: -1.5...1.5),
+                z: CGFloat.random(in: -1...1),
+                duration: Double.random(in: 4...8)
+            )
+            jNode.runAction(SCNAction.repeatForever(SCNAction.sequence([drift, drift.reversed()])))
+        }
+        
+        // Bubbles rising outside
+        for _ in 0..<25 {
+            let bubble = SCNSphere(radius: CGFloat.random(in: 0.04...0.14))
             let bMat = SCNMaterial()
-            bMat.diffuse.contents = UIColor.white.withAlphaComponent(0.2)
-            bMat.emission.contents = UIColor.white.withAlphaComponent(0.05)
+            bMat.diffuse.contents = UIColor.white.withAlphaComponent(0.3)
+            bMat.emission.contents = UIColor.white.withAlphaComponent(0.1)
+            bMat.transparency = 0.5
             bubble.materials = [bMat]
             let bNode = SCNNode(geometry: bubble)
-            bNode.position = SCNVector3(Float.random(in: -15...15), Float.random(in: 0.5...5), Float.random(in: -6...6))
+            bNode.position = SCNVector3(
+                Float.random(in: -cableLength/2...cableLength/2),
+                Float.random(in: -1...2),
+                Float.random(in: -12...12)
+            )
             root.addChildNode(bNode)
             
-            let rise = SCNAction.moveBy(x: 0, y: CGFloat.random(in: 3...7), z: 0, duration: Double.random(in: 5...12))
-            let resetB = SCNAction.moveBy(x: 0, y: -CGFloat.random(in: 3...7), z: 0, duration: 0)
+            let rise = SCNAction.moveBy(x: 0, y: CGFloat.random(in: 5...12), z: 0, duration: Double.random(in: 6...14))
+            let resetB = SCNAction.move(to: SCNVector3(
+                Float.random(in: -cableLength/2...cableLength/2),
+                Float.random(in: -1...0),
+                Float.random(in: -12...12)
+            ), duration: 0)
             bNode.runAction(SCNAction.repeatForever(SCNAction.sequence([rise, resetB])))
         }
         
-        // Caustic light from above
-        let causticLight = SCNLight()
-        causticLight.type = .spot
-        causticLight.color = UIColor(red: 0.15, green: 0.5, blue: 0.7, alpha: 1)
-        causticLight.intensity = 250
-        causticLight.spotInnerAngle = 25
-        causticLight.spotOuterAngle = 70
-        let causticNode = SCNNode()
-        causticNode.light = causticLight
-        causticNode.position = SCNVector3(0, 12, 0)
-        causticNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
-        root.addChildNode(causticNode)
+        // ══════════════════════════════════════════════
+        // ── LIGHTING — bright underwater glow ──
+        // ══════════════════════════════════════════════
         
-        // Bioluminescent particles
-        for _ in 0..<10 {
-            root.addChildNode(makeDataParticle(
-                color: [P.cyan, P.magenta, P.violet].randomElement()!,
-                at: SCNVector3(Float.random(in: -14...14), Float.random(in: 1...5), Float.random(in: -6...6)),
-                size: CGFloat.random(in: 0.05...0.12)
-            ))
+        // Overhead caustic-style lights along the cable
+        for xPos in stride(from: Int(-cableLength / 2), through: Int(cableLength / 2), by: 15) {
+            let caustic = SCNLight()
+            caustic.type = .spot
+            caustic.color = UIColor(red: 0.2, green: 0.6, blue: 0.9, alpha: 1)
+            caustic.intensity = 400
+            caustic.spotInnerAngle = 20
+            caustic.spotOuterAngle = 65
+            caustic.castsShadow = true
+            caustic.shadowRadius = 3
+            let cNode = SCNNode()
+            cNode.light = caustic
+            cNode.position = SCNVector3(Float(xPos), 8, 0)
+            cNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
+            root.addChildNode(cNode)
         }
         
-        root.addChildNode(makeSignPanel(color: P.cyan, at: SCNVector3(0, 5, -7)))
+        // Cyan omni lights along the cable interior for glow
+        for xPos in stride(from: Int(-cableLength / 2), through: Int(cableLength / 2), by: 10) {
+            let omni = SCNLight()
+            omni.type = .omni
+            omni.color = P.cyan
+            omni.intensity = 150
+            omni.attenuationStartDistance = 2
+            omni.attenuationEndDistance = 10
+            let oNode = SCNNode()
+            oNode.light = omni
+            oNode.position = SCNVector3(Float(xPos), 1.5, 0)
+            root.addChildNode(oNode)
+        }
         
-        // Data packets drifting through the deep ocean
-        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.cyan, yRange: 0.8...5.0, flowDirection: SCNVector3(1, 0, 0))
+        // Ambient NPC packets traveling through the cable alongside the player
+        makeAmbientPacket(in: root, bounds: CGSize(width: CGFloat(cableLength), height: CGFloat(cableRadius)), accentColor: P.cyan, yRange: 0.0...0.0, flowDirection: SCNVector3(1, 0, 0))
         
-        manager.resetPlayerPosition(to: SCNVector3(-14, 0, 0))
+        manager.resetPlayerPosition(to: SCNVector3(-cableLength / 2 + 4, 0, 0))
     }
     
     // MARK: - DNS Library (Act 4)
@@ -1421,11 +1608,15 @@ struct WorldBuilder {
         manager.worldBounds = CGSize(width: 32, height: 24)
         let root = manager.scene.rootNode
         
-        // Restore atmosphere
-        manager.scene.background.contents = UIColor(red: 0.03, green: 0.01, blue: 0.06, alpha: 1)
-        manager.scene.fogColor = UIColor(red: 0.04, green: 0.02, blue: 0.08, alpha: 1)
-        manager.scene.fogStartDistance = 25
-        manager.scene.fogEndDistance = 60
+        // Mystical library atmosphere — rich violet/purple glow
+        manager.scene.background.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.06, green: 0.03, blue: 0.16, alpha: 1),
+            midColor: UIColor(red: 0.10, green: 0.05, blue: 0.24, alpha: 1),
+            bottomColor: UIColor(red: 0.16, green: 0.08, blue: 0.34, alpha: 1)
+        )
+        manager.scene.fogColor = UIColor(red: 0.08, green: 0.04, blue: 0.18, alpha: 1)
+        manager.scene.fogStartDistance = 30
+        manager.scene.fogEndDistance = 70
         
         // Polished dark floor
         let floor = makeGroundPlane(width: 36, length: 28, baseColor: UIColor(red: 0.05, green: 0.03, blue: 0.08, alpha: 1), accentColor: P.violet)
@@ -1579,11 +1770,15 @@ struct WorldBuilder {
         manager.worldBounds = CGSize(width: 30, height: 16)
         let root = manager.scene.rootNode
         
-        // Hot atmosphere
-        manager.scene.background.contents = UIColor(red: 0.06, green: 0.02, blue: 0.01, alpha: 1)
-        manager.scene.fogColor = UIColor(red: 0.08, green: 0.03, blue: 0.02, alpha: 1)
-        manager.scene.fogStartDistance = 15
-        manager.scene.fogEndDistance = 45
+        // Hot atmosphere — warm amber/coral sky for urgency
+        manager.scene.background.contents = SceneManager.makeGradientSky(
+            topColor: UIColor(red: 0.12, green: 0.04, blue: 0.04, alpha: 1),
+            midColor: UIColor(red: 0.18, green: 0.08, blue: 0.06, alpha: 1),
+            bottomColor: UIColor(red: 0.28, green: 0.14, blue: 0.06, alpha: 1)
+        )
+        manager.scene.fogColor = UIColor(red: 0.12, green: 0.06, blue: 0.04, alpha: 1)
+        manager.scene.fogStartDistance = 25
+        manager.scene.fogEndDistance = 55
         
         let floor = makeGroundPlane(width: 34, length: 20, baseColor: UIColor(red: 0.06, green: 0.03, blue: 0.02, alpha: 1), accentColor: P.coral)
         root.addChildNode(floor)
