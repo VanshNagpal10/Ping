@@ -111,9 +111,10 @@ class SceneManager: ObservableObject {
         keyLight.color = UIColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
         keyLight.intensity = 600
         keyLight.castsShadow = true
+        keyLight.shadowMode = .deferred
         keyLight.shadowRadius = 4
-        keyLight.shadowSampleCount = 8
-        keyLight.shadowColor = UIColor.black.withAlphaComponent(0.6)
+        keyLight.shadowSampleCount = 16
+        keyLight.shadowColor = UIColor.black.withAlphaComponent(0.8)
         let keyNode = SCNNode()
         keyNode.light = keyLight
         keyNode.eulerAngles = SCNVector3(-Float.pi / 3, Float.pi / 5, 0)

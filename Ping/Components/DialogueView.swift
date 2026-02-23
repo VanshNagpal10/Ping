@@ -99,19 +99,15 @@ struct DialogueOverlay: View {
             .padding(20)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial)
-                    .opacity(0.85)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.black.opacity(0.35))
-                    )
+                    .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.85))
+                    .background(.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 LinearGradient(
-                                    colors: [.cyan.opacity(0.5), .purple.opacity(0.5)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
+                                    colors: [CyberpunkTheme.neonCyan, CyberpunkTheme.neonMagenta.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 ),
                                 lineWidth: 2
                             )
@@ -198,10 +194,12 @@ struct DialogueChoicesView: View {
         .padding(.horizontal, 8)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(accent.opacity(0.1))
+                .fill(accent.opacity(0.15))
+                .background(.ultraThinMaterial)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(accent.opacity(0.5), lineWidth: 1.5)
+                        .stroke(accent.opacity(0.8), lineWidth: 1.5)
+                        .shadow(color: accent.opacity(0.5), radius: 5)
                 )
         )
     }
@@ -375,7 +373,9 @@ struct ExplorationHUD: View {
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.black.opacity(0.5))
+                            .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.7))
+                            .background(.ultraThinMaterial)
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(CyberpunkTheme.neonCyan.opacity(0.4), lineWidth: 1))
                     )
                 }
                 .frame(maxWidth: 300)
@@ -410,7 +410,9 @@ struct ExplorationHUD: View {
                         .padding(10)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.black.opacity(0.5))
+                                .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.7))
+                                .background(.ultraThinMaterial)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(CyberpunkTheme.neonPurple.opacity(0.5), lineWidth: 1))
                         )
                     }
                     
@@ -428,7 +430,9 @@ struct ExplorationHUD: View {
                         .padding(10)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.black.opacity(0.5))
+                                .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.7))
+                                .background(.ultraThinMaterial)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(CyberpunkTheme.neonCyan.opacity(0.5), lineWidth: 1))
                         )
                     }
                     
@@ -446,7 +450,9 @@ struct ExplorationHUD: View {
                         .padding(10)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.black.opacity(0.5))
+                                .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.7))
+                                .background(.ultraThinMaterial)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.orange.opacity(0.5), lineWidth: 1))
                         )
                     }
                 }

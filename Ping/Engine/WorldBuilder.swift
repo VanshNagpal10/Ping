@@ -45,12 +45,14 @@ struct WorldBuilder {
         let plane = SCNPlane(width: visibleSize, height: visibleSize)
         let baseMat = SCNMaterial()
         baseMat.diffuse.contents = baseColor
-        baseMat.roughness.contents = 0.1
-        baseMat.metalness.contents = 0.8
+        baseMat.roughness.contents = 0.15 // Lower roughness = mirror-like
+        baseMat.metalness.contents = 0.90 // High metalness = reflective
         plane.materials = [baseMat]
         let baseNode = SCNNode(geometry: plane)
         baseNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
         baseNode.position = SCNVector3(0, -0.01, 0)
+        baseNode.castsShadow = false
+        baseNode.geometry?.firstMaterial?.writesToDepthBuffer = true
         floor.addChildNode(baseNode)
         
         // Grid lines — concentrated in the play area, fading out beyond it
@@ -107,75 +109,42 @@ struct WorldBuilder {
         color: UIColor, emissionColor: UIColor,
         at position: SCNVector3
     ) -> SCNNode {
+        // 1. The Main Body is now Dark Metal, NOT glowing neon
         let box = SCNBox(width: width, height: height, length: length, chamferRadius: 0.04)
         let mat = SCNMaterial()
-        mat.diffuse.contents = color
-        mat.emission.contents = emissionColor.withAlphaComponent(0.02)
-        mat.roughness.contents = 0.65
-        mat.metalness.contents = 0.5
+        mat.diffuse.contents = UIColor(red: 0.06, green: 0.06, blue: 0.09, alpha: 1.0) // Very dark grey/blue
+        mat.metalness.contents = 0.8   // Highly metallic
+        mat.roughness.contents = 0.25  // Slightly glossy to catch the neon lights
         box.materials = [mat]
         
         let node = SCNNode(geometry: box)
         node.position = SCNVector3(position.x, position.y + Float(height / 2), position.z)
         
-        // Subtle neon edge wireframe
+        // 2. Subtle neon edge wireframe (This provides the Cyberpunk outline)
         let wireBox = SCNBox(width: width + 0.02, height: height + 0.02, length: length + 0.02, chamferRadius: 0.05)
         let wireMat = SCNMaterial()
         wireMat.diffuse.contents = UIColor.clear
-        wireMat.emission.contents = emissionColor.withAlphaComponent(0.5)
+        wireMat.emission.contents = emissionColor // Glowing color
         wireMat.fillMode = .lines
-        wireMat.transparency = 0.06
+        wireMat.transparency = 0.4 // Brighter edges
         wireBox.materials = [wireMat]
         let wireNode = SCNNode(geometry: wireBox)
         node.addChildNode(wireNode)
         
-        // Thin horizontal LED indicator strips (like server rack LEDs) — much subtler than windows
+        // 3. Thin horizontal LED indicator strips
         let stripCount = max(1, Int(height) - 1)
         for i in 0..<stripCount {
-            // Narrow strip across the front face
             let stripW = width * 0.6
             let strip = SCNBox(width: stripW, height: 0.03, length: 0.005, chamferRadius: 0)
             let sMat = SCNMaterial()
             let stripColor = (i % 3 == 0) ? P.magenta : emissionColor
-            sMat.diffuse.contents = stripColor.withAlphaComponent(0.3)
-            sMat.emission.contents = stripColor.withAlphaComponent(0.6)
+            sMat.diffuse.contents = stripColor
+            sMat.emission.contents = stripColor // Make the strips glow bright
             strip.materials = [sMat]
             let sNode = SCNNode(geometry: strip)
             sNode.position = SCNVector3(0, Float(i) * 0.8 - Float(height / 2) + 0.6, Float(length / 2) + 0.005)
             node.addChildNode(sNode)
-            
-            // Tiny dot LED at side
-            let dot = SCNSphere(radius: 0.025)
-            let dMat = SCNMaterial()
-            let dotColor = [emissionColor, P.amber, P.lime].randomElement()!
-            dMat.diffuse.contents = dotColor
-            dMat.emission.contents = dotColor
-            dot.materials = [dMat]
-            let dNode = SCNNode(geometry: dot)
-            dNode.position = SCNVector3(Float(stripW / 2) + 0.1, sNode.position.y, Float(length / 2) + 0.005)
-            node.addChildNode(dNode)
-            
-            // Random blink on the LED dot
-            if Bool.random() {
-                let blink = SCNAction.sequence([
-                    SCNAction.wait(duration: Double.random(in: 1...4)),
-                    SCNAction.fadeOpacity(to: 0.1, duration: 0.15),
-                    SCNAction.fadeOpacity(to: 1.0, duration: 0.15),
-                    SCNAction.wait(duration: Double.random(in: 0.5...2))
-                ])
-                dNode.runAction(SCNAction.repeatForever(blink))
-            }
         }
-        
-        // Top accent edge — thin glowing line on top
-        let topEdge = SCNBox(width: width, height: 0.015, length: length, chamferRadius: 0)
-        let topMat = SCNMaterial()
-        topMat.diffuse.contents = emissionColor.withAlphaComponent(0.15)
-        topMat.emission.contents = emissionColor.withAlphaComponent(0.4)
-        topEdge.materials = [topMat]
-        let topNode = SCNNode(geometry: topEdge)
-        topNode.position = SCNVector3(0, Float(height / 2) + 0.01, 0)
-        node.addChildNode(topNode)
         
         return node
     }
@@ -766,24 +735,46 @@ struct WorldBuilder {
         tipLight.attenuationEndDistance = 12
         tipNode.light = tipLight
         
-        // WiFi wave rings
+        // WiFi wave rings — visible torus rings that pulse outward
         for i in 0..<4 {
-            let ring = SCNTorus(ringRadius: CGFloat(2 + i * 2), pipeRadius: 0.04)
+            let ringRadius = CGFloat(1.5 + Double(i) * 1.8)
+            let ring = SCNTorus(ringRadius: ringRadius, pipeRadius: 0.06)
             let ringMat = SCNMaterial()
-            ringMat.diffuse.contents = P.lime.withAlphaComponent(CGFloat(0.5 - Float(i) * 0.1))
+            ringMat.diffuse.contents = P.lime.withAlphaComponent(0.3)
             ringMat.emission.contents = P.lime
+            ringMat.transparency = CGFloat(0.7 - Double(i) * 0.12)
             ring.materials = [ringMat]
             let ringNode = SCNNode(geometry: ring)
-            ringNode.position = SCNVector3(-4, 10, -4)
+            ringNode.position = SCNVector3(-4, 10 + Float(i) * 0.5, -4)
             root.addChildNode(ringNode)
             
-            let delay = Double(i) * 0.5
+            // Pulsing scale animation with staggered delay
+            let delay = Double(i) * 0.6
+            let expand = SCNAction.scale(to: 1.6, duration: 1.8)
+            expand.timingMode = .easeOut
+            let fadeOut = SCNAction.fadeOpacity(to: 0.15, duration: 1.8)
+            let expandAndFade = SCNAction.group([expand, fadeOut])
+            let reset = SCNAction.group([
+                SCNAction.scale(to: 0.6, duration: 0),
+                SCNAction.fadeOpacity(to: 1.0, duration: 0)
+            ])
             let pulse = SCNAction.sequence([
                 SCNAction.wait(duration: delay),
-                SCNAction.scale(to: 1.2, duration: 1.5),
-                SCNAction.scale(to: 1.0, duration: 1.5)
+                expandAndFade,
+                reset
             ])
             ringNode.runAction(SCNAction.repeatForever(pulse))
+            
+            // Add a point light on the outermost ring for glow
+            if i == 0 {
+                let waveLight = SCNLight()
+                waveLight.type = .omni
+                waveLight.color = P.lime
+                waveLight.intensity = 200
+                waveLight.attenuationStartDistance = 1
+                waveLight.attenuationEndDistance = 8
+                ringNode.light = waveLight
+            }
         }
         
         // Satellite dishes
@@ -1101,29 +1092,30 @@ struct WorldBuilder {
             (12, -5, 7), (12, 2, 6), (12, 7, 8),
         ]
         
-        let shelfColor = P.slate
+        // Dark, polished wood/metal hybrid for the library
+        let shelfColor = UIColor(red: 0.08, green: 0.06, blue: 0.09, alpha: 1)
+        
         for shelf in shelfPositions {
             let shelfNode = SCNNode()
             
-            // Frame — dark metallic (cyberpunk style) with violet edge glow
+            // Frame — Dark glossy material
             let frame = SCNBox(width: 2.2, height: shelf.h, length: 0.7, chamferRadius: 0.03)
             let frameMat = SCNMaterial()
             frameMat.diffuse.contents = shelfColor
-            frameMat.emission.contents = P.violet.withAlphaComponent(0.08)
-            frameMat.roughness.contents = 0.4
-            frameMat.metalness.contents = 0.6
+            frameMat.roughness.contents = 0.2
+            frameMat.metalness.contents = 0.8
             frame.materials = [frameMat]
             let frameNode = SCNNode(geometry: frame)
             frameNode.position = SCNVector3(0, Float(shelf.h / 2), 0)
             shelfNode.addChildNode(frameNode)
             
-            // Glowing violet wireframe edge on bookshelf
+            // Glowing violet wireframe edge
             let wireFrame = SCNBox(width: 2.22, height: shelf.h + 0.02, length: 0.72, chamferRadius: 0.04)
             let wireMat = SCNMaterial()
             wireMat.diffuse.contents = UIColor.clear
-            wireMat.emission.contents = P.violet.withAlphaComponent(0.7)
+            wireMat.emission.contents = P.violet
             wireMat.fillMode = .lines
-            wireMat.transparency = 0.5
+            wireMat.transparency = 0.4
             wireFrame.materials = [wireMat]
             let wireNode = SCNNode(geometry: wireFrame)
             wireNode.position = SCNVector3(0, Float(shelf.h / 2), 0)
@@ -1148,8 +1140,8 @@ struct WorldBuilder {
                     let bookColor: UIColor = [P.coral, P.violet, P.cyan, P.amber, P.magenta, P.lime].randomElement()!
                     let book = SCNBox(width: 0.3, height: 0.6, length: 0.5, chamferRadius: 0.01)
                     let bMat = SCNMaterial()
-                    bMat.diffuse.contents = bookColor.withAlphaComponent(0.6)
-                    bMat.emission.contents = bookColor.withAlphaComponent(0.35)
+                    bMat.diffuse.contents = bookColor
+                    bMat.emission.contents = bookColor.withAlphaComponent(0.6)
                     book.materials = [bMat]
                     let bNode = SCNNode(geometry: book)
                     bNode.position = SCNVector3(Float(col) * 0.4 - 0.6, Float(row) + 0.5, 0)
@@ -1162,43 +1154,57 @@ struct WorldBuilder {
             registerBox(manager, x: shelf.x, z: shelf.z, w: 2.2, l: 0.7)
         }
         
-        // Central reading desk
+        // Central reading desk — dark metal with violet edge trim
         let desk = SCNBox(width: 4, height: 0.8, length: 2.5, chamferRadius: 0.08)
         let deskMat = SCNMaterial()
-        deskMat.diffuse.contents = P.charcoal
-        deskMat.emission.contents = P.violet.withAlphaComponent(0.06)
-        deskMat.roughness.contents = 0.35
-        deskMat.metalness.contents = 0.55
+        deskMat.diffuse.contents = UIColor(red: 0.06, green: 0.04, blue: 0.08, alpha: 1)
+        deskMat.roughness.contents = 0.2
+        deskMat.metalness.contents = 0.8
         desk.materials = [deskMat]
         let deskNode = SCNNode(geometry: desk)
         deskNode.position = SCNVector3(0, 0.4, 0)
         root.addChildNode(deskNode)
+        
+        // Desk wireframe edge glow
+        let deskWire = SCNBox(width: 4.02, height: 0.82, length: 2.52, chamferRadius: 0.09)
+        let deskWireMat = SCNMaterial()
+        deskWireMat.diffuse.contents = UIColor.clear
+        deskWireMat.emission.contents = P.violet
+        deskWireMat.fillMode = .lines
+        deskWireMat.transparency = 0.5
+        deskWire.materials = [deskWireMat]
+        let deskWireNode = SCNNode(geometry: deskWire)
+        deskWireNode.position = SCNVector3(0, 0.4, 0)
+        root.addChildNode(deskWireNode)
         registerBox(manager, x: 0, z: 0, w: 4, l: 2.5)
         
-        // Desk lamp light
+        // Desk lamp light — subtle warm violet from above the desk
         let deskLight = SCNLight()
         deskLight.type = .omni
-        deskLight.color = P.violet
-        deskLight.intensity = 600
+        deskLight.color = UIColor(red: 0.5, green: 0.3, blue: 0.8, alpha: 1)
+        deskLight.intensity = 400
         deskLight.attenuationStartDistance = 2
-        deskLight.attenuationEndDistance = 12
+        deskLight.attenuationEndDistance = 10
         let deskLightNode = SCNNode()
         deskLightNode.light = deskLight
         deskLightNode.position = SCNVector3(0, 3, 0)
         root.addChildNode(deskLightNode)
         
-        // Scene-wide violet spot lights for visibility
-        let librarySpots: [(x: Float, z: Float)] = [(-10, -5), (-10, 5), (10, -5), (10, 5), (0, -8), (0, 8)]
+        // Scene-wide spot lights — use directional spots pointing down for better shelf illumination
+        let librarySpots: [(x: Float, z: Float)] = [(-12, -5), (-12, 5), (-6, 0), (6, 0), (12, -5), (12, 5), (0, -8), (0, 8)]
         for spot in librarySpots {
             let sLight = SCNLight()
-            sLight.type = .omni
+            sLight.type = .spot
             sLight.color = P.violet
-            sLight.intensity = 200
-            sLight.attenuationStartDistance = 3
-            sLight.attenuationEndDistance = 14
+            sLight.intensity = 300
+            sLight.spotInnerAngle = 20
+            sLight.spotOuterAngle = 60
+            sLight.attenuationStartDistance = 2
+            sLight.attenuationEndDistance = 12
             let sNode = SCNNode()
             sNode.light = sLight
-            sNode.position = SCNVector3(spot.x, 5, spot.z)
+            sNode.position = SCNVector3(spot.x, 8, spot.z)
+            sNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0) // Point straight down
             root.addChildNode(sNode)
         }
         

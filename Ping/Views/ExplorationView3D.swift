@@ -22,7 +22,7 @@ struct ExplorationView3D: View {
                     pointOfView: engine.sceneManager.cameraNode,
                     options: [],
                     preferredFramesPerSecond: 60,
-                    antialiasingMode: .none
+                    antialiasingMode: .multisampling4X
                 )
                 .ignoresSafeArea()
                 .onTapGesture { _ in
@@ -163,15 +163,8 @@ struct ExplorationView3D: View {
                 engine.setScreenSize(geo.size)
                 engine.setup3DScene()
                 
-                // --- CRITICAL CRASH FIX FOR SIMULATOR ---
-                if let camera = engine.sceneManager.cameraNode.camera {
-                    camera.wantsHDR = false
-                    camera.bloomIntensity = 0
-                    camera.wantsDepthOfField = false
-                    camera.motionBlurIntensity = 0
-                    engine.sceneManager.scene.fogDensityExponent = 1.5
-                }
-                // ----------------------------------------
+                // --- Removed simulator crash fix that was forcing HDR off ---
+                // Let SceneManager handle the camera properties natively.
             }
         }
     }
