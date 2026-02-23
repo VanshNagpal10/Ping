@@ -932,6 +932,13 @@ struct WorldBuilder {
                 postNode.position = SCNVector3(px, 1.9, pz)
                 root.addChildNode(postNode)
             }
+            
+            // Collision — axis-aligned bounding box for the catwalk
+            // Rotated walkways: swap width/length based on orientation
+            let isHorizontal = abs(sin(angle)) > 0.5  // angle ≈ π/2 or 3π/2
+            let collW: CGFloat = isHorizontal ? 1.2 : 6
+            let collL: CGFloat = isHorizontal ? 6 : 1.2
+            registerBox(manager, x: Float(wx), z: Float(wz), w: collW, l: collL)
         }
         
         // ══════════════════════════════════════════════
