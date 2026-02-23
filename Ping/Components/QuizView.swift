@@ -31,19 +31,17 @@ struct QuizOverlay: View {
     
     var body: some View {
         ZStack {
-            // Dim background
-            Color.black.opacity(0.85)
-                .ignoresSafeArea()
+            // Animated Neo-Background
+            CyberpunkTheme.FluidBackground()
             
             // Subtle scan lines
-            VStack(spacing: 3) {
-                ForEach(0..<100, id: \.self) { _ in
-                    Rectangle()
-                        .fill(Color.white.opacity(0.015))
-                        .frame(height: 1)
-                    Spacer().frame(height: 2)
-                }
-            }
+            CyberpunkTheme.ScanlineOverlay(alpha: 0.15)
+            /* Replaced by CyberpunkTheme components */
+            
+            // The .ignoresSafeArea() was applied to the background ZStack.
+            // Now, the background components are directly in the main ZStack.
+            // Applying .ignoresSafeArea() here will make the entire ZStack ignore safe area,
+            // which is likely the desired effect for the background.
             .ignoresSafeArea()
             
             if quizComplete {
@@ -134,12 +132,13 @@ struct QuizOverlay: View {
             .frame(maxWidth: 520)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color(red: 0.06, green: 0.04, blue: 0.1))
+                    .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.85))
+                    .background(.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(scene.accentColor.opacity(0.3), lineWidth: 1.5)
+                            .stroke(scene.accentColor.opacity(0.6), lineWidth: 1.5)
                     )
-                    .shadow(color: scene.accentColor.opacity(0.15), radius: 30)
+                    .shadow(color: scene.accentColor.opacity(0.3), radius: 30)
             )
             .opacity(appear ? 1 : 0)
             .scaleEffect(appear ? 1 : 0.9)

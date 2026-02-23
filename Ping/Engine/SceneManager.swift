@@ -85,8 +85,11 @@ class SceneManager: ObservableObject {
         camera.fieldOfView = 50
         camera.zNear = 0.1
         camera.zFar = 200
-        // Keep HDR off initially — ExplorationView3D may re-enable on real device
-        camera.wantsHDR = false
+        // Turn HDR ON for lavish cyberpunk glow
+        camera.wantsHDR = true
+        camera.bloomThreshold = 0.8
+        camera.bloomIntensity = 1.2
+        camera.bloomBlurRadius = 12.0
         camera.wantsExposureAdaptation = false
         
         cameraNode = SCNNode()

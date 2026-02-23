@@ -24,12 +24,14 @@ struct EncyclopediaView: View {
     
     var body: some View {
         ZStack {
-            // Dark Blur Background
-            Color.black.opacity(0.6)
+            // Fluid Hovering Orbs Background
+            CyberpunkTheme.FluidBackground()
                 .ignoresSafeArea()
-                .background(.ultraThinMaterial)
                 .onTapGesture { onClose() }
             
+            // Scanlines over the background
+            CyberpunkTheme.ScanlineOverlay(alpha: 0.1)
+                
             // Main Holographic Panel
             VStack(spacing: 0) {
                 // Header (Tech Terminal Style)
@@ -133,11 +135,15 @@ struct EncyclopediaView: View {
             .frame(width: 650, height: 550) // Wide, landscape-friendly modal
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.95))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(LinearGradient(colors: [.cyan.opacity(0.5), .purple.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.5)
+                    .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.85))
+                    .background(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(colors: [.cyan.opacity(0.7), .magenta.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                lineWidth: 1.5
+                            )
+                    )
             )
             .shadow(color: .cyan.opacity(0.15), radius: 40)
             .scaleEffect(appear ? 1 : 0.9)

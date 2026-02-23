@@ -80,8 +80,8 @@ struct NewTermPopup: View {
                     
                     Image(systemName: term.icon)
                         .font(.system(size: 20))
-                        .foregroundColor(.cyan)
-                        .shadow(color: .cyan.opacity(0.6), radius: 4)
+                        .foregroundColor(CyberpunkTheme.neonCyan)
+                        .shadow(color: CyberpunkTheme.neonCyan.opacity(0.8), radius: 6)
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
@@ -115,14 +115,14 @@ struct NewTermPopup: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 LinearGradient(
-                                    colors: [.cyan.opacity(0.8), .purple.opacity(0.3)],
+                                    colors: [CyberpunkTheme.neonCyan, CyberpunkTheme.neonMagenta.opacity(0.5)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
                                 lineWidth: 1.5
                             )
                     )
-                    .shadow(color: .cyan.opacity(0.2), radius: 15, y: 5)
+                    .shadow(color: CyberpunkTheme.neonCyan.opacity(0.4), radius: 25, y: 5)
             )
             .padding(.horizontal, 40)
             .padding(.top, 40) // Adjusted slightly to account for notch/dynamic island on newer iPads
