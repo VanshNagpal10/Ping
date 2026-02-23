@@ -1082,6 +1082,9 @@ struct WorldBuilder {
             let wireWallNode = SCNNode(geometry: wireWall)
             wireWallNode.position = SCNVector3(edge.x, 0.3, edge.z)
             root.addChildNode(wireWallNode)
+            
+            // Register collision so player can't walk through
+            registerBox(manager, x: edge.x, z: edge.z, w: edge.w, l: edge.l)
         }
         
         // ══════════════════════════════════════════════
