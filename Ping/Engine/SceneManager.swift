@@ -33,6 +33,7 @@ class SceneManager: ObservableObject {
         let maxZ: Float
     }
     private(set) var obstacles: [ObstacleRect] = []
+    private var npcObstacleIndices: [UUID: Int] = [:] // track NPC obstacle indices for cleanup
     private let playerRadius: Float = 0.4  // collision radius for the player
     
     /// Register a box obstacle at world position with given half-extents.
@@ -397,11 +398,27 @@ class SceneManager: ObservableObject {
         npcNode.position = position
         npcNodes[id] = npcNode
         scene.rootNode.addChildNode(npcNode)
+        
+        // Register collision so player can't walk through NPCs
+        let halfW: Float
+        let halfL: Float
+        switch type {
+        case .daemon:        halfW = 0.6;  halfL = 0.5
+        case .firewall:      halfW = 0.8;  halfL = 0.65
+        case .routerGuard:   halfW = 0.7;  halfL = 0.55
+        case .librarian:     halfW = 0.55; halfL = 0.45
+        case .networkManager: halfW = 0.7;  halfL = 0.6
+        }
+        let idx = obstacles.count
+        registerObstacle(x: position.x, z: position.z, halfW: halfW, halfL: halfL)
+        npcObstacleIndices[id] = idx
     }
     
     func removeAllNPCs() {
         npcNodes.values.forEach { $0.removeFromParentNode() }
         npcNodes.removeAll()
+        // NPC obstacles are cleared together with all obstacles during scene clear
+        npcObstacleIndices.removeAll()
     }
     
     func npcPosition(for id: UUID) -> SCNVector3? {

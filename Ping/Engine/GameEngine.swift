@@ -105,7 +105,7 @@ class GameEngine: ObservableObject {
         
         let daemon = NPC(
             type: .daemon,
-            position: CGPoint(x: screenSize.width * 0.7, y: screenSize.height * 0.5),
+            position: CGPoint(x: screenSize.width * 0.55, y: screenSize.height * 0.45),
             name: "Daemon-7",
             dialogue: [
                 DialogueLine(
@@ -152,10 +152,10 @@ class GameEngine: ObservableObject {
         )
         npcs.append(daemon)
         
-        // Portal to WiFi
+        // Portal to WiFi — far right, opposite player spawn
         let portal = InteractiveObject(
             type: .portal,
-            position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
+            position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
             data: "wifi_antenna"
         )
         interactiveObjects.append(portal)
@@ -166,7 +166,7 @@ class GameEngine: ObservableObject {
         
         let firewall = NPC(
             type: .firewall,
-            position: CGPoint(x: screenSize.width * 0.85, y: screenSize.height * 0.5),
+            position: CGPoint(x: screenSize.width * 0.6, y: screenSize.height * 0.45),
             name: "Firewall Blaze",
             dialogue: [
                 DialogueLine(speaker: "Security Gateway", text: "Halt. Outbound packet detected. Scanning protocol headers..."),
@@ -181,10 +181,10 @@ class GameEngine: ObservableObject {
         )
         npcs.append(firewall)
         
-        // Portal near the antenna (center of scene)
+        // Portal — far right, opposite player spawn
         let portal = InteractiveObject(
             type: .portal,
-            position: CGPoint(x: screenSize.width * 0.55, y: screenSize.height * 0.45),
+            position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
             data: "router_station"
         )
         interactiveObjects.append(portal)
@@ -195,7 +195,7 @@ class GameEngine: ObservableObject {
         
         let routerGuard = NPC(
             type: .routerGuard,
-            position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.4),
+            position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.45),
             name: "Router Rex",
             dialogue: [
                 DialogueLine(speaker: "Core Router", text: "Connection established. Welcome to the ISP Gateway Router. Analyzing network layer headers..."),
@@ -221,9 +221,10 @@ class GameEngine: ObservableObject {
         )
         npcs.append(routerGuard)
         
+        // Portal — far right, opposite player spawn
         let portal = InteractiveObject(
             type: .portal,
-            position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
+            position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
             data: "ocean_cable"
         )
         interactiveObjects.append(portal)
@@ -255,9 +256,10 @@ class GameEngine: ObservableObject {
             self.showCurrentDialogueLine()
         }
         
+        // Portal — far right end of the cable
         let portal = InteractiveObject(
             type: .portal,
-            position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
+            position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
             data: "dns_library"
         )
         interactiveObjects.append(portal)
@@ -268,7 +270,7 @@ class GameEngine: ObservableObject {
         
         let librarian = NPC(
             type: .librarian,
-            position: CGPoint(x: screenSize.width * 0.6, y: screenSize.height * 0.5),
+            position: CGPoint(x: screenSize.width * 0.55, y: screenSize.height * 0.45),
             name: "Librarian DNS",
             dialogue: [
                 DialogueLine(speaker: "DNS Resolver", text: "Query received. Welcome to the Domain Name System.", learnedTerm: EncyclopediaTerm.term(for: "dns")),
@@ -284,9 +286,10 @@ class GameEngine: ObservableObject {
         )
         npcs.append(librarian)
         
+        // Portal — far right, opposite player spawn
         let portal = InteractiveObject(
             type: .portal,
-            position: CGPoint(x: 80, y: screenSize.height / 2),
+            position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
             data: "return_journey"
         )
         interactiveObjects.append(portal)
@@ -299,8 +302,8 @@ class GameEngine: ObservableObject {
         
         // Add a Load Balancer NPC to make Act 5 interactive
         let loadBalancer = NPC(
-            type: .routerGuard, // You can reuse the router guard graphic
-            position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.5),
+            type: .routerGuard,
+            position: CGPoint(x: screenSize.width * 0.45, y: screenSize.height * 0.45),
             name: "Load Balancer",
             dialogue: [
                 DialogueLine(speaker: "Load Balancer", text: "Incoming traffic detected. I am the local Load Balancer. Analyzing packet weight..."),
@@ -311,9 +314,10 @@ class GameEngine: ObservableObject {
         )
         npcs.append(loadBalancer)
         
+        // Portal — far right, opposite player spawn
         let portal = InteractiveObject(
             type: .portal,
-            position: CGPoint(x: screenSize.width - 80, y: screenSize.height / 2),
+            position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
             data: "feed_loaded"
         )
         interactiveObjects.append(portal)
