@@ -192,7 +192,11 @@ struct QuizOverlay: View {
                 engine.recordQuizResult(QuizResult(
                     scene: scene,
                     questionText: question.question,
-                    wasCorrect: answeredCorrectly
+                    wasCorrect: answeredCorrectly,
+                    selectedIndex: index,
+                    correctIndex: question.correctIndex,
+                    options: question.options,
+                    explanation: question.explanation
                 ))
                 
                 withAnimation(.spring(response: 0.4)) {

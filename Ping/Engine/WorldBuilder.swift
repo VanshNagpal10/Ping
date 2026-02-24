@@ -1606,129 +1606,221 @@ struct WorldBuilder {
         manager.worldBounds = CGSize(width: 32, height: 24)
         let root = manager.scene.rootNode
         
-        // Mystical library atmosphere — rich violet/purple glow, BRIGHT enough to see
+        // Mystical library atmosphere — deep indigo-blue with warm amber undertones
         manager.scene.background.contents = SceneManager.makeGradientSky(
-            topColor: UIColor(red: 0.12, green: 0.06, blue: 0.32, alpha: 1),
-            midColor: UIColor(red: 0.20, green: 0.10, blue: 0.48, alpha: 1),
-            bottomColor: UIColor(red: 0.32, green: 0.16, blue: 0.60, alpha: 1)
+            topColor: UIColor(red: 0.06, green: 0.05, blue: 0.18, alpha: 1),
+            midColor: UIColor(red: 0.10, green: 0.08, blue: 0.24, alpha: 1),
+            bottomColor: UIColor(red: 0.16, green: 0.10, blue: 0.28, alpha: 1)
         )
-        // Lighting environment for PBR reflections — makes metallic surfaces visible
+        // Lighting environment for PBR reflections
         manager.scene.lightingEnvironment.contents = SceneManager.makeGradientSky(
-            topColor: UIColor(red: 0.18, green: 0.10, blue: 0.40, alpha: 1),
-            midColor: UIColor(red: 0.26, green: 0.14, blue: 0.55, alpha: 1),
-            bottomColor: UIColor(red: 0.36, green: 0.20, blue: 0.65, alpha: 1)
+            topColor: UIColor(red: 0.14, green: 0.10, blue: 0.28, alpha: 1),
+            midColor: UIColor(red: 0.22, green: 0.16, blue: 0.36, alpha: 1),
+            bottomColor: UIColor(red: 0.30, green: 0.22, blue: 0.42, alpha: 1)
         )
         manager.scene.lightingEnvironment.intensity = 2.5
-        manager.scene.fogColor = UIColor(red: 0.10, green: 0.06, blue: 0.24, alpha: 1)
+        manager.scene.fogColor = UIColor(red: 0.06, green: 0.05, blue: 0.16, alpha: 1)
         manager.scene.fogStartDistance = 40
         manager.scene.fogEndDistance = 80
         
-        // Polished floor — brighter base so grid lines show
-        let floor = makeGroundPlane(width: 36, length: 28, baseColor: UIColor(red: 0.10, green: 0.06, blue: 0.16, alpha: 1), accentColor: P.violet)
+        // Polished floor — dark with warm amber grid lines
+        let floor = makeGroundPlane(width: 36, length: 28, baseColor: UIColor(red: 0.06, green: 0.04, blue: 0.10, alpha: 1), accentColor: P.amber)
         root.addChildNode(floor)
         
-        // Towering bookshelves arranged in rows
-        let shelfPositions: [(x: Float, z: Float, h: CGFloat)] = [
-            (-12, -8, 7), (-12, -3, 5), (-12, 2, 8), (-12, 7, 6),
-            (-6, -6, 5), (-6, 3, 7),
-            (6, -7, 6), (6, 0, 8), (6, 6, 5),
-            (12, -5, 7), (12, 2, 6), (12, 7, 8),
+        // ══════════════════════════════════════════════
+        // ── BOOKSHELVES — open-face units with visible books ──
+        // ══════════════════════════════════════════════
+        let shelfPositions: [(x: Float, z: Float, h: CGFloat, tiers: Int)] = [
+            (-12, -8, 5, 4), (-12, -2, 4, 3), (-12, 4, 5, 4), (-12, 9, 3.5, 3),
+            (-6, -7, 4, 3), (-6, 4, 5, 4),
+            (6, -6, 5, 4), (6, 1, 4, 3), (6, 7, 3.5, 3),
+            (12, -4, 5, 4), (12, 3, 4, 3), (12, 8, 5, 4),
         ]
         
-        // Polished wood/metal hybrid for the library — bright enough to see
-        let shelfColor = UIColor(red: 0.18, green: 0.12, blue: 0.24, alpha: 1)
+        // Warm dark-wood cyber material — NOT purple
+        let woodDark = UIColor(red: 0.14, green: 0.09, blue: 0.06, alpha: 1)
+        let woodMid  = UIColor(red: 0.22, green: 0.14, blue: 0.08, alpha: 1)
+        let woodEdge = UIColor(red: 0.55, green: 0.35, blue: 0.15, alpha: 1)   // warm amber edge
+        let shelfWidth: CGFloat  = 2.6
+        let shelfDepth: CGFloat  = 1.0
+        let panelThickness: CGFloat = 0.06
+        let tierHeight: CGFloat = 1.2
         
         for shelf in shelfPositions {
             let shelfNode = SCNNode()
+            let totalH = shelf.h
             
-            // Frame — glossy material with visible reflection
-            let frame = SCNBox(width: 2.2, height: shelf.h, length: 0.7, chamferRadius: 0.03)
+            // Shared dark-wood material for frame panels
             let frameMat = SCNMaterial()
-            frameMat.diffuse.contents = shelfColor
-            frameMat.roughness.contents = 0.25
-            frameMat.metalness.contents = 0.7
-            frameMat.emission.contents = P.violet.withAlphaComponent(0.05)
-            frame.materials = [frameMat]
-            let frameNode = SCNNode(geometry: frame)
-            frameNode.position = SCNVector3(0, Float(shelf.h / 2), 0)
-            shelfNode.addChildNode(frameNode)
+            frameMat.diffuse.contents = woodDark
+            frameMat.roughness.contents = 0.55
+            frameMat.metalness.contents = 0.35
             
-            // Glowing violet wireframe edge — brighter for visibility
-            let wireFrame = SCNBox(width: 2.22, height: shelf.h + 0.02, length: 0.72, chamferRadius: 0.04)
-            let wireMat = SCNMaterial()
-            wireMat.diffuse.contents = UIColor.clear
-            wireMat.emission.contents = P.violet
-            wireMat.fillMode = .lines
-            wireMat.transparency = 0.7
-            wireFrame.materials = [wireMat]
-            let wireNode = SCNNode(geometry: wireFrame)
-            wireNode.position = SCNVector3(0, Float(shelf.h / 2), 0)
-            shelfNode.addChildNode(wireNode)
+            // ── Back panel ──
+            let backPanel = SCNBox(width: shelfWidth, height: totalH, length: panelThickness, chamferRadius: 0)
+            backPanel.materials = [frameMat]
+            let backNode = SCNNode(geometry: backPanel)
+            backNode.position = SCNVector3(0, Float(totalH / 2), -Float(shelfDepth / 2))
+            shelfNode.addChildNode(backNode)
             
-            // Omni light on each shelf — bright enough to illuminate books
-            let shelfLight = SCNLight()
-            shelfLight.type = .omni
-            shelfLight.color = UIColor(red: 0.7, green: 0.5, blue: 1.0, alpha: 1)
-            shelfLight.intensity = 350
-            shelfLight.attenuationStartDistance = 1.5
-            shelfLight.attenuationEndDistance = 8
-            let shelfLightNode = SCNNode()
-            shelfLightNode.light = shelfLight
-            shelfLightNode.position = SCNVector3(0, Float(shelf.h / 2), 1.0)
-            shelfNode.addChildNode(shelfLightNode)
+            // ── Side panels (left & right) ──
+            let sidePanel = SCNBox(width: panelThickness, height: totalH, length: shelfDepth, chamferRadius: 0)
+            sidePanel.materials = [frameMat]
+            let leftSide = SCNNode(geometry: sidePanel)
+            leftSide.position = SCNVector3(-Float(shelfWidth / 2), Float(totalH / 2), 0)
+            shelfNode.addChildNode(leftSide)
+            let rightSide = SCNNode(geometry: sidePanel)
+            rightSide.position = SCNVector3(Float(shelfWidth / 2), Float(totalH / 2), 0)
+            shelfNode.addChildNode(rightSide)
             
-            // Books — colorful glowing spines
-            let bookCount = max(1, Int(shelf.h) - 1)
-            for row in 0..<bookCount {
-                for col in 0..<4 {
-                    let bookColor: UIColor = [P.coral, P.violet, P.cyan, P.amber, P.magenta, P.lime].randomElement()!
-                    let book = SCNBox(width: 0.3, height: 0.6, length: 0.5, chamferRadius: 0.01)
+            // ── Top cap ──
+            let topCap = SCNBox(width: shelfWidth + 0.08, height: panelThickness, length: shelfDepth + 0.06, chamferRadius: 0.02)
+            let topMat = SCNMaterial()
+            topMat.diffuse.contents = woodMid
+            topMat.roughness.contents = 0.45
+            topMat.metalness.contents = 0.4
+            topCap.materials = [topMat]
+            let topNode = SCNNode(geometry: topCap)
+            topNode.position = SCNVector3(0, Float(totalH) + Float(panelThickness / 2), 0)
+            shelfNode.addChildNode(topNode)
+            
+            // ── Horizontal shelf dividers + books on each tier ──
+            let bookColors: [UIColor] = [
+                UIColor(red: 0.2, green: 0.75, blue: 0.9, alpha: 1),  // soft cyan
+                UIColor(red: 0.95, green: 0.55, blue: 0.2, alpha: 1), // warm orange
+                UIColor(red: 0.4, green: 0.85, blue: 0.5, alpha: 1),  // green
+                UIColor(red: 0.85, green: 0.3, blue: 0.4, alpha: 1),  // red/coral
+                UIColor(red: 0.7, green: 0.5, blue: 1.0, alpha: 1),   // lavender
+                UIColor(red: 1.0, green: 0.82, blue: 0.3, alpha: 1),  // gold
+                UIColor(red: 0.3, green: 0.55, blue: 0.95, alpha: 1), // blue
+                UIColor(red: 0.9, green: 0.4, blue: 0.7, alpha: 1),   // pink
+            ]
+            
+            for tier in 0..<shelf.tiers {
+                let shelfY = Float(tier) * Float(tierHeight)
+                
+                // Shelf plank
+                let plank = SCNBox(width: shelfWidth - panelThickness, height: panelThickness, length: shelfDepth - panelThickness, chamferRadius: 0)
+                let plankMat = SCNMaterial()
+                plankMat.diffuse.contents = woodMid
+                plankMat.roughness.contents = 0.5
+                plankMat.metalness.contents = 0.35
+                plank.materials = [plankMat]
+                let plankNode = SCNNode(geometry: plank)
+                plankNode.position = SCNVector3(0, shelfY + Float(panelThickness / 2), 0)
+                shelfNode.addChildNode(plankNode)
+                
+                // ── Books on this shelf — varied sizes, colorful spines ──
+                let numBooks = Int.random(in: 5...8)
+                var xCursor: Float = -Float(shelfWidth / 2) + 0.15
+                let maxX: Float = Float(shelfWidth / 2) - 0.15
+                
+                for _ in 0..<numBooks {
+                    if xCursor > maxX - 0.15 { break }
+                    
+                    let bWidth: Float  = Float.random(in: 0.18...0.32)
+                    let bHeight: Float = Float.random(in: 0.65...Float(tierHeight) - 0.15)
+                    let bDepth: Float  = Float.random(in: 0.5...0.75)
+                    let bColor = bookColors.randomElement()!
+                    
+                    let book = SCNBox(width: CGFloat(bWidth), height: CGFloat(bHeight), length: CGFloat(bDepth), chamferRadius: 0.01)
                     let bMat = SCNMaterial()
-                    bMat.diffuse.contents = bookColor
-                    bMat.emission.contents = bookColor // full emission so books glow
-                    bMat.emission.intensity = 0.8
+                    bMat.diffuse.contents = bColor.withAlphaComponent(0.85)
+                    bMat.emission.contents = bColor
+                    bMat.emission.intensity = 0.35
+                    bMat.roughness.contents = 0.6
+                    bMat.metalness.contents = 0.15
                     book.materials = [bMat]
+                    
                     let bNode = SCNNode(geometry: book)
-                    bNode.position = SCNVector3(Float(col) * 0.4 - 0.6, Float(row) + 0.5, 0)
+                    bNode.position = SCNVector3(
+                        xCursor + bWidth / 2,
+                        shelfY + Float(panelThickness) + bHeight / 2,
+                        Float.random(in: -0.08...0.08)
+                    )
+                    // Slight random tilt for realism
+                    bNode.eulerAngles.z = Float.random(in: -0.06...0.06)
                     shelfNode.addChildNode(bNode)
+                    
+                    xCursor += bWidth + Float.random(in: 0.02...0.06)
+                }
+                
+                // Occasional small glowing orb on the shelf (like a data crystal)
+                if Bool.random() {
+                    let orbSize = CGFloat.random(in: 0.08...0.14)
+                    let orbColor: UIColor = [P.cyan, P.amber, P.lime].randomElement()!
+                    let orb = SCNSphere(radius: orbSize)
+                    let orbMat = SCNMaterial()
+                    orbMat.diffuse.contents = orbColor
+                    orbMat.emission.contents = orbColor
+                    orb.materials = [orbMat]
+                    let orbNode = SCNNode(geometry: orb)
+                    orbNode.position = SCNVector3(
+                        Float.random(in: -0.8...0.8),
+                        shelfY + Float(panelThickness) + Float(orbSize),
+                        Float.random(in: -0.2...0.2)
+                    )
+                    shelfNode.addChildNode(orbNode)
                 }
             }
             
+            // ── Warm amber edge accent strip at top ──
+            let edgeStrip = SCNBox(width: shelfWidth + 0.1, height: 0.03, length: shelfDepth + 0.08, chamferRadius: 0.02)
+            let edgeMat = SCNMaterial()
+            edgeMat.diffuse.contents = woodEdge.withAlphaComponent(0.3)
+            edgeMat.emission.contents = woodEdge
+            edgeMat.emission.intensity = 0.5
+            edgeStrip.materials = [edgeMat]
+            let edgeNode = SCNNode(geometry: edgeStrip)
+            edgeNode.position = SCNVector3(0, Float(totalH) + Float(panelThickness) + 0.02, 0)
+            shelfNode.addChildNode(edgeNode)
+            
+            // ── Warm light per shelf — amber/gold instead of purple ──
+            let shelfLight = SCNLight()
+            shelfLight.type = .omni
+            shelfLight.color = UIColor(red: 1.0, green: 0.85, blue: 0.55, alpha: 1) // warm amber
+            shelfLight.intensity = 200
+            shelfLight.attenuationStartDistance = 1.0
+            shelfLight.attenuationEndDistance = 6
+            let shelfLightNode = SCNNode()
+            shelfLightNode.light = shelfLight
+            shelfLightNode.position = SCNVector3(0, Float(totalH) + 0.5, 0.8)
+            shelfNode.addChildNode(shelfLightNode)
+            
             shelfNode.position = SCNVector3(shelf.x, 0, shelf.z)
             root.addChildNode(shelfNode)
-            registerBox(manager, x: shelf.x, z: shelf.z, w: 2.2, l: 0.7)
+            registerBox(manager, x: shelf.x, z: shelf.z, w: shelfWidth, l: shelfDepth)
         }
         
-        // Central reading desk — polished metal with violet edge trim
+        // Central reading desk — dark wood with warm amber trim
         let desk = SCNBox(width: 4, height: 0.8, length: 2.5, chamferRadius: 0.08)
         let deskMat = SCNMaterial()
-        deskMat.diffuse.contents = UIColor(red: 0.14, green: 0.10, blue: 0.22, alpha: 1)
-        deskMat.roughness.contents = 0.15
-        deskMat.metalness.contents = 0.85
-        deskMat.emission.contents = P.violet.withAlphaComponent(0.04)
+        deskMat.diffuse.contents = UIColor(red: 0.16, green: 0.10, blue: 0.06, alpha: 1)
+        deskMat.roughness.contents = 0.45
+        deskMat.metalness.contents = 0.4
         desk.materials = [deskMat]
         let deskNode = SCNNode(geometry: desk)
         deskNode.position = SCNVector3(0, 0.4, 0)
         root.addChildNode(deskNode)
         
-        // Desk wireframe edge glow — brighter
+        // Desk warm edge glow
         let deskWire = SCNBox(width: 4.02, height: 0.82, length: 2.52, chamferRadius: 0.09)
         let deskWireMat = SCNMaterial()
         deskWireMat.diffuse.contents = UIColor.clear
-        deskWireMat.emission.contents = P.violet
+        deskWireMat.emission.contents = UIColor(red: 0.55, green: 0.35, blue: 0.15, alpha: 1)
         deskWireMat.fillMode = .lines
-        deskWireMat.transparency = 0.8
+        deskWireMat.transparency = 0.6
         deskWire.materials = [deskWireMat]
         let deskWireNode = SCNNode(geometry: deskWire)
         deskWireNode.position = SCNVector3(0, 0.4, 0)
         root.addChildNode(deskWireNode)
         registerBox(manager, x: 0, z: 0, w: 4, l: 2.5)
         
-        // Desk lamp light — strong warm violet from above the desk
+        // Desk lamp light — warm amber glow from above the desk
         let deskLight = SCNLight()
         deskLight.type = .omni
-        deskLight.color = UIColor(red: 0.6, green: 0.4, blue: 1.0, alpha: 1)
-        deskLight.intensity = 800
+        deskLight.color = UIColor(red: 1.0, green: 0.82, blue: 0.5, alpha: 1)
+        deskLight.intensity = 600
         deskLight.attenuationStartDistance = 3
         deskLight.attenuationEndDistance = 15
         let deskLightNode = SCNNode()
@@ -1762,13 +1854,13 @@ struct WorldBuilder {
         holoLight.attenuationEndDistance = 8
         holoNode.light = holoLight
         
-        // Scene-wide spot lights — bright, pointing down for shelf illumination
+        // Scene-wide spot lights — warm-tinted, pointing down for shelf illumination
         let librarySpots: [(x: Float, z: Float)] = [(-12, -5), (-12, 5), (-6, 0), (6, 0), (12, -5), (12, 5), (0, -8), (0, 8)]
         for spot in librarySpots {
             let sLight = SCNLight()
             sLight.type = .spot
-            sLight.color = UIColor(red: 0.7, green: 0.5, blue: 1.0, alpha: 1)
-            sLight.intensity = 800
+            sLight.color = UIColor(red: 0.95, green: 0.80, blue: 0.55, alpha: 1)
+            sLight.intensity = 600
             sLight.spotInnerAngle = 25
             sLight.spotOuterAngle = 70
             sLight.castsShadow = true
@@ -1782,13 +1874,13 @@ struct WorldBuilder {
             root.addChildNode(sNode)
         }
         
-        // Large ambient fill lights — prevent any area from being pitch black
+        // Large ambient fill lights — warm amber-violet blend
         let fillPositions: [(x: Float, z: Float)] = [(-8, -4), (-8, 4), (0, 0), (8, -4), (8, 4)]
         for fill in fillPositions {
             let fLight = SCNLight()
             fLight.type = .omni
-            fLight.color = UIColor(red: 0.55, green: 0.40, blue: 0.85, alpha: 1)
-            fLight.intensity = 450
+            fLight.color = UIColor(red: 0.85, green: 0.65, blue: 0.45, alpha: 1)
+            fLight.intensity = 350
             fLight.attenuationStartDistance = 4
             fLight.attenuationEndDistance = 20
             let fNode = SCNNode()
@@ -1797,11 +1889,11 @@ struct WorldBuilder {
             root.addChildNode(fNode)
         }
         
-        // Key directional light — ensures everything gets base illumination
+        // Key directional light — warm white for natural illumination
         let keyLight = SCNLight()
         keyLight.type = .directional
-        keyLight.color = UIColor(red: 0.6, green: 0.45, blue: 0.9, alpha: 1)
-        keyLight.intensity = 500
+        keyLight.color = UIColor(red: 0.9, green: 0.82, blue: 0.7, alpha: 1)
+        keyLight.intensity = 400
         keyLight.castsShadow = true
         keyLight.shadowRadius = 4
         let keyNode = SCNNode()
@@ -1824,8 +1916,8 @@ struct WorldBuilder {
         for i in 0..<4 {
             let runeRing = SCNTorus(ringRadius: CGFloat.random(in: 1.5...3.0), pipeRadius: 0.04)
             let runeMat = SCNMaterial()
-            runeMat.diffuse.contents = P.violet.withAlphaComponent(0.3)
-            runeMat.emission.contents = P.violet
+            runeMat.diffuse.contents = P.amber.withAlphaComponent(0.3)
+            runeMat.emission.contents = P.amber
             runeRing.materials = [runeMat]
             let runeNode = SCNNode(geometry: runeRing)
             runeNode.position = SCNVector3(Float(i) * 6 - 9, Float.random(in: 4...7), Float.random(in: -6...6))
@@ -1835,10 +1927,10 @@ struct WorldBuilder {
             root.addChildNode(runeNode)
         }
         
-        root.addChildNode(makeSignPanel(color: P.violet, at: SCNVector3(0, 8, -12)))
+        root.addChildNode(makeSignPanel(color: P.amber, at: SCNVector3(0, 8, -12)))
         
         // Knowledge packets floating between the shelves
-        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.violet, yRange: 2.0...7.0, flowDirection: SCNVector3(0, 0, 1))
+        makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.amber, yRange: 2.0...7.0, flowDirection: SCNVector3(0, 0, 1))
         
         manager.resetPlayerPosition(to: SCNVector3(-12, 0, 0))
     }

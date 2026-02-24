@@ -353,6 +353,10 @@ struct QuizResult: Equatable {
     let scene: StoryScene
     let questionText: String
     let wasCorrect: Bool
+    let selectedIndex: Int
+    let correctIndex: Int
+    let options: [String]
+    let explanation: String
 }
 
 /// Pre-built quizzes for each level

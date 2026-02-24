@@ -3,8 +3,8 @@
 //  Ping - Packet World
 //
 //  Mission complete — the payload is delivered.
-//  Full cyberpunk epilogue with cinematic sequence,
-//  animated stats, journey recap, and replay prompt.
+//  Clean, Apple-quality epilogue with scrollable results,
+//  concepts review, quiz breakdown, and replay.
 //
 
 import SwiftUI
@@ -14,635 +14,729 @@ struct EpilogueView: View {
     let stats: JourneyStats
     let onReplay: () -> Void
 
-    // Neon palette (matches PrologueView)
-    private let nCyan    = Color(red: 0.0, green: 0.9, blue: 1.0)
-    private let nMagenta = Color(red: 1.0, green: 0.1, blue: 0.6)
-    private let nViolet  = Color(red: 0.6, green: 0.2, blue: 1.0)
-    private let nAmber   = Color(red: 1.0, green: 0.75, blue: 0.0)
+    // Clean palette — cool blues and teals, no harsh neon
+    private let accent   = Color(red: 0.0, green: 0.82, blue: 0.88)
+    private let mint     = Color(red: 0.3, green: 0.95, blue: 0.85)
+    private let warmGold = Color(red: 1.0, green: 0.82, blue: 0.36)
+    private let coral    = Color(red: 1.0, green: 0.42, blue: 0.42)
+    private let success  = Color(red: 0.3, green: 0.86, blue: 0.46)
 
-    // Phase timing
-    @State private var phase: EpiloguePhase = .blackout
-    @State private var showDevice = false
-    @State private var feedLoaded = false
-    @State private var showMissionComplete = false
+    @State private var showContent = false
+    @State private var showTitle = false
     @State private var showSubtitle = false
-    @State private var showPerspective = false
-    @State private var showStats = false
-    @State private var showJourneyRoute = false
-    @State private var showReplay = false
     @State private var gridScroll: CGFloat = 0
-    @State private var ringPulse: CGFloat = 0.4
-    @State private var glowPulse = false
-    @State private var particleSeed: Double = 0
-    
-    private enum EpiloguePhase {
-        case blackout, deliveryScene, missionTitle, statsReveal
+    @State private var selectedTab: ResultTab = .overview
+
+    private enum ResultTab: String, CaseIterable {
+        case overview = "Overview"
+        case concepts = "Concepts"
+        case quiz = "Quiz Review"
     }
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // ── Layer 0: Deep void background ──
-                Color(red: 0.02, green: 0.01, blue: 0.06)
-                    .ignoresSafeArea()
-
-                // ── Layer 1: Cyber grid floor ──
-                EpilogueCyberGrid(scroll: gridScroll, color: nCyan)
-                    .opacity(phase != .blackout ? 0.25 : 0)
-
-                // ── Layer 2: Radial glow ──
-                RadialGradient(
-                    colors: [nViolet.opacity(0.12), nCyan.opacity(0.04), .clear],
-                    center: .center,
-                    startRadius: 20,
-                    endRadius: geo.size.width * 0.7
+                // Background
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.04, green: 0.05, blue: 0.10),
+                        Color(red: 0.06, green: 0.08, blue: 0.16),
+                        Color(red: 0.04, green: 0.06, blue: 0.12)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
-                .opacity(phase != .blackout ? 1 : 0)
+                .ignoresSafeArea()
 
-                // ── Layer 3: Floating neon particles ──
-                EpilogueParticles(colors: [nCyan, nMagenta, nViolet, nAmber], seed: particleSeed)
-                    .opacity(phase != .blackout ? 0.6 : 0)
+                // Subtle grid
+                EpilogueCyberGrid(scroll: gridScroll, color: accent)
+                    .opacity(showContent ? 0.12 : 0)
 
-                // ── Layer 4: Falling data streams ──
-                EpilogueDataStreams(color: nCyan)
-                    .opacity(phase != .blackout ? 0.18 : 0)
+                // Soft glow orbs
+                Circle()
+                    .fill(accent.opacity(0.08))
+                    .frame(width: 500, height: 500)
+                    .blur(radius: 120)
+                    .offset(x: -geo.size.width * 0.3, y: -geo.size.height * 0.15)
+                    .opacity(showContent ? 1 : 0)
 
-                // ── Layer 5: Scan-line CRT overlay ──
-                EpilogueScanLines()
-                    .opacity(phase != .blackout ? 0.05 : 0)
+                Circle()
+                    .fill(mint.opacity(0.06))
+                    .frame(width: 400, height: 400)
+                    .blur(radius: 100)
+                    .offset(x: geo.size.width * 0.25, y: geo.size.height * 0.2)
+                    .opacity(showContent ? 1 : 0)
 
-                // ── Layer 6: Holographic Device (Center) ──
-                VStack {
-                    Spacer()
-                    if showDevice {
-                        HolographicFeedView(
-                            isLoaded: feedLoaded,
-                            cyan: nCyan,
-                            magenta: nMagenta
-                        )
-                        .transition(.scale(scale: 0.8).combined(with: .opacity))
-                    }
-                    Spacer().frame(height: geo.size.height * 0.15)
-                }
-
-                // ── Layer 7: Expanding ring pulses ──
-                if showMissionComplete {
-                    ForEach(0..<3, id: \.self) { i in
-                        Circle()
-                            .stroke(nCyan.opacity(0.15 - Double(i) * 0.04), lineWidth: 1.5)
-                            .frame(
-                                width: 100 + CGFloat(i) * 70,
-                                height: 100 + CGFloat(i) * 70
-                            )
-                            .scaleEffect(ringPulse)
-                            .opacity(Double(2.0 - ringPulse))
-                            .position(x: geo.size.width / 2, y: geo.size.height * 0.14)
-                    }
-                }
-
-                // ── Layer 8: Mission Complete text ──
-                VStack(spacing: 20) {
-                    Spacer().frame(height: geo.size.height * 0.06)
-
-                    if showMissionComplete {
-                        VStack(spacing: 6) {
-                            Text("MISSION")
-                                .font(.system(size: 14, weight: .light, design: .monospaced))
-                                .foregroundColor(.white.opacity(0.4))
-                                .tracking(8)
-                                .transition(.opacity)
-
-                            Text("COMPLETE")
-                                .font(.system(size: 42, weight: .black, design: .monospaced))
-                                .foregroundColor(nCyan)
-                                .shadow(color: nCyan.opacity(0.8), radius: 20)
-                                .shadow(color: nCyan.opacity(0.4), radius: 40)
-                                .shadow(color: nMagenta.opacity(0.2), radius: 60)
-                                .tracking(8)
-                                .transition(.scale(scale: 0.7).combined(with: .opacity))
-                        }
-                    }
-
-                    if showSubtitle {
-                        EpilogueSafeTypewriter(
-                            text: "Payload delivered. The feed loaded in 114ms.",
-                            font: .system(size: 16, weight: .regular, design: .monospaced)
-                        )
-                        .foregroundColor(.white.opacity(0.6))
-                        .shadow(color: nCyan.opacity(0.2), radius: 8)
-                    }
-
-                    if showPerspective {
-                        EpilogueSafeTypewriter(
-                            text: "To the user, it was instant. To you, it was an epic journey.",
-                            font: .system(size: 13, weight: .medium, design: .monospaced)
-                        )
-                        .foregroundColor(nMagenta.opacity(0.8))
-                    }
-
-                    Spacer()
-                }
-
-                // ── Layer 9: Stats + Journey Route + Replay ──
-                if showStats {
+                // Main scrollable content
+                ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0) {
-                        Spacer()
+                        heroSection(geo: geo)
 
-                        // Journey route visualizer
-                        if showJourneyRoute {
-                            JourneyRouteStrip(
-                                scenes: stats.scenesVisited,
-                                accentColor: nCyan,
-                                magenta: nMagenta,
-                                violet: nViolet
-                            )
-                            .padding(.horizontal, 30)
-                            .padding(.bottom, 14)
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
-                        }
+                        if showContent {
+                            tabPicker
+                                .padding(.top, 24)
+                                .transition(.opacity.combined(with: .move(edge: .bottom)))
 
-                        JourneyStatsPanel(
-                            stats: stats,
-                            accentColor: nCyan,
-                            magenta: nMagenta
-                        )
-                        .padding(.horizontal, 30)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-
-                        if showReplay {
-                            Button(action: {
-                                SoundManager.shared.playButtonSound()
-                                onReplay()
-                            }) {
-                                HStack(spacing: 12) {
-                                    Text("Replay Journey")
-                                        .font(.system(size: 17, weight: .bold, design: .monospaced))
-                                        .tracking(2)
-
-                                    Image(systemName: "chevron.right.2")
-                                        .font(.system(size: 16, weight: .bold))
+                            Group {
+                                switch selectedTab {
+                                case .overview:  overviewTab
+                                case .concepts:  conceptsTab
+                                case .quiz:      quizReviewTab
                                 }
-                                .foregroundColor(.black)
-                                .padding(.horizontal, 36)
-                                .padding(.vertical, 16)
-                                .background(
-                                    Capsule()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [nCyan, Color(red: 0.3, green: 0.95, blue: 1.0)],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                )
-                                .overlay(Capsule().stroke(nCyan.opacity(0.6), lineWidth: 1))
-                                .shadow(color: nCyan.opacity(0.5), radius: 25, y: 4)
-                                .shadow(color: nMagenta.opacity(0.15), radius: 40, y: 8)
                             }
-                            .scaleEffect(glowPulse ? 1.04 : 1.0)
+                            .transition(.opacity)
+                            .animation(.easeInOut(duration: 0.3), value: selectedTab)
+                            .padding(.horizontal, 28)
                             .padding(.top, 20)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                        }
 
-                        Spacer().frame(height: 40)
+                            replayButton
+                                .padding(.top, 32)
+                                .padding(.bottom, 60)
+                        }
                     }
                 }
 
-                // ── Layer 10: Title badge ──
-                VStack {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("PING")
-                                .font(.system(size: 20, weight: .black, design: .monospaced))
-                                .foregroundColor(nCyan)
-                                .shadow(color: nCyan.opacity(0.6), radius: 10)
-                                .tracking(4)
-
-                            Text("A Journey Through the Internet")
-                                .font(.system(size: 9, weight: .medium, design: .monospaced))
-                                .foregroundColor(.white.opacity(0.3))
-                                .tracking(1)
-                        }
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.black.opacity(0.5))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(nCyan.opacity(0.2), lineWidth: 1)
-                                )
-                        )
-                        Spacer()
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                    .opacity(phase != .blackout ? 1 : 0)
-                    Spacer()
-                }
+                // CRT scanlines (decorative only)
+                EpilogueScanLines()
+                    .opacity(0.03)
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea()
             }
         }
         .onAppear { startEpilogue() }
     }
 
-    // MARK: – Cinematic Timeline
-    private func startEpilogue() {
-        SoundManager.shared.playAmbientSound(for: .cpuCity) // Switch back to a cool synth
-        
-        withAnimation(.linear(duration: 25).repeatForever(autoreverses: false)) {
-            gridScroll = 1
-        }
+    // MARK: - Hero Section
+    @ViewBuilder
+    private func heroSection(geo: GeometryProxy) -> some View {
+        VStack(spacing: 16) {
+            Spacer().frame(height: 50)
 
-        // 0.0s — Fade in scene
-        withAnimation(.easeOut(duration: 1.0)) {
-            phase = .deliveryScene
-        }
-
-        // 0.5s — Holographic Device appears
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                showDevice = true
-            }
-        }
-
-        // 1.5s — Feed Loads on device
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            SoundManager.shared.playMissionCompleteSound() // Success chime!
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                feedLoaded = true
-            }
-        }
-
-        // 2.5s — MISSION COMPLETE title drops
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            SoundManager.shared.playPortalSound() // Heavy boom
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                phase = .missionTitle
-                showMissionComplete = true
-            }
-            withAnimation(.easeOut(duration: 2.5).repeatForever(autoreverses: false)) {
-                ringPulse = 2.0
-            }
-        }
-
-        // 3.5s — Subtitle typewriter
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-            withAnimation(.easeIn(duration: 0.6)) { showSubtitle = true }
-        }
-
-        // 5.5s — Perspective line
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
-            withAnimation(.easeIn(duration: 0.6)) { showPerspective = true }
-        }
-
-        // 7.5s — Stats panel
-        DispatchQueue.main.asyncAfter(deadline: .now() + 7.5) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                phase = .statsReveal
-                showStats = true
-            }
-        }
-
-        // 8.2s — Journey route
-        DispatchQueue.main.asyncAfter(deadline: .now() + 8.2) {
-            withAnimation(.easeOut(duration: 0.6)) { showJourneyRoute = true }
-        }
-
-        // 9.0s — Replay button
-        DispatchQueue.main.asyncAfter(deadline: .now() + 9.0) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                showReplay = true
-            }
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                glowPulse = true
-            }
-        }
-    }
-}
-
-// MARK: - Holographic Feed View
-struct HolographicFeedView: View {
-    let isLoaded: Bool
-    let cyan: Color
-    let magenta: Color
-    
-    @State private var floatOffset: CGFloat = 0
-    
-    var body: some View {
-        ZStack {
-            // Glowing Aura
-            RoundedRectangle(cornerRadius: 16)
-                .fill(isLoaded ? cyan.opacity(0.15) : magenta.opacity(0.1))
-                .frame(width: 140, height: 220)
-                .blur(radius: 20)
-            
-            // Device Frame
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.9))
-                .frame(width: 130, height: 210)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(
-                            LinearGradient(
-                                colors: isLoaded ? [cyan, cyan.opacity(0.3)] : [magenta, magenta.opacity(0.3)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            ), lineWidth: 2
-                        )
-                )
-            
-            // Screen Content
-            VStack(spacing: 12) {
-                if !isLoaded {
-                    // Loading State
-                    Spacer()
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: magenta))
-                        .scaleEffect(1.5)
-                    Text("RESOLVING IP...")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundColor(magenta)
-                        .tracking(1)
-                    Spacer()
-                } else if isLoaded {
-                    // Loaded Feed State
-                    HStack {
-                        Image(systemName: "checkmark.shield.fill")
-                            .foregroundColor(cyan)
-                        Text("SECURE CONNECTION")
-                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                            .foregroundColor(cyan)
-                    }
-                    .padding(.top, 8)
-                    
-                    // Mock Social Media Posts
-                    VStack(spacing: 8) {
-                        ForEach(0..<3) { i in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Circle().fill(Color.gray.opacity(0.4)).frame(width: 16, height: 16)
-                                    RoundedRectangle(cornerRadius: 2).fill(Color.gray.opacity(0.4)).frame(width: 50, height: 6)
-                                }
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(
-                                        LinearGradient(colors: [.cyan.opacity(0.3), .purple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                                    )
-                                    .frame(height: i == 0 ? 50 : 30) // First post is taller
-                            }
-                            .padding(8)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.05)))
-                        }
-                    }
-                    .padding(.horizontal, 10)
-                    Spacer()
-                }
-            }
-        }
-        .offset(y: floatOffset)
-        .onAppear {
-            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                floatOffset = -10
-            }
-        }
-    }
-}
-
-// MARK: - Safe Typewriter Text
-struct EpilogueSafeTypewriter: View {
-    let text: String
-    let font: Font
-    
-    @State private var displayedText = ""
-    
-    var body: some View {
-        Text(displayedText)
-            .font(font)
-            .multilineTextAlignment(.center)
-            .task { await typeText() }
-    }
-    
-    private func typeText() async {
-        displayedText = ""
-        for (index, char) in text.enumerated() {
-            if Task.isCancelled { break }
-            displayedText.append(char)
-            if index % 4 == 0 {
-                let generator = UIImpactFeedbackGenerator(style: .light)
-                generator.impactOccurred()
-            }
-            do {
-                try await Task.sleep(nanoseconds: 30_000_000)
-            } catch { break }
-        }
-    }
-}
-
-// MARK: - Journey Route Strip
-struct JourneyRouteStrip: View {
-    let scenes: [StoryScene]
-    let accentColor: Color
-    let magenta: Color
-    let violet: Color
-
-    @State private var lineProgress: CGFloat = 0
-
-    private var uniqueScenes: [StoryScene] {
-        // Preserve order, deduplicate
-        var seen = Set<StoryScene>()
-        return scenes.filter { seen.insert($0).inserted }
-    }
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Text("ROUTE TAKEN")
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
-                .foregroundColor(accentColor.opacity(0.7))
-                .tracking(3)
-
-            GeometryReader { geo in
-                let count = max(uniqueScenes.count, 1)
-                let spacing = geo.size.width / CGFloat(count + 1)
-
+            if showTitle {
                 ZStack {
-                    // Connecting line
-                    Path { path in
-                        for (i, _) in uniqueScenes.enumerated() {
-                            let x = spacing * CGFloat(i + 1)
-                            if i == 0 { path.move(to: CGPoint(x: x, y: 14)) }
-                            else { path.addLine(to: CGPoint(x: x, y: 14)) }
-                        }
-                    }
-                    .trim(from: 0, to: lineProgress)
-                    .stroke(
-                        LinearGradient(
-                            colors: [accentColor, magenta, violet],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ),
-                        style: StrokeStyle(lineWidth: 2, lineCap: .round)
-                    )
+                    Circle()
+                        .stroke(accent.opacity(0.2), lineWidth: 2)
+                        .frame(width: 80, height: 80)
+                    Circle()
+                        .fill(accent.opacity(0.08))
+                        .frame(width: 80, height: 80)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 44))
+                        .foregroundStyle(
+                            LinearGradient(colors: [accent, mint], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                }
+                .transition(.scale(scale: 0.5).combined(with: .opacity))
 
-                    // Scene nodes
+                VStack(spacing: 8) {
+                    Text("Mission Complete")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    Text("Payload delivered in 114ms")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+
+            if showSubtitle {
+                Text("To the user, it was instant.\nTo you, it was an epic journey.")
+                    .font(.system(size: 14, weight: .regular, design: .rounded))
+                    .foregroundColor(accent.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
+                    .transition(.opacity)
+            }
+
+            Spacer().frame(height: 10)
+        }
+        .frame(minHeight: 260)
+    }
+
+    // MARK: - Tab Picker
+    private var tabPicker: some View {
+        HStack(spacing: 4) {
+            ForEach(ResultTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) { selectedTab = tab }
+                } label: {
+                    Text(tab.rawValue)
+                        .font(.system(size: 13, weight: selectedTab == tab ? .semibold : .medium, design: .rounded))
+                        .foregroundColor(selectedTab == tab ? .white : .white.opacity(0.45))
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(selectedTab == tab ? accent.opacity(0.2) : Color.clear))
+                        .overlay(Capsule().stroke(selectedTab == tab ? accent.opacity(0.4) : Color.white.opacity(0.08), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 28)
+    }
+
+    // MARK: - Overview Tab
+    private var overviewTab: some View {
+        VStack(spacing: 16) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                EpilogueStatCard(icon: "clock.fill", value: stats.formattedDuration, label: "Time", color: accent)
+                EpilogueStatCard(icon: "book.closed.fill", value: "\(stats.termsLearned.count)", label: "Concepts Learned", color: warmGold)
+                EpilogueStatCard(icon: "person.2.fill", value: "\(stats.npcsSpokenTo.count)", label: "NPCs Met", color: mint)
+                EpilogueStatCard(icon: "map.fill", value: "\(stats.scenesVisited.count)", label: "Places Visited", color: Color(red: 0.65, green: 0.55, blue: 1.0))
+            }
+
+            routeCard
+
+            if !stats.choicesMade.isEmpty {
+                decisionsCard
+            }
+        }
+    }
+
+    // MARK: - Route Card
+    private var routeCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label("Route Taken", systemImage: "point.topleft.down.to.point.bottomright.curvepath.fill")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundColor(.white.opacity(0.6))
+
+            let uniqueScenes = stats.scenesVisited.reduce(into: [StoryScene]()) { result, scene in
+                if !result.contains(scene) { result.append(scene) }
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
                     ForEach(Array(uniqueScenes.enumerated()), id: \.element) { i, scene in
-                        VStack(spacing: 4) {
-                            Circle()
-                                .fill(scene.accentColor)
-                                .frame(width: 10, height: 10)
-                                .shadow(color: scene.accentColor.opacity(0.7), radius: 6)
-
-                            Image(systemName: sceneIcon(for: scene))
-                                .font(.system(size: 10))
-                                .foregroundColor(scene.accentColor)
+                        HStack(spacing: 0) {
+                            VStack(spacing: 6) {
+                                ZStack {
+                                    Circle()
+                                        .fill(scene.accentColor.opacity(0.15))
+                                        .frame(width: 36, height: 36)
+                                    Image(systemName: sceneIcon(for: scene))
+                                        .font(.system(size: 14))
+                                        .foregroundColor(scene.accentColor)
+                                }
+                                Text(scene.displayName)
+                                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.5))
+                                    .lineLimit(1)
+                                    .frame(width: 60)
+                            }
+                            if i < uniqueScenes.count - 1 {
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [scene.accentColor.opacity(0.5), uniqueScenes[i+1].accentColor.opacity(0.5)],
+                                            startPoint: .leading, endPoint: .trailing
+                                        )
+                                    )
+                                    .frame(width: 28, height: 2)
+                                    .padding(.bottom, 20)
+                            }
                         }
-                        .position(x: spacing * CGFloat(i + 1), y: 14)
                     }
                 }
+                .padding(.horizontal, 4)
             }
-            .frame(height: 40)
         }
+        .padding(18)
+        .background(cardBackground)
+    }
+
+    // MARK: - Decisions Card
+    private var decisionsCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label("Your Decisions", systemImage: "arrow.triangle.branch")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundColor(.white.opacity(0.6))
+
+            HStack(spacing: 12) {
+                decisionPill(
+                    icon: stats.chosenProtocol == .udp ? "bolt.fill" : "checkmark.shield.fill",
+                    label: "Protocol", value: stats.chosenProtocol.rawValue,
+                    color: stats.chosenProtocol == .udp ? .orange : success
+                )
+                decisionPill(
+                    icon: stats.upgradedToSSL ? "lock.fill" : "lock.open.fill",
+                    label: "Security", value: stats.upgradedToSSL ? "SSL/TLS" : "None",
+                    color: stats.upgradedToSSL ? success : coral
+                )
+                decisionPill(
+                    icon: stats.lostPacketData ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
+                    label: "Data", value: stats.lostPacketData ? "Lost" : "Intact",
+                    color: stats.lostPacketData ? coral : success
+                )
+            }
+        }
+        .padding(18)
+        .background(cardBackground)
+    }
+
+    @ViewBuilder
+    private func decisionPill(icon: String, label: String, value: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 18))
+                .foregroundColor(color)
+            Text(value)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            Text(label)
+                .font(.system(size: 10, weight: .medium, design: .rounded))
+                .foregroundColor(.white.opacity(0.4))
+        }
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
-        .padding(.horizontal, 16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.black.opacity(0.6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(accentColor.opacity(0.2), lineWidth: 1)
-                )
+                .fill(color.opacity(0.06))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.15), lineWidth: 1))
         )
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.4).delay(0.2)) {
-                lineProgress = 1
+    }
+
+    // MARK: - Concepts Tab
+    private var conceptsTab: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("\(stats.termsLearned.count) Concepts Learned")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                Spacer()
+                Text("\(stats.termsLearned.count)/\(EncyclopediaTerm.allTerms.count) total")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.4))
             }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.08))
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(LinearGradient(colors: [accent, mint], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: geo.size.width * CGFloat(stats.termsLearned.count) / CGFloat(max(EncyclopediaTerm.allTerms.count, 1)))
+                }
+            }
+            .frame(height: 6)
+
+            let grouped = Dictionary(grouping: stats.termsLearned) { $0.category }
+            let sortedCategories = EncyclopediaTerm.TermCategory.allCases.filter { grouped[$0] != nil }
+
+            ForEach(sortedCategories, id: \.self) { category in
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(category.rawValue.uppercased())
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundColor(categoryColor(category).opacity(0.7))
+                        .tracking(2)
+                        .padding(.top, 8)
+
+                    ForEach(grouped[category] ?? [], id: \.id) { term in
+                        ConceptCard(term: term, color: categoryColor(category))
+                    }
+                }
+            }
+
+            let undiscovered = EncyclopediaTerm.allTerms.filter { term in
+                !stats.termsLearned.contains(where: { $0.id == term.id })
+            }
+            if !undiscovered.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("UNDISCOVERED")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.3))
+                        .tracking(2)
+                        .padding(.top, 8)
+
+                    ForEach(undiscovered, id: \.id) { term in
+                        HStack(spacing: 12) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(0.2))
+                                .frame(width: 32, height: 32)
+                                .background(Circle().fill(Color.white.opacity(0.05)))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(term.term)
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.3))
+                                Text("Play again to discover")
+                                    .font(.system(size: 11, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.2))
+                            }
+                            Spacer()
+                        }
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.white.opacity(0.02))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.04), lineWidth: 1))
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Quiz Review Tab
+    private var quizReviewTab: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Score summary
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.08), lineWidth: 6)
+                        .frame(width: 64, height: 64)
+                    Circle()
+                        .trim(from: 0, to: stats.quizResults.isEmpty ? 0 : stats.quizAccuracy)
+                        .stroke(
+                            stats.quizAccuracy >= 0.8 ? success : stats.quizAccuracy >= 0.5 ? warmGold : coral,
+                            style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                        )
+                        .frame(width: 64, height: 64)
+                        .rotationEffect(.degrees(-90))
+                    Text("\(Int(stats.quizAccuracy * 100))%")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Quiz Accuracy")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                    let correct = stats.quizResults.filter(\.wasCorrect).count
+                    let total = stats.quizResults.count
+                    Text("\(correct) of \(total) questions correct")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                    Text(quizGrade)
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(stats.quizAccuracy >= 0.8 ? success : stats.quizAccuracy >= 0.5 ? warmGold : coral)
+                }
+                Spacer()
+            }
+            .padding(18)
+            .background(cardBackground)
+
+            if stats.quizResults.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 36))
+                        .foregroundColor(.white.opacity(0.2))
+                    Text("No quizzes completed")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.4))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            } else {
+                let grouped = Dictionary(grouping: stats.quizResults) { $0.scene }
+                let orderedScenes = stats.scenesVisited.reduce(into: [StoryScene]()) { result, scene in
+                    if !result.contains(scene) && grouped[scene] != nil { result.append(scene) }
+                }
+
+                ForEach(orderedScenes, id: \.self) { scene in
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 8) {
+                            Image(systemName: sceneIcon(for: scene))
+                                .font(.system(size: 12))
+                                .foregroundColor(scene.accentColor)
+                            Text(scene.displayName)
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundColor(scene.accentColor)
+                            Spacer()
+                            let sceneResults = grouped[scene] ?? []
+                            let sceneCorrect = sceneResults.filter(\.wasCorrect).count
+                            Text("\(sceneCorrect)/\(sceneResults.count)")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.4))
+                        }
+
+                        ForEach(Array((grouped[scene] ?? []).enumerated()), id: \.offset) { idx, result in
+                            QuizResultCard(result: result, index: idx + 1, success: success, coral: coral)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Replay Button
+    private var replayButton: some View {
+        Button {
+            SoundManager.shared.playButtonSound()
+            onReplay()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 15, weight: .semibold))
+                Text("Replay Journey")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+            }
+            .foregroundColor(.black)
+            .padding(.horizontal, 40)
+            .padding(.vertical, 16)
+            .background(
+                Capsule().fill(
+                    LinearGradient(colors: [accent, mint], startPoint: .leading, endPoint: .trailing)
+                )
+            )
+            .shadow(color: accent.opacity(0.35), radius: 20, y: 6)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Shared Card Background
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(Color.white.opacity(0.04))
+            .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial).opacity(0.3))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.08), lineWidth: 1))
+    }
+
+    // MARK: - Helpers
+    private var quizGrade: String {
+        if stats.quizAccuracy >= 1.0 { return "Perfect Score!" }
+        if stats.quizAccuracy >= 0.8 { return "Excellent!" }
+        if stats.quizAccuracy >= 0.6 { return "Good effort!" }
+        if stats.quizAccuracy >= 0.4 { return "Keep learning!" }
+        return "Try again to improve"
+    }
+
+    private func categoryColor(_ category: EncyclopediaTerm.TermCategory) -> Color {
+        switch category {
+        case .basics:         return accent
+        case .protocols:      return mint
+        case .infrastructure: return warmGold
+        case .security:       return Color(red: 0.65, green: 0.55, blue: 1.0)
         }
     }
 
     private func sceneIcon(for scene: StoryScene) -> String {
         switch scene {
-        case .frozenCafe: return "cup.and.saucer.fill"
-        case .cpuCity: return "cpu.fill"
-        case .wifiAntenna: return "antenna.radiowaves.left.and.right"
-        case .routerStation: return "arrow.triangle.branch"
-        case .oceanCable: return "water.waves"
-        case .dnsLibrary: return "book.closed.fill"
-        case .returnJourney: return "arrow.turn.up.left"
-        case .feedLoaded: return "checkmark.circle.fill"
+        case .frozenCafe:     return "cup.and.saucer.fill"
+        case .cpuCity:        return "cpu.fill"
+        case .wifiAntenna:    return "antenna.radiowaves.left.and.right"
+        case .routerStation:  return "arrow.triangle.branch"
+        case .oceanCable:     return "water.waves"
+        case .dnsLibrary:     return "book.closed.fill"
+        case .returnJourney:  return "arrow.turn.up.left"
+        case .feedLoaded:     return "checkmark.circle.fill"
+        }
+    }
+
+    // MARK: - Cinematic Timeline
+    private func startEpilogue() {
+        SoundManager.shared.playAmbientSound(for: .cpuCity)
+
+        withAnimation(.linear(duration: 25).repeatForever(autoreverses: false)) {
+            gridScroll = 1
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            SoundManager.shared.playMissionCompleteSound()
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.75)) { showTitle = true }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeIn(duration: 0.6)) { showSubtitle = true }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            SoundManager.shared.playPortalSound()
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { showContent = true }
         }
     }
 }
 
-// MARK: - Journey Stats Panel (Glassmorphism)
-struct JourneyStatsPanel: View {
-    let stats: JourneyStats
-    let accentColor: Color
-    let magenta: Color
-
-    @State private var revealedStats = 0
-
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 12) {
-                Rectangle().fill(accentColor.opacity(0.4)).frame(height: 1)
-                Text("YOUR JOURNEY")
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundColor(accentColor)
-                    .tracking(4)
-                    .fixedSize(horizontal: true, vertical: false)
-                Rectangle().fill(accentColor.opacity(0.4)).frame(height: 1)
-            }
-
-            HStack(spacing: 0) {
-                StatBadge(icon: "clock", value: stats.formattedDuration, label: "Time", accent: accentColor, revealed: revealedStats >= 1)
-                    .frame(maxWidth: .infinity)
-                StatDivider(color: accentColor)
-                StatBadge(icon: "book.fill", value: "\(stats.termsLearned.count)", label: "Terms", accent: Color(red: 1.0, green: 0.75, blue: 0.0), revealed: revealedStats >= 2)
-                    .frame(maxWidth: .infinity)
-                StatDivider(color: accentColor)
-                StatBadge(icon: "person.2.fill", value: "\(stats.npcsSpokenTo.count)", label: "NPCs", accent: magenta, revealed: revealedStats >= 3)
-                    .frame(maxWidth: .infinity)
-                StatDivider(color: accentColor)
-                StatBadge(icon: "map.fill", value: "\(stats.scenesVisited.count)", label: "Places", accent: Color(red: 0.6, green: 0.2, blue: 1.0), revealed: revealedStats >= 4)
-                    .frame(maxWidth: .infinity)
-            }
-            
-            // Choice outcomes row
-            if !stats.choicesMade.isEmpty {
-                Rectangle().fill(accentColor.opacity(0.2)).frame(height: 1).padding(.vertical, 4)
-                
-                HStack(spacing: 0) {
-                    StatBadge(icon: stats.chosenProtocol == .udp ? "bolt.fill" : "checkmark.shield.fill", value: stats.chosenProtocol.rawValue, label: "Protocol", accent: stats.chosenProtocol == .udp ? .orange : .green, revealed: revealedStats >= 5)
-                        .frame(maxWidth: .infinity)
-                    StatDivider(color: accentColor)
-                    StatBadge(icon: stats.upgradedToSSL ? "lock.fill" : "lock.open.fill", value: stats.upgradedToSSL ? "SSL" : "None", label: "Security", accent: stats.upgradedToSSL ? .green : .red, revealed: revealedStats >= 5)
-                        .frame(maxWidth: .infinity)
-                    StatDivider(color: accentColor)
-                    StatBadge(icon: stats.lostPacketData ? "exclamationmark.triangle.fill" : "checkmark.circle.fill", value: stats.lostPacketData ? "Lost" : "Intact", label: "Data", accent: stats.lostPacketData ? .red : .green, revealed: revealedStats >= 5)
-                        .frame(maxWidth: .infinity)
-                    StatDivider(color: accentColor)
-                    StatBadge(icon: "brain.head.profile", value: "\(Int(stats.quizAccuracy * 100))%", label: "Quiz", accent: stats.quizAccuracy >= 0.8 ? .green : stats.quizAccuracy >= 0.5 ? .yellow : .orange, revealed: revealedStats >= 5)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-        }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.black.opacity(0.5))
-                .background(.ultraThinMaterial) // Added glassmorphism!
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(LinearGradient(colors: [accentColor.opacity(0.5), magenta.opacity(0.3)], startPoint: .leading, endPoint: .trailing), lineWidth: 1)
-                )
-                .shadow(color: accentColor.opacity(0.15), radius: 20, y: 5)
-        )
-        .onAppear { revealStatsSequentially() }
-    }
-
-    private func revealStatsSequentially() {
-        for i in 1...5 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.25) {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                    revealedStats = i
-                }
-            }
-        }
-    }
-}
-
-struct StatDivider: View {
-    let color: Color
-    var body: some View {
-        Rectangle()
-            .fill(color.opacity(0.15))
-            .frame(width: 1, height: 50)
-    }
-}
-
-struct StatBadge: View {
+// MARK: - Stat Card
+struct EpilogueStatCard: View {
     let icon: String
     let value: String
     let label: String
-    let accent: Color
-    let revealed: Bool
+    let color: Color
 
     var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundColor(accent)
-                .shadow(color: accent.opacity(0.5), radius: 6)
-
-            Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-
-            Text(label)
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundColor(.gray)
-                .tracking(1)
+        VStack(spacing: 10) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(color)
+                Spacer()
+            }
+            HStack {
+                Text(value)
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            HStack {
+                Text(label)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.4))
+                Spacer()
+            }
         }
-        .scaleEffect(revealed ? 1 : 0.5)
-        .opacity(revealed ? 1 : 0)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(color.opacity(0.05))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.12), lineWidth: 1))
+        )
+    }
+}
+
+// MARK: - Concept Card (Expandable)
+struct ConceptCard: View {
+    let term: EncyclopediaTerm
+    let color: Color
+    @State private var expanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) { expanded.toggle() }
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: term.icon)
+                        .font(.system(size: 16))
+                        .foregroundColor(color)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(color.opacity(0.1)))
+                    Text(term.term)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                    Spacer()
+                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.3))
+                }
+                .padding(14)
+            }
+            .buttonStyle(.plain)
+
+            if expanded {
+                Text(term.definition)
+                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .foregroundColor(.white.opacity(0.7))
+                    .lineSpacing(4)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 14)
+                    .padding(.leading, 48)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(color.opacity(0.04))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(color.opacity(0.1), lineWidth: 1))
+        )
+    }
+}
+
+// MARK: - Quiz Result Card (Expandable)
+struct QuizResultCard: View {
+    let result: QuizResult
+    let index: Int
+    let success: Color
+    let coral: Color
+    @State private var showDetails = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) { showDetails.toggle() }
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(result.wasCorrect ? success.opacity(0.12) : coral.opacity(0.12))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: result.wasCorrect ? "checkmark" : "xmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(result.wasCorrect ? success : coral)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Q\(index)")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.3))
+                        Text(result.questionText)
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.85))
+                            .lineLimit(showDetails ? nil : 2)
+                            .multilineTextAlignment(.leading)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: showDetails ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.25))
+                }
+                .padding(14)
+            }
+            .buttonStyle(.plain)
+
+            if showDetails {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(result.options.enumerated()), id: \.offset) { i, option in
+                        HStack(spacing: 10) {
+                            let isCorrect = i == result.correctIndex
+                            let isSelected = i == result.selectedIndex
+
+                            Text(["A", "B", "C", "D"][min(i, 3)])
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .foregroundColor(isCorrect ? success : isSelected ? coral : .white.opacity(0.3))
+                                .frame(width: 22, height: 22)
+                                .background(
+                                    Circle().fill(
+                                        isCorrect ? success.opacity(0.12) :
+                                        isSelected ? coral.opacity(0.12) :
+                                        Color.white.opacity(0.04)
+                                    )
+                                )
+
+                            Text(option)
+                                .font(.system(size: 12, weight: isCorrect ? .semibold : .regular, design: .rounded))
+                                .foregroundColor(isCorrect ? success : isSelected ? coral.opacity(0.7) : .white.opacity(0.5))
+
+                            Spacer()
+
+                            if isCorrect {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(success)
+                            } else if isSelected && !result.wasCorrect {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(coral)
+                            }
+                        }
+                    }
+
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.yellow.opacity(0.7))
+                            .padding(.top, 2)
+                        Text(result.explanation)
+                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .foregroundColor(.white.opacity(0.6))
+                            .lineSpacing(3)
+                    }
+                    .padding(.top, 6)
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
+                .padding(.leading, 44)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(result.wasCorrect ? success.opacity(0.03) : coral.opacity(0.03))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(result.wasCorrect ? success.opacity(0.1) : coral.opacity(0.1), lineWidth: 1)
+                )
+        )
     }
 }
 
@@ -677,52 +771,6 @@ struct EpilogueCyberGrid: View {
                     path.addLine(to: CGPoint(x: bottomX, y: size.height))
                     context.stroke(path, with: .color(lineColor), lineWidth: 0.5)
                 }
-            }
-        }
-    }
-}
-
-// MARK: - Epilogue Particles
-struct EpilogueParticles: View {
-    let colors: [Color]
-    let seed: Double
-
-    var body: some View {
-        Canvas { context, canvasSize in
-            for i in 0..<50 {
-                let s = Double(i) * 137.508 + seed
-                let x = CGFloat((sin(s) * 0.5 + 0.5)) * canvasSize.width
-                let y = CGFloat((cos(s * 0.7) * 0.5 + 0.5)) * canvasSize.height
-                let radius: CGFloat = CGFloat(i % 4 == 0 ? 2.5 : 1.0)
-                let rect = CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)
-                let ci = i % colors.count
-                context.fill(Circle().path(in: rect), with: .color(colors[ci].opacity(0.4)))
-            }
-        }
-    }
-}
-
-// MARK: - Epilogue Data Streams
-struct EpilogueDataStreams: View {
-    let color: Color
-    @State private var offset: CGFloat = 0
-
-    var body: some View {
-        Canvas { context, canvasSize in
-            for i in 0..<12 {
-                let x = CGFloat(i) * (canvasSize.width / 12) + 15
-                let lineHeight: CGFloat = CGFloat(35 + (i * 41) % 70)
-                let y = ((offset * canvasSize.height * 1.5 + CGFloat(i) * 70)
-                    .truncatingRemainder(dividingBy: canvasSize.height + lineHeight)) - lineHeight
-                var path = Path()
-                path.move(to: CGPoint(x: x, y: y))
-                path.addLine(to: CGPoint(x: x, y: y + lineHeight))
-                context.stroke(path, with: .color(color.opacity(0.15)), lineWidth: 1)
-            }
-        }
-        .onAppear {
-            withAnimation(.linear(duration: 7).repeatForever(autoreverses: false)) {
-                offset = 1
             }
         }
     }
