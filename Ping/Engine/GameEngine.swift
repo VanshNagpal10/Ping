@@ -53,6 +53,7 @@ class GameEngine: ObservableObject {
     // Movement
     private var joystickDirection: CGVector = .zero
     private var gameLoop3DTimer: Timer?
+    private var typewriterTimer: Timer?
     
     // NPC-to-UUID mapping for 3D
     private var npcIDMap: [UUID: Int] = [:] // UUID -> npcs array index
@@ -358,6 +359,11 @@ class GameEngine: ObservableObject {
         }
         
         let line = currentDialogue[currentDialogueIndex]
+        
+        // Kill any previous typewriter timer to prevent garbled text
+        typewriterTimer?.invalidate()
+        typewriterTimer = nil
+        
         typewriterText = ""
         isTyping = true
         activeChoices = nil
@@ -382,9 +388,10 @@ class GameEngine: ObservableObject {
         // Start typewriter sound (stops any previous one)
         SoundManager.shared.startTypewriterSound()
         
-        Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] timer in
+        typewriterTimer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] timer in
             guard let self = self, charIndex < fullText.count else {
                 timer.invalidate()
+                self?.typewriterTimer = nil
                 DispatchQueue.main.async {
                     // Stop the typewriter sound the moment text is fully displayed
                     SoundManager.shared.stopTypewriterSound()
@@ -426,7 +433,9 @@ class GameEngine: ObservableObject {
         if showInventorySwap && !inventorySwapCompleted { return }
         
         if isTyping {
-            // Skip typewriter and show full text
+            // Skip typewriter and show full text immediately
+            typewriterTimer?.invalidate()
+            typewriterTimer = nil
             SoundManager.shared.stopTypewriterSound()
             if currentDialogueIndex < currentDialogue.count {
                 let line = currentDialogue[currentDialogueIndex]
@@ -527,10 +536,14 @@ class GameEngine: ObservableObject {
     }
     
     func endDialogue() {
+        typewriterTimer?.invalidate()
+        typewriterTimer = nil
+        SoundManager.shared.stopTypewriterSound()
         isDialogueActive = false
         currentDialogue = []
         currentDialogueIndex = 0
         typewriterText = ""
+        isTyping = false
         activeChoices = nil
         showInventorySwap = false
         inventorySwapCompleted = false
