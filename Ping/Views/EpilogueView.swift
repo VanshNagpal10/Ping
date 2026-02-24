@@ -109,48 +109,53 @@ struct EpilogueView: View {
     // MARK: - Hero Section
     @ViewBuilder
     private func heroSection(geo: GeometryProxy) -> some View {
-        VStack(spacing: 16) {
-            Spacer().frame(height: 50)
+        VStack(spacing: 20) {
+            Spacer().frame(height: 60)
 
             if showTitle {
                 ZStack {
                     Circle()
                         .stroke(accent.opacity(0.2), lineWidth: 2)
-                        .frame(width: 80, height: 80)
+                        .frame(width: 100, height: 100)
                     Circle()
                         .fill(accent.opacity(0.08))
-                        .frame(width: 80, height: 80)
+                        .frame(width: 100, height: 100)
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 44))
+                        .font(.system(size: 56))
                         .foregroundStyle(
                             LinearGradient(colors: [accent, mint], startPoint: .topLeading, endPoint: .bottomTrailing)
                         )
+                        .shadow(color: mint.opacity(0.4), radius: 15, x: 0, y: 0)
                 }
                 .transition(.scale(scale: 0.5).combined(with: .opacity))
+                .padding(.bottom, 8)
 
-                VStack(spacing: 8) {
+                VStack(spacing: 12) {
                     Text("Mission Complete")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.system(size: 46, weight: .heavy, design: .rounded))
                         .foregroundColor(.white)
+                        .shadow(color: accent.opacity(0.3), radius: 10, y: 4)
                     Text("Payload delivered in 114ms")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .tracking(0.5)
                 }
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
 
             if showSubtitle {
                 Text("To the user, it was instant.\nTo you, it was an epic journey.")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(accent.opacity(0.7))
+                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .foregroundColor(accent.opacity(0.9))
                     .multilineTextAlignment(.center)
-                    .padding(.top, 4)
+                    .lineSpacing(6)
+                    .padding(.top, 16)
                     .transition(.opacity)
             }
 
             Spacer().frame(height: 10)
         }
-        .frame(minHeight: 260)
+        .frame(minHeight: 320)
     }
 
     // MARK: - Tab Picker
@@ -608,6 +613,7 @@ struct ConceptCard: View {
                         .foregroundColor(.white.opacity(0.3))
                 }
                 .padding(14)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
@@ -671,6 +677,7 @@ struct QuizResultCard: View {
                         .foregroundColor(.white.opacity(0.25))
                 }
                 .padding(14)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 

@@ -33,7 +33,6 @@ class SceneManager: ObservableObject {
         let maxZ: Float
     }
     private(set) var obstacles: [ObstacleRect] = []
-    private var npcObstacleIndices: [UUID: Int] = [:] // track NPC obstacle indices for cleanup
     private let playerRadius: Float = 0.4  // collision radius for the player
     
     /// Register a box obstacle at world position with given half-extents.
@@ -74,51 +73,10 @@ class SceneManager: ObservableObject {
     
     // MARK: - Base Scene
     private func setupScene() {
-        // Atmospheric gradient sky — deep indigo/purple cyberpunk sky, NOT pitch black
-        scene.background.contents = Self.makeGradientSky(
-            topColor: UIColor(red: 0.06, green: 0.04, blue: 0.18, alpha: 1),
-            midColor: UIColor(red: 0.10, green: 0.06, blue: 0.24, alpha: 1),
-            bottomColor: UIColor(red: 0.16, green: 0.10, blue: 0.32, alpha: 1)
-        )
-        
-        // Environment lighting — gives PBR/metallic surfaces something to reflect
-        scene.lightingEnvironment.contents = Self.makeGradientSky(
-            topColor: UIColor(red: 0.10, green: 0.08, blue: 0.22, alpha: 1),
-            midColor: UIColor(red: 0.14, green: 0.10, blue: 0.28, alpha: 1),
-            bottomColor: UIColor(red: 0.20, green: 0.15, blue: 0.35, alpha: 1)
-        )
-        scene.lightingEnvironment.intensity = 1.8
-        
-        scene.fogStartDistance = 30
-        scene.fogEndDistance = 65
-        scene.fogColor = UIColor(red: 0.07, green: 0.05, blue: 0.16, alpha: 1)
-    }
-    
-    /// Creates a vertical gradient sky image for the scene background.
-    /// Keeps the cyberpunk aesthetic but provides enough ambient brightness
-    /// for reflections, shadows, and visual depth.
-    static func makeGradientSky(
-        topColor: UIColor,
-        midColor: UIColor,
-        bottomColor: UIColor,
-        size: CGSize = CGSize(width: 2, height: 512)
-    ) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { ctx in
-            let colors = [topColor.cgColor, midColor.cgColor, bottomColor.cgColor]
-            let locations: [CGFloat] = [0.0, 0.45, 1.0]
-            guard let gradient = CGGradient(
-                colorsSpace: CGColorSpaceCreateDeviceRGB(),
-                colors: colors as CFArray,
-                locations: locations
-            ) else { return }
-            ctx.cgContext.drawLinearGradient(
-                gradient,
-                start: .zero,
-                end: CGPoint(x: 0, y: size.height),
-                options: [.drawsAfterEndLocation, .drawsBeforeStartLocation]
-            )
-        }
+        scene.background.contents = Palette.void
+        scene.fogStartDistance = 25
+        scene.fogEndDistance = 55
+        scene.fogColor = Palette.void
     }
     
     // MARK: - Camera
@@ -147,46 +105,36 @@ class SceneManager: ObservableObject {
     
     // MARK: - Lighting
     private func setupLighting() {
-        // Key light — warm amber from above-right, boosted for visibility
+        // Key light — warm amber from above-right
         let keyLight = SCNLight()
         keyLight.type = .directional
-        keyLight.color = UIColor(red: 1.0, green: 0.95, blue: 0.88, alpha: 1)
-        keyLight.intensity = 1000
+        keyLight.color = UIColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
+        keyLight.intensity = 600
         keyLight.castsShadow = true
         keyLight.shadowMode = .deferred
-        keyLight.shadowRadius = 5
+        keyLight.shadowRadius = 4
         keyLight.shadowSampleCount = 16
-        keyLight.shadowColor = UIColor.black.withAlphaComponent(0.55)
+        keyLight.shadowColor = UIColor.black.withAlphaComponent(0.8)
         let keyNode = SCNNode()
         keyNode.light = keyLight
         keyNode.eulerAngles = SCNVector3(-Float.pi / 3, Float.pi / 5, 0)
         scene.rootNode.addChildNode(keyNode)
         
-        // Fill light — cool cyan from left, stronger for visible bounce
+        // Fill light — cool cyan from left (kept subtle to avoid washing everything)
         let fillLight = SCNLight()
         fillLight.type = .directional
         fillLight.color = Palette.cyan
-        fillLight.intensity = 250
+        fillLight.intensity = 80
         let fillNode = SCNNode()
         fillNode.light = fillLight
         fillNode.eulerAngles = SCNVector3(-Float.pi / 4, -Float.pi / 3, 0)
         scene.rootNode.addChildNode(fillNode)
         
-        // Back/rim light — violet from behind for cyberpunk edge glow
-        let rimLight = SCNLight()
-        rimLight.type = .directional
-        rimLight.color = Palette.violet
-        rimLight.intensity = 180
-        let rimNode = SCNNode()
-        rimNode.light = rimLight
-        rimNode.eulerAngles = SCNVector3(-Float.pi / 5, Float.pi, 0)
-        scene.rootNode.addChildNode(rimNode)
-        
-        // Ambient — brighter purple tint, lifts everything out of pure darkness
+        // Ambient — dark purple tint, low intensity for deep shadows
         let ambient = SCNLight()
         ambient.type = .ambient
-        ambient.color = UIColor(red: 0.18, green: 0.14, blue: 0.30, alpha: 1)
-        ambient.intensity = 700
+        ambient.color = UIColor(red: 0.10, green: 0.06, blue: 0.18, alpha: 1)
+        ambient.intensity = 350
         let ambientNode = SCNNode()
         ambientNode.light = ambient
         scene.rootNode.addChildNode(ambientNode)
@@ -200,9 +148,9 @@ class SceneManager: ObservableObject {
         // Body — rounded box with metallic finish
         let body = SCNBox(width: 0.9, height: 1.0, length: 0.9, chamferRadius: 0.25)
         let bodyMat = SCNMaterial()
-        bodyMat.diffuse.contents = UIColor(red: 0.12, green: 0.14, blue: 0.22, alpha: 1)
-        bodyMat.metalness.contents = 0.7
-        bodyMat.roughness.contents = 0.25
+        bodyMat.diffuse.contents = UIColor(red: 0.88, green: 0.90, blue: 0.92, alpha: 1)
+        bodyMat.metalness.contents = 0.15
+        bodyMat.roughness.contents = 0.55
         body.materials = [bodyMat]
         let bodyNode = SCNNode(geometry: body)
         bodyNode.name = "body"
@@ -211,9 +159,9 @@ class SceneManager: ObservableObject {
         // Head — slightly bigger rounded box
         let head = SCNBox(width: 0.95, height: 0.7, length: 0.85, chamferRadius: 0.2)
         let headMat = SCNMaterial()
-        headMat.diffuse.contents = UIColor(red: 0.15, green: 0.17, blue: 0.28, alpha: 1)
-        headMat.metalness.contents = 0.6
-        headMat.roughness.contents = 0.2
+        headMat.diffuse.contents = UIColor(red: 0.92, green: 0.93, blue: 0.95, alpha: 1)
+        headMat.metalness.contents = 0.1
+        headMat.roughness.contents = 0.5
         head.materials = [headMat]
         let headNode = SCNNode(geometry: head)
         headNode.position = SCNVector3(0, 1.4, 0)
@@ -221,8 +169,8 @@ class SceneManager: ObservableObject {
         // Visor — glowing face plate
         let visor = SCNBox(width: 0.75, height: 0.35, length: 0.05, chamferRadius: 0.1)
         let visorMat = SCNMaterial()
-        visorMat.diffuse.contents = UIColor(red: 0.0, green: 0.1, blue: 0.15, alpha: 1)
-        visorMat.emission.contents = Palette.cyan.withAlphaComponent(0.4)
+        visorMat.diffuse.contents = UIColor.black
+        visorMat.emission.contents = UIColor.black
         visorMat.transparency = 0.85
         visor.materials = [visorMat]
         let visorNode = SCNNode(geometry: visor)
@@ -231,8 +179,8 @@ class SceneManager: ObservableObject {
         // Glowing eyes inside visor
         let eyeGeo = SCNSphere(radius: 0.08)
         let eyeMat = SCNMaterial()
-        eyeMat.diffuse.contents = Palette.cyan
-        eyeMat.emission.contents = Palette.cyan
+        eyeMat.diffuse.contents = UIColor.black
+        eyeMat.emission.contents = UIColor.black
         eyeGeo.materials = [eyeMat]
         
         let leftEye = SCNNode(geometry: eyeGeo)
@@ -398,27 +346,11 @@ class SceneManager: ObservableObject {
         npcNode.position = position
         npcNodes[id] = npcNode
         scene.rootNode.addChildNode(npcNode)
-        
-        // Register collision so player can't walk through NPCs
-        let halfW: Float
-        let halfL: Float
-        switch type {
-        case .daemon:        halfW = 0.6;  halfL = 0.5
-        case .firewall:      halfW = 0.8;  halfL = 0.65
-        case .routerGuard:   halfW = 0.7;  halfL = 0.55
-        case .librarian:     halfW = 0.55; halfL = 0.45
-        case .networkManager: halfW = 0.7;  halfL = 0.6
-        }
-        let idx = obstacles.count
-        registerObstacle(x: position.x, z: position.z, halfW: halfW, halfL: halfL)
-        npcObstacleIndices[id] = idx
     }
     
     func removeAllNPCs() {
         npcNodes.values.forEach { $0.removeFromParentNode() }
         npcNodes.removeAll()
-        // NPC obstacles are cleared together with all obstacles during scene clear
-        npcObstacleIndices.removeAll()
     }
     
     func npcPosition(for id: UUID) -> SCNVector3? {
@@ -700,6 +632,31 @@ class SceneManager: ObservableObject {
     func resetPlayerPosition(to pos: SCNVector3 = SCNVector3(0, 0, 0)) {
         playerNode.position = pos
         cameraRig.position = SCNVector3(pos.x, 0, pos.z)
+    }
+    
+    // MARK: - Gradient Sky Generator
+    /// Creates a vertical-gradient UIImage suitable for `scene.background.contents`
+    /// and `scene.lightingEnvironment.contents`.
+    static func makeGradientSky(
+        topColor: UIColor,
+        midColor: UIColor,
+        bottomColor: UIColor,
+        size: CGSize = CGSize(width: 1, height: 512)
+    ) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { ctx in
+            let colors = [topColor.cgColor, midColor.cgColor, bottomColor.cgColor] as CFArray
+            let locations: [CGFloat] = [0.0, 0.45, 1.0]
+            guard let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                            colors: colors,
+                                            locations: locations) else { return }
+            ctx.cgContext.drawLinearGradient(
+                gradient,
+                start: CGPoint(x: size.width / 2, y: 0),
+                end: CGPoint(x: size.width / 2, y: size.height),
+                options: [.drawsBeforeStartLocation, .drawsAfterEndLocation]
+            )
+        }
     }
 }
 
