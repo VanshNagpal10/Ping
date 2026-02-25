@@ -35,7 +35,7 @@ struct WorldBuilder {
     private static func makeGroundPlane(
         width: CGFloat = 40,
         length: CGFloat = 30,
-        baseColor: UIColor = P.floorBase, // Will be overridden in CPU City
+        baseColor: UIColor = UIColor(red: 0.03, green: 0.03, blue: 0.05, alpha: 1), // Very dark grey, not pure black
         accentColor: UIColor = P.cyan,
         secondaryGridColor: UIColor = UIColor.white.withAlphaComponent(0.3)
     ) -> SCNNode {
@@ -46,8 +46,8 @@ struct WorldBuilder {
         let plane = SCNPlane(width: visibleSize, height: visibleSize)
         let baseMat = SCNMaterial()
         baseMat.diffuse.contents = baseColor
-        baseMat.roughness.contents = 0.25 // Slightly rougher so color shows better
-        baseMat.metalness.contents = 0.60 // Less metallic, more matte
+        baseMat.roughness.contents = 0.05 // Extremely smooth glass
+        baseMat.metalness.contents = 1.0  // Maximum reflectivity (dark mirror)
         plane.materials = [baseMat]
         let baseNode = SCNNode(geometry: plane)
         baseNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
@@ -56,81 +56,43 @@ struct WorldBuilder {
         baseNode.geometry?.firstMaterial?.writesToDepthBuffer = true
         floor.addChildNode(baseNode)
         
-        let gridExtent: Float = 50 // grid extends well past play area
-        let fadeStart: Float = Float(min(width, length)) / 2  // start fading at play-area edge
+        // Embedded glowing motherboard grid nodes
+        let gridExtent: Float = 50
+        let fadeStart: Float = Float(min(width, length)) / 2
+        let nodeSpacing: Float = 3.0
         
-        // Secondary tighter white grid
-        let secSpacing: Float = 1.0
-        var sx: Float = -gridExtent
-        while sx <= gridExtent {
-            let distFromCenter = abs(sx)
-            let alpha: CGFloat = distFromCenter > fadeStart
-                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 10.0)) * 0.15
-                : 0.15
-            guard alpha > 0.005 else { sx += secSpacing; continue }
-            let lineMat = SCNMaterial()
-            lineMat.diffuse.contents = secondaryGridColor.withAlphaComponent(alpha)
-            lineMat.emission.contents = secondaryGridColor.withAlphaComponent(alpha)
-            let line = SCNBox(width: 0.008, height: 0.001, length: CGFloat(gridExtent * 2), chamferRadius: 0)
-            line.materials = [lineMat]
-            let node = SCNNode(geometry: line)
-            node.position = SCNVector3(sx, 0.001, 0)
-            floor.addChildNode(node)
-            sx += secSpacing
-        }
-        var sz: Float = -gridExtent
-        while sz <= gridExtent {
-            let distFromCenter = abs(sz)
-            let alpha: CGFloat = distFromCenter > fadeStart
-                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 10.0)) * 0.15
-                : 0.15
-            guard alpha > 0.005 else { sz += secSpacing; continue }
-            let lineMat = SCNMaterial()
-            lineMat.diffuse.contents = secondaryGridColor.withAlphaComponent(alpha)
-            lineMat.emission.contents = secondaryGridColor.withAlphaComponent(alpha)
-            let line = SCNBox(width: CGFloat(gridExtent * 2), height: 0.001, length: 0.008, chamferRadius: 0)
-            line.materials = [lineMat]
-            let node = SCNNode(geometry: line)
-            node.position = SCNVector3(0, 0.001, sz)
-            floor.addChildNode(node)
-            sz += secSpacing
-        }
+        // Create the glowing sphere geometry once to save memory
+        let sphereGeo = SCNSphere(radius: 0.03) // tiny node
+        let sphereMat = SCNMaterial()
+        sphereMat.diffuse.contents = accentColor
+        sphereGeo.materials = [sphereMat]
         
-        // Primary Accent Grid lines — concentrated in the play area, fading out beyond it
-        let spacing: Float = 4.0
-        var x: Float = -gridExtent
-        while x <= gridExtent {
-            let distFromCenter = abs(x)
-            let alpha: CGFloat = distFromCenter > fadeStart
-                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.12
-                : 0.12 // slightly brighter
-            guard alpha > 0.005 else { x += spacing; continue }
-            let lineMat = SCNMaterial()
-            lineMat.diffuse.contents = accentColor.withAlphaComponent(alpha)
-            lineMat.emission.contents = accentColor.withAlphaComponent(alpha * 1.8)
-            let line = SCNBox(width: 0.025, height: 0.003, length: CGFloat(gridExtent * 2), chamferRadius: 0)
-            line.materials = [lineMat]
-            let node = SCNNode(geometry: line)
-            node.position = SCNVector3(x, 0.003, 0)
-            floor.addChildNode(node)
-            x += spacing
-        }
-        var z: Float = -gridExtent
-        while z <= gridExtent {
-            let distFromCenter = abs(z)
-            let alpha: CGFloat = distFromCenter > fadeStart
-                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.12
-                : 0.12
-            guard alpha > 0.005 else { z += spacing; continue }
-            let lineMat = SCNMaterial()
-            lineMat.diffuse.contents = accentColor.withAlphaComponent(alpha)
-            lineMat.emission.contents = accentColor.withAlphaComponent(alpha * 1.8)
-            let line = SCNBox(width: CGFloat(gridExtent * 2), height: 0.003, length: 0.025, chamferRadius: 0)
-            line.materials = [lineMat]
-            let node = SCNNode(geometry: line)
-            node.position = SCNVector3(0, 0.003, z)
-            floor.addChildNode(node)
-            z += spacing
+        var xPos: Float = -gridExtent
+        while xPos <= gridExtent {
+            var zPos: Float = -gridExtent
+            while zPos <= gridExtent {
+                // Calculate fade based on distance from center
+                let dist = max(abs(xPos), abs(zPos))
+                let alpha: CGFloat = dist > fadeStart
+                    ? CGFloat(max(0, 1.0 - (dist - fadeStart) / 10.0))
+                    : 1.0
+                
+                if alpha > 0.05 {
+                    let node = SCNNode(geometry: sphereGeo)
+                    node.position = SCNVector3(xPos, -0.005, zPos) // slightly embedded into the floor
+                    
+                    // Clone the material so each node can have a different emission alpha
+                    let instMat = sphereMat.copy() as! SCNMaterial
+                    instMat.emission.contents = accentColor.withAlphaComponent(alpha * 2.0)
+                    node.geometry = sphereGeo.copy() as? SCNGeometry
+                    node.geometry?.materials = [instMat]
+                    
+                    floor.addChildNode(node)
+                }
+                
+                zPos += nodeSpacing
+            }
+            xPos += nodeSpacing
         }
         
         return floor
@@ -429,8 +391,8 @@ struct WorldBuilder {
         manager.scene.fogEndDistance = 60
         manager.scene.fogColor = UIColor(red: 0.07, green: 0.05, blue: 0.16, alpha: 1)
         
-        // ── Ground: lighter grid floor ──
-        let floorColor = UIColor(red: 0.12, green: 0.12, blue: 0.18, alpha: 1) // Lighter grey/blue base
+        // ── Ground: dark glass mirror ──
+        let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1) // Lighter dark-blue glass, making the scene brighter and highly reflective
         let floor = makeGroundPlane(width: 44, length: 34, baseColor: floorColor, accentColor: P.cyan)
         root.addChildNode(floor)
         
@@ -490,16 +452,34 @@ struct WorldBuilder {
         // ── Holographic Data Columns Removed ──
         
         // ── Data Stream Lanes — animated glowing pathways ──
-        // Main horizontal throughway
-        let laneMat = SCNMaterial()
-        laneMat.diffuse.contents = P.cyan.withAlphaComponent(0.06)
-        laneMat.emission.contents = P.cyan.withAlphaComponent(0.3)
+        // Main horizontal throughway (Neon rails with glass center)
+        let railMat = SCNMaterial()
+        railMat.diffuse.contents = P.cyan
+        railMat.emission.contents = P.cyan
         
-        let mainLane = SCNBox(width: 30, height: 0.003, length: 1.2, chamferRadius: 0)
-        mainLane.materials = [laneMat]
-        let mainNode = SCNNode(geometry: mainLane)
-        mainNode.position = SCNVector3(0, 0.008, 0)
-        root.addChildNode(mainNode)
+        let railGeo = SCNBox(width: 30, height: 0.02, length: 0.04, chamferRadius: 0.01)
+        railGeo.materials = [railMat]
+        
+        let topRail = SCNNode(geometry: railGeo)
+        topRail.position = SCNVector3(0, 0.01, -0.6)
+        root.addChildNode(topRail)
+        
+        let bottomRail = SCNNode(geometry: railGeo)
+        bottomRail.position = SCNVector3(0, 0.01, 0.6)
+        root.addChildNode(bottomRail)
+        
+        // Transparent glass panel between rails
+        let glassMat = SCNMaterial()
+        glassMat.diffuse.contents = P.cyan.withAlphaComponent(0.1)
+        glassMat.emission.contents = P.cyan.withAlphaComponent(0.2)
+        glassMat.transparency = 0.3
+        glassMat.metalness.contents = 0.8
+        glassMat.roughness.contents = 0.1
+        let glassGeo = SCNBox(width: 30, height: 0.005, length: 1.16, chamferRadius: 0)
+        glassGeo.materials = [glassMat]
+        let glassNode = SCNNode(geometry: glassGeo)
+        glassNode.position = SCNVector3(0, 0.003, 0)
+        root.addChildNode(glassNode)
         
         // Animated data pulses flowing along the lane
         for i in 0..<16 {
@@ -520,16 +500,31 @@ struct WorldBuilder {
             pNode.runAction(SCNAction.sequence([delay, SCNAction.repeatForever(SCNAction.sequence([slide, reset]))]))
         }
         
-        // Cross-lanes (vertical data paths)
+        // Cross-lanes (vertical data paths) - Also matching neon rail style
         for xPos: Float in [-6, 0, 6] {
-            let crossLane = SCNBox(width: 0.6, height: 0.003, length: 20, chamferRadius: 0)
-            let crossMat = SCNMaterial()
-            crossMat.diffuse.contents = P.violet.withAlphaComponent(0.04)
-            crossMat.emission.contents = P.violet.withAlphaComponent(0.2)
-            crossLane.materials = [crossMat]
-            let cNode = SCNNode(geometry: crossLane)
-            cNode.position = SCNVector3(xPos, 0.008, 0)
-            root.addChildNode(cNode)
+            let vRailGeo = SCNBox(width: 0.04, height: 0.02, length: 20, chamferRadius: 0.01)
+            let vRailMat = SCNMaterial()
+            vRailMat.diffuse.contents = UIColor.white
+            vRailMat.emission.contents = UIColor.white
+            vRailGeo.materials = [vRailMat]
+            
+            let leftRail = SCNNode(geometry: vRailGeo)
+            leftRail.position = SCNVector3(xPos - 0.3, 0.01, 0)
+            root.addChildNode(leftRail)
+            
+            let rightRail = SCNNode(geometry: vRailGeo)
+            rightRail.position = SCNVector3(xPos + 0.3, 0.01, 0)
+            root.addChildNode(rightRail)
+            
+            let vGlassGeo = SCNBox(width: 0.56, height: 0.005, length: 20, chamferRadius: 0)
+            let vGlassMat = SCNMaterial()
+            vGlassMat.diffuse.contents = UIColor.white.withAlphaComponent(0.1)
+            vGlassMat.emission.contents = UIColor.white.withAlphaComponent(0.2)
+            vGlassMat.transparency = 0.3
+            vGlassGeo.materials = [vGlassMat]
+            let vGlassNode = SCNNode(geometry: vGlassGeo)
+            vGlassNode.position = SCNVector3(xPos, 0.003, 0)
+            root.addChildNode(vGlassNode)
         }
         
         // ── Floating Processing Nodes — rotating wireframe cubes ──
@@ -693,7 +688,9 @@ struct WorldBuilder {
         manager.scene.fogEndDistance = 65
         
         // ── Ground: industrial rooftop with lime grid ──
-        let floor = makeGroundPlane(width: 40, length: 32, baseColor: UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1), accentColor: P.lime)
+        // ── Ground: dark glass mirror ──
+        let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1)
+        let floor = makeGroundPlane(width: 40, length: 32, baseColor: floorColor, accentColor: P.lime)
         root.addChildNode(floor)
         
         // Shared dark metal material
@@ -1183,7 +1180,9 @@ struct WorldBuilder {
         manager.scene.fogStartDistance = 35
         manager.scene.fogEndDistance = 70
         
-        let floor = makeGroundPlane(width: 36, length: 24, baseColor: UIColor(red: 0.06, green: 0.05, blue: 0.1, alpha: 1), accentColor: P.amber)
+        // ── Ground: dark glass mirror ──
+        let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1)
+        let floor = makeGroundPlane(width: 36, length: 24, baseColor: floorColor, accentColor: P.amber)
         root.addChildNode(floor)
         
         // Track rails — embedded glowing lines
@@ -1606,7 +1605,9 @@ struct WorldBuilder {
         manager.scene.fogEndDistance = 80
         
         // Polished floor — dark with warm amber grid lines
-        let floor = makeGroundPlane(width: 36, length: 28, baseColor: UIColor(red: 0.06, green: 0.04, blue: 0.10, alpha: 1), accentColor: P.amber)
+        // ── Ground: dark glass mirror ──
+        let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1)
+        let floor = makeGroundPlane(width: 36, length: 28, baseColor: floorColor, accentColor: P.amber)
         root.addChildNode(floor)
         
         // ══════════════════════════════════════════════
@@ -1933,7 +1934,9 @@ struct WorldBuilder {
         manager.scene.fogStartDistance = 25
         manager.scene.fogEndDistance = 55
         
-        let floor = makeGroundPlane(width: 34, length: 20, baseColor: UIColor(red: 0.06, green: 0.03, blue: 0.02, alpha: 1), accentColor: P.coral)
+        // ── Ground: dark glass mirror ──
+        let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1)
+        let floor = makeGroundPlane(width: 34, length: 20, baseColor: floorColor, accentColor: P.coral)
         root.addChildNode(floor)
         
         // Tunnel walls — solid panels with neon trim
@@ -2066,7 +2069,9 @@ struct WorldBuilder {
     private static func buildDefaultFloor(in manager: SceneManager) {
         manager.worldBounds = CGSize(width: 30, height: 20)
         let root = manager.scene.rootNode
-        let floor = makeGroundPlane(width: 34, length: 24, baseColor: UIColor(red: 0.06, green: 0.06, blue: 0.1, alpha: 1), accentColor: P.cyan)
+        // ── Ground: dark glass mirror ──
+        let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1)
+        let floor = makeGroundPlane(width: 34, length: 24, baseColor: floorColor, accentColor: P.cyan)
         root.addChildNode(floor)
         manager.resetPlayerPosition()
     }
