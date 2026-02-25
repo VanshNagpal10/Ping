@@ -36,7 +36,9 @@ class GameEngine: ObservableObject {
     
     // UI State
     @Published var showLayerInventory: Bool = false
+    @Published var showPauseMenu: Bool = false
     @Published var currentMission: String = ""
+    @Published var portalLocked: Bool = false
     @Published var screenSize: CGSize = .zero
     
     // 3D Scene Manager
@@ -334,6 +336,9 @@ class GameEngine: ObservableObject {
             if npc.isInteractable {
                 startDialogue(with: npc)
                 npcs[npcIndex].hasSpoken = true
+                
+                // Hide the floating quest marker now that we've talked to them
+                sceneManager.hideQuestMarker(for: nearestNPCID)
             }
         }
     }
@@ -713,6 +718,7 @@ class GameEngine: ObservableObject {
     // MARK: - 3D Joystick Movement
     
     func updatePlayerDirection3D(_ direction: CGVector) {
+        guard !showPauseMenu else { return }
         joystickDirection = direction
         let isActive = abs(direction.dx) > 0.01 || abs(direction.dy) > 0.01
         
@@ -733,6 +739,7 @@ class GameEngine: ObservableObject {
     }
     
     private func gameLoop3DTick() {
+        guard !showPauseMenu else { return }
         let dir = joystickDirection
         guard abs(dir.dx) > 0.01 || abs(dir.dy) > 0.01 else { return }
         
@@ -756,20 +763,31 @@ class GameEngine: ObservableObject {
             nearbyNPCName = nil
         }
         
-        // Check portal proximity
+        // Check portal proximity AND ensure user has talked to the NPC (if there is one)
+        let hasTalkedToLocalNPC = npcs.isEmpty || npcs.contains(where: { $0.hasSpoken })
+        
         if let nearestPortalID = sceneManager.nearestPortalInRange(range: 2.5),
            let portalIndex = portalIDMap[nearestPortalID],
            portalIndex < interactiveObjects.count {
             let obj = interactiveObjects[portalIndex]
             if let sceneString = obj.data, let scene = StoryScene(rawValue: sceneString) {
-                nearPortal = true
-                pendingPortalScene = scene
+                if hasTalkedToLocalNPC {
+                    nearPortal = true
+                    portalLocked = false
+                    pendingPortalScene = scene
+                } else {
+                    nearPortal = false
+                    portalLocked = true
+                    pendingPortalScene = nil
+                }
             } else {
                 nearPortal = false
+                portalLocked = false
                 pendingPortalScene = nil
             }
         } else {
             nearPortal = false
+            portalLocked = false
             pendingPortalScene = nil
         }
     }

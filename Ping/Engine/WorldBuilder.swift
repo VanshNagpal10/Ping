@@ -427,9 +427,9 @@ struct WorldBuilder {
             (-14, 7, 1.8, 4, 1.4),   (-14, 10, 1.8, 6, 1.4),
         ]
         // Right corridor wall — gap near center for portal access
+        // Notice we removed the front-facing buildings (z > 0) so the camera doesn't get blocked
         let rightWall: [(x: Float, z: Float, w: CGFloat, h: CGFloat, l: CGFloat)] = [
-            (14, -8, 1.8, 7, 1.4),   (14, -4, 1.8, 5, 1.4),
-            (14, 4, 1.8, 6, 1.4),    (14, 8, 1.8, 5, 1.4),
+            (14, -8, 1.8, 7, 1.4),   (14, -4, 1.8, 5, 1.4)
         ]
         // Inner structures — processing nodes deeper in the scene (cleared near right for portal)
         let innerStructures: [(x: Float, z: Float, w: CGFloat, h: CGFloat, l: CGFloat)] = [

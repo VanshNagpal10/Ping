@@ -462,7 +462,54 @@ class SceneManager: ObservableObject {
         bodyNode.runAction(SCNAction.repeatForever(hover))
         headNode.runAction(SCNAction.repeatForever(hover))
         
+        // Quest Marker (Bouncing Yellow Indicator)
+        let markerGeo = pyramidGeometry() // Custom pyramid/diamond shape
+        let markerMat = SCNMaterial()
+        markerMat.diffuse.contents = Palette.amber
+        markerMat.emission.contents = Palette.amber
+        markerGeo.materials = [markerMat]
+        
+        let markerNode = SCNNode(geometry: markerGeo)
+        markerNode.name = "QuestMarker"
+        // Start high above the head
+        markerNode.position = SCNVector3(0, Float(headSize) * 2.5, 0)
+        
+        let bounce = SCNAction.sequence([
+            SCNAction.moveBy(x: 0, y: 0.3, z: 0, duration: 0.6),
+            SCNAction.moveBy(x: 0, y: -0.3, z: 0, duration: 0.6)
+        ])
+        bounce.timingMode = .easeInEaseOut
+        markerNode.runAction(SCNAction.repeatForever(bounce))
+        
+        // Add a slow spin to the marker
+        let spinMarker = SCNAction.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 2.0)
+        markerNode.runAction(SCNAction.repeatForever(spinMarker))
+        
+        node.addChildNode(markerNode)
+        
         return node
+    }
+    
+    // Helper to draw a simple diamond shape for the quest marker
+    private func pyramidGeometry() -> SCNGeometry {
+        let size: Float = 0.2
+        let vertices: [SCNVector3] = [
+            SCNVector3(0, size, 0),    // Top
+            SCNVector3(-size, 0, size),  // Front Left
+            SCNVector3(size, 0, size),   // Front Right
+            SCNVector3(size, 0, -size),  // Back Right
+            SCNVector3(-size, 0, -size), // Back Left
+            SCNVector3(0, -size, 0)    // Bottom
+        ]
+        
+        let source = SCNGeometrySource(vertices: vertices)
+        let indices: [Int32] = [
+            0, 1, 2,  0, 2, 3,  0, 3, 4,  0, 4, 1, // Top half
+            5, 2, 1,  5, 3, 2,  5, 4, 3,  5, 1, 4  // Bottom half
+        ]
+        
+        let element = SCNGeometryElement(indices: indices, primitiveType: .triangles)
+        return SCNGeometry(sources: [source], elements: [element])
     }
     
     // MARK: - Portal Management
@@ -527,6 +574,26 @@ class SceneManager: ObservableObject {
         lightNode.position = SCNVector3(0, 1.5, 0)
         portal.addChildNode(lightNode)
         
+        // Portal Text Label "ENTER"
+        let textGeo = SCNText(string: "ENTER", extrusionDepth: 0.5)
+        textGeo.font = UIFont.systemFont(ofSize: 5, weight: .bold)
+        textGeo.firstMaterial?.diffuse.contents = UIColor.white
+        textGeo.firstMaterial?.emission.contents = color
+        
+        let textNode = SCNNode(geometry: textGeo)
+        // Scale it way down
+        textNode.scale = SCNVector3(0.1, 0.1, 0.1)
+        
+        // Center the text
+        let (minVec, maxVec) = textNode.boundingBox
+        textNode.pivot = SCNMatrix4MakeTranslation(
+            (maxVec.x - minVec.x) / 2 + minVec.x,
+            (maxVec.y - minVec.y) / 2 + minVec.y,
+            0
+        )
+        textNode.position = SCNVector3(0, 3.5, 0) // float above the portal
+        portal.addChildNode(textNode)
+        
         // Spin animation
         let spin = SCNAction.rotateBy(x: 0, y: CGFloat.pi * 2, z: 0, duration: 3)
         innerNode.runAction(SCNAction.repeatForever(spin))
@@ -586,6 +653,21 @@ class SceneManager: ObservableObject {
             }
         }
         return closest?.0
+    }
+    
+    // MARK: - Quest Marker Management
+    func hideQuestMarker(for id: UUID) {
+        if let npcNode = npcNodes[id],
+           let marker = npcNode.childNode(withName: "QuestMarker", recursively: false) {
+            
+            // Fade out and remove
+            let fadeOut = SCNAction.sequence([
+                SCNAction.moveBy(x: 0, y: 0.5, z: 0, duration: 0.4),
+                SCNAction.fadeOut(duration: 0.4),
+                SCNAction.removeFromParentNode()
+            ])
+            marker.runAction(fadeOut)
+        }
     }
     
     // MARK: - Clear Scene Content (keep player, camera, lights)

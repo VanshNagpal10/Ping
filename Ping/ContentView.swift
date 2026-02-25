@@ -48,6 +48,13 @@ struct ContentView: View {
                     .zIndex(100) // Ensures it sits above everything else
                 }
                 
+                // Pause Menu Overlay
+                if engine.showPauseMenu {
+                    PauseMenuView(engine: engine)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        .zIndex(300) // Above encyclopedia and notifications
+                }
+                
                 // New term popup notification
                 if engine.showNewTermPopup, let term = engine.latestTerm {
                     NewTermPopup(term: term)

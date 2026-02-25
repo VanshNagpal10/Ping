@@ -350,6 +350,7 @@ struct ExplorationHUD: View {
     let termsCount: Int
     let onEncyclopedia: () -> Void
     let onInventory: () -> Void
+    let onPause: () -> Void
     @ObservedObject private var soundManager = SoundManager.shared
     
     var body: some View {
@@ -453,6 +454,29 @@ struct ExplorationHUD: View {
                                 .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.7))
                                 .background(.ultraThinMaterial)
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.orange.opacity(0.5), lineWidth: 1))
+                        )
+                    }
+                    
+                    // Pause Button
+                    Button(action: {
+                        SoundManager.shared.playButtonSound()
+                        onPause()
+                    }) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "pause.fill")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                            
+                            Text("Pause")
+                                .font(.system(size: 9, design: .rounded))
+                                .foregroundColor(.gray)
+                        }
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.7))
+                                .background(.ultraThinMaterial)
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.5), lineWidth: 1))
                         )
                     }
                 }
@@ -839,7 +863,8 @@ struct LayerInventoryPanel: View {
             mission: "Find the Daemon and receive your mission.",
             termsCount: 3,
             onEncyclopedia: {},
-            onInventory: {}
+            onInventory: {},
+            onPause: {}
         )
     }
 }

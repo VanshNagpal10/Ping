@@ -10,6 +10,7 @@ struct ExplorationView3D: View {
     @ObservedObject var engine: GameEngine
     @State private var showControls = true
     @State private var flashWhite: Bool = false
+    @State private var tutorialText = "Use the joystick to explore"
     
     var body: some View {
         GeometryReader { geo in
@@ -42,7 +43,10 @@ struct ExplorationView3D: View {
                         mission: engine.currentMission,
                         termsCount: engine.learnedTerms.count,
                         onEncyclopedia: { engine.showEncyclopedia = true },
-                        onInventory: { engine.showLayerInventory.toggle() }
+                        onInventory: { engine.showLayerInventory.toggle() },
+                        onPause: { 
+                            withAnimation { engine.showPauseMenu = true } 
+                        }
                     )
                     
                     Spacer()
@@ -59,21 +63,35 @@ struct ExplorationView3D: View {
                             
                             Spacer()
                             
-                            // Center: Joystick Hint (Fades out)
+                            // Center: Tutorial Tooltip
                             if showControls {
                                 HStack {
-                                    Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
-                                    Text("Use the joystick to explore")
+                                    Image(systemName: "info.circle.fill")
+                                        .foregroundColor(.cyan)
+                                    Text(tutorialText)
                                 }
-                                .font(.system(size: 12, design: .rounded))
-                                .foregroundColor(.white.opacity(0.6))
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .foregroundColor(.white)
                                 .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Capsule().fill(Color.black.opacity(0.5)))
+                                .padding(.vertical, 10)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.black.opacity(0.7))
+                                        .overlay(Capsule().stroke(Color.cyan.opacity(0.5), lineWidth: 1))
+                                )
                                 .padding(.bottom, 30)
-                                .transition(.opacity)
+                                .transition(.opacity.combined(with: .scale))
                                 .onAppear {
+                                    // Change text after 4 seconds
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                                        withAnimation { tutorialText = "Walk up to characters to talk" }
+                                    }
+                                    // Change text again after 8 seconds
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
+                                        withAnimation { tutorialText = "Step into Portals to travel" }
+                                    }
+                                    // Fade out entirely after 12 seconds
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 12) {
                                         withAnimation { showControls = false }
                                     }
                                 }
@@ -121,6 +139,12 @@ struct ExplorationView3D: View {
                                         }
                                     }
                                     .transition(.scale.combined(with: .opacity))
+                                }
+                                
+                                // Portal locked prompt
+                                if engine.portalLocked {
+                                    LockedPortalPrompt()
+                                        .transition(.scale.combined(with: .opacity))
                                 }
                             }
                             .padding(.trailing, 60)
@@ -235,6 +259,29 @@ struct PortalPrompt: View {
                 glow = true
             }
         }
+    }
+}
+
+// MARK: - Locked Portal Prompt
+struct LockedPortalPrompt: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "lock.fill")
+                .foregroundColor(.red)
+            Text("TALK TO NPC FIRST")
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.black.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.red.opacity(0.6), lineWidth: 1.5)
+                )
+        )
     }
 }
 
