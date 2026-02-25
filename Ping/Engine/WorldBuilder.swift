@@ -487,54 +487,7 @@ struct WorldBuilder {
             registerBox(manager, x: b.x, z: b.z, w: b.w, l: b.l)
         }
         
-        // ── Holographic Data Columns — translucent pillars of light ──
-        let columnPositions: [(x: Float, z: Float, h: Float, color: UIColor)] = [
-            (-10, -3, 8, P.cyan),    (-10, 3, 6, P.violet),
-            (10, -2, 7, P.cyan),     (10, 4, 5, P.magenta),
-            (0, -9, 9, P.cyan),      (0, 9, 7, P.violet),
-            (-5, 0, 4, P.magenta),   (5, 0, 6, P.cyan),
-        ]
-        for col in columnPositions {
-            let cylinder = SCNCylinder(radius: 0.15, height: CGFloat(col.h))
-            let colMat = SCNMaterial()
-            colMat.diffuse.contents = col.color.withAlphaComponent(0.08)
-            colMat.emission.contents = col.color.withAlphaComponent(0.35)
-            colMat.transparency = 0.5
-            colMat.isDoubleSided = true
-            cylinder.materials = [colMat]
-            let colNode = SCNNode(geometry: cylinder)
-            colNode.position = SCNVector3(col.x, col.h / 2, col.z)
-            root.addChildNode(colNode)
-            
-            // Glow ring at the base
-            let baseRing = SCNTorus(ringRadius: 0.4, pipeRadius: 0.03)
-            let ringMat = SCNMaterial()
-            ringMat.diffuse.contents = col.color.withAlphaComponent(0.3)
-            ringMat.emission.contents = col.color
-            baseRing.materials = [ringMat]
-            let ringNode = SCNNode(geometry: baseRing)
-            ringNode.position = SCNVector3(col.x, 0.03, col.z)
-            root.addChildNode(ringNode)
-            
-            // Omni light at column base for pool of light on floor
-            let colLight = SCNLight()
-            colLight.type = .omni
-            colLight.color = col.color
-            colLight.intensity = 60
-            colLight.attenuationStartDistance = 0
-            colLight.attenuationEndDistance = 5
-            let lNode = SCNNode()
-            lNode.light = colLight
-            lNode.position = SCNVector3(col.x, 0.5, col.z)
-            root.addChildNode(lNode)
-            
-            // Column pulse animation
-            let colPulse = SCNAction.sequence([
-                SCNAction.fadeOpacity(to: 0.4, duration: Double.random(in: 1.5...3)),
-                SCNAction.fadeOpacity(to: 0.9, duration: Double.random(in: 1.5...3))
-            ])
-            colNode.runAction(SCNAction.repeatForever(colPulse))
-        }
+        // ── Holographic Data Columns Removed ──
         
         // ── Data Stream Lanes — animated glowing pathways ──
         // Main horizontal throughway
@@ -623,17 +576,7 @@ struct WorldBuilder {
             cubeNode.runAction(SCNAction.repeatForever(hover))
         }
         
-        // ── Overhead Cable Conduits ──
-        let pipePositions: [(SCNVector3, SCNVector3, UIColor)] = [
-            (SCNVector3(-14, 5, -7), SCNVector3(-7, 5, -7), P.cyan),
-            (SCNVector3(9, 6, -7), SCNVector3(14, 6, -7), P.cyan),
-            (SCNVector3(-14, 4, 6), SCNVector3(-3, 4, 6), P.violet),
-            (SCNVector3(6, 4.5, 6), SCNVector3(14, 4.5, 6), P.violet),
-            (SCNVector3(-6, 7, -4), SCNVector3(6, 7, -4), P.magenta),
-        ]
-        for (start, end, color) in pipePositions {
-            root.addChildNode(makePipe(from: start, to: end, radius: 0.05, color: color))
-        }
+        // ── Overhead Cable Conduits Removed ──
         
         // ── Vertical Data Conduits on walls ──
         for x: Float in [-15, -13, 13, 15] {
