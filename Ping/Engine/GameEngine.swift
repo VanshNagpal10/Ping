@@ -36,7 +36,15 @@ class GameEngine: ObservableObject {
     
     // UI State
     @Published var showLayerInventory: Bool = false
-    @Published var showPauseMenu: Bool = false
+    @Published var showPauseMenu: Bool = false {
+        didSet {
+            if showPauseMenu {
+                SoundManager.shared.stopTypewriterSound()
+            } else if isTyping {
+                SoundManager.shared.startTypewriterSound()
+            }
+        }
+    }
     @Published var currentMission: String = ""
     @Published var portalLocked: Bool = false
     @Published var screenSize: CGSize = .zero

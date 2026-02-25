@@ -15,6 +15,7 @@ struct PrologueView: View {
     @State private var showButton = false
     @State private var buttonPulse = false
     @State private var cursorVisible = true
+    @State private var isSkipped = false
 
     private let accent = Color(red: 0.0, green: 0.9, blue: 1.0)
 
@@ -114,6 +115,7 @@ struct PrologueView: View {
                         HStack {
                             Spacer()
                             Button {
+                                isSkipped = true
                                 SoundManager.shared.stopTypewriterSound()
                                 SoundManager.shared.playButtonSound()
                                 onStartGame()
@@ -160,6 +162,7 @@ struct PrologueView: View {
         // Schedule each line
         for (index, line) in lines.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + line.delay) {
+                if isSkipped { return }
                 SoundManager.shared.startTypewriterSound()
                 withAnimation(.easeIn(duration: 0.3)) {
                     phase = index + 1
@@ -167,6 +170,7 @@ struct PrologueView: View {
                 // Stop typing sound after the line would finish typing
                 let typeDuration = Double(line.text.count) * 0.04 + 0.2
                 DispatchQueue.main.asyncAfter(deadline: .now() + typeDuration) {
+                    if isSkipped { return }
                     SoundManager.shared.stopTypewriterSound()
                 }
             }
@@ -176,6 +180,7 @@ struct PrologueView: View {
         let lastDelay = lines.last?.delay ?? 20.0
         let lastTypeDuration = Double(lines.last?.text.count ?? 20) * 0.04
         DispatchQueue.main.asyncAfter(deadline: .now() + lastDelay + lastTypeDuration + 1.5) {
+            if isSkipped { return }
             SoundManager.shared.playPortalSound()
             withAnimation(.easeOut(duration: 0.6)) {
                 showButton = true

@@ -687,7 +687,7 @@ struct WorldBuilder {
         manager.scene.fogStartDistance = 30
         manager.scene.fogEndDistance = 65
         
-        // ── Ground: industrial rooftop with lime grid ──
+        //  Ground: industrial rooftop with lime grid ──
         // ── Ground: dark glass mirror ──
         let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1)
         let floor = makeGroundPlane(width: 40, length: 32, baseColor: floorColor, accentColor: P.lime)
