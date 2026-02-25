@@ -342,10 +342,12 @@ class SceneManager: ObservableObject {
     
     // MARK: - NPC Management
     func addNPC(id: UUID, type: NPCType, at position: SCNVector3) {
-        let npcNode = createNPCNode(type: type)
+        let (npcNode, width, length) = createNPCNode(type: type)
         npcNode.position = position
         npcNodes[id] = npcNode
         scene.rootNode.addChildNode(npcNode)
+    
+        registerObstacle(x: position.x, z: position.z, halfW: Float(width / 2.0), halfL: Float(length / 2.0))
     }
     
     func removeAllNPCs() {
@@ -357,7 +359,7 @@ class SceneManager: ObservableObject {
         npcNodes[id]?.position
     }
     
-    private func createNPCNode(type: NPCType) -> SCNNode {
+    private func createNPCNode(type: NPCType) -> (node: SCNNode, width: CGFloat, length: CGFloat) {
         let node = SCNNode()
         
         let accentColor: UIColor
@@ -487,7 +489,7 @@ class SceneManager: ObservableObject {
         
         node.addChildNode(markerNode)
         
-        return node
+        return (node, bodyWidth, bodyWidth * 0.8)
     }
     
     // Helper to draw a simple diamond shape for the quest marker
