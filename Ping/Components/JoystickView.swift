@@ -51,6 +51,9 @@ struct JoystickView: View {
                 .shadow(color: .cyan, radius: hasHitEdge ? 10 : 3) // Glows brighter when pushed
                 .offset(dragOffset)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Movement joystick")
+        .accessibilityHint("Drag to move your packet character")
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in

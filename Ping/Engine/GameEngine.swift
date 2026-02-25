@@ -9,6 +9,7 @@ import SwiftUI
 import SceneKit
 import Combine
 
+@MainActor
 class GameEngine: ObservableObject {
     // MARK: - Published State
     @Published var phase: GamePhase = .prologue

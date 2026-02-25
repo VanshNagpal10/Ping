@@ -9,12 +9,15 @@ struct PauseMenuView: View {
             Color.black.opacity(0.6)
                 .background(.ultraThinMaterial)
                 .ignoresSafeArea()
+                .accessibilityHidden(true)
             
             VStack(spacing: 24) {
                 Text("PAUSED")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .tracking(2)
+                    .accessibilityLabel("Game paused")
+                    .accessibilityAddTraits(.isHeader)
                 
                 VStack(spacing: 16) {
                     Button(action: {
@@ -27,7 +30,7 @@ struct PauseMenuView: View {
                             Image(systemName: "play.fill")
                             Text("Resume Journey")
                         }
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(.black)
                         .frame(width: 200)
                         .padding(.vertical, 14)
@@ -36,6 +39,8 @@ struct PauseMenuView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Resume Journey")
+                    .accessibilityHint("Continues the game from where you left off")
                     
                     Button(action: {
                         SoundManager.shared.playButtonSound()
@@ -48,7 +53,7 @@ struct PauseMenuView: View {
                             Image(systemName: "arrow.counterclockwise")
                             Text("Restart Game")
                         }
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .frame(width: 200)
                         .padding(.vertical, 14)
@@ -60,6 +65,8 @@ struct PauseMenuView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Restart Game")
+                    .accessibilityHint("Starts a new game from the beginning")
                 }
             }
             .padding(40)

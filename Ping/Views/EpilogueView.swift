@@ -47,10 +47,12 @@ struct EpilogueView: View {
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
+                .accessibilityHidden(true)
 
                 // Subtle grid
                 EpilogueCyberGrid(scroll: gridScroll, color: accent)
                     .opacity(showContent ? 0.12 : 0)
+                    .accessibilityHidden(true)
 
                 // Soft glow orbs
                 Circle()
@@ -59,6 +61,7 @@ struct EpilogueView: View {
                     .blur(radius: 120)
                     .offset(x: -geo.size.width * 0.3, y: -geo.size.height * 0.15)
                     .opacity(showContent ? 1 : 0)
+                    .accessibilityHidden(true)
 
                 Circle()
                     .fill(mint.opacity(0.06))
@@ -66,6 +69,7 @@ struct EpilogueView: View {
                     .blur(radius: 100)
                     .offset(x: geo.size.width * 0.25, y: geo.size.height * 0.2)
                     .opacity(showContent ? 1 : 0)
+                    .accessibilityHidden(true)
 
                 // Main scrollable content
                 ScrollView(.vertical, showsIndicators: false) {
@@ -101,6 +105,7 @@ struct EpilogueView: View {
                     .opacity(0.03)
                     .allowsHitTesting(false)
                     .ignoresSafeArea()
+                    .accessibilityHidden(true)
             }
         }
         .onAppear { startEpilogue() }
@@ -129,14 +134,16 @@ struct EpilogueView: View {
                 }
                 .transition(.scale(scale: 0.5).combined(with: .opacity))
                 .padding(.bottom, 8)
+                .accessibilityHidden(true)
 
                 VStack(spacing: 12) {
                     Text("Mission Complete")
-                        .font(.system(size: 46, weight: .heavy, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 46, weight: .heavy, design: .rounded))
                         .foregroundColor(.white)
                         .shadow(color: accent.opacity(0.3), radius: 10, y: 4)
+                        .accessibilityAddTraits(.isHeader)
                     Text("Payload delivered in 114ms")
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(.white.opacity(0.7))
                         .tracking(0.5)
                 }
@@ -145,7 +152,7 @@ struct EpilogueView: View {
 
             if showSubtitle {
                 Text("To the user, it was instant.\nTo you, it was an epic journey.")
-                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 18, weight: .medium, design: .rounded))
                     .foregroundColor(accent.opacity(0.9))
                     .multilineTextAlignment(.center)
                     .lineSpacing(6)
@@ -166,7 +173,7 @@ struct EpilogueView: View {
                     withAnimation(.easeInOut(duration: 0.25)) { selectedTab = tab }
                 } label: {
                     Text(tab.rawValue)
-                        .font(.system(size: 13, weight: selectedTab == tab ? .semibold : .medium, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 13, weight: selectedTab == tab ? .semibold : .medium, design: .rounded))
                         .foregroundColor(selectedTab == tab ? .white : .white.opacity(0.45))
                         .padding(.horizontal, 18)
                         .padding(.vertical, 10)
@@ -174,6 +181,8 @@ struct EpilogueView: View {
                         .overlay(Capsule().stroke(selectedTab == tab ? accent.opacity(0.4) : Color.white.opacity(0.08), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(tab.rawValue)
+                .accessibilityAddTraits(selectedTab == tab ? [.isButton, .isSelected] : .isButton)
             }
         }
         .padding(.horizontal, 28)
@@ -201,7 +210,7 @@ struct EpilogueView: View {
     private var routeCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Route Taken", systemImage: "point.topleft.down.to.point.bottomright.curvepath.fill")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 13, weight: .semibold, design: .rounded))
                 .foregroundColor(.white.opacity(0.6))
 
             let uniqueScenes = stats.scenesVisited.reduce(into: [StoryScene]()) { result, scene in
@@ -222,11 +231,13 @@ struct EpilogueView: View {
                                         .foregroundColor(scene.accentColor)
                                 }
                                 Text(scene.displayName)
-                                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                                    .font(ScaledFont.scaledFont(size: 9, weight: .medium, design: .rounded))
                                     .foregroundColor(.white.opacity(0.5))
                                     .lineLimit(1)
                                     .frame(width: 60)
                             }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("Stop \(i + 1): \(scene.displayName)")
                             if i < uniqueScenes.count - 1 {
                                 Rectangle()
                                     .fill(
@@ -237,6 +248,7 @@ struct EpilogueView: View {
                                     )
                                     .frame(width: 28, height: 2)
                                     .padding(.bottom, 20)
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
@@ -252,7 +264,7 @@ struct EpilogueView: View {
     private var decisionsCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Your Decisions", systemImage: "arrow.triangle.branch")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 13, weight: .semibold, design: .rounded))
                 .foregroundColor(.white.opacity(0.6))
 
             HStack(spacing: 12) {
@@ -284,10 +296,10 @@ struct EpilogueView: View {
                 .font(.system(size: 18))
                 .foregroundColor(color)
             Text(value)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 14, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
             Text(label)
-                .font(.system(size: 10, weight: .medium, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 10, weight: .medium, design: .rounded))
                 .foregroundColor(.white.opacity(0.4))
         }
         .frame(maxWidth: .infinity)
@@ -297,6 +309,8 @@ struct EpilogueView: View {
                 .fill(color.opacity(0.06))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.15), lineWidth: 1))
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(value)")
     }
 
     // MARK: - Concepts Tab
@@ -304,11 +318,11 @@ struct EpilogueView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("\(stats.termsLearned.count) Concepts Learned")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 15, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
                 Spacer()
                 Text("\(stats.termsLearned.count)/\(EncyclopediaTerm.allTerms.count) total")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 12, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.4))
             }
 
@@ -321,6 +335,7 @@ struct EpilogueView: View {
                 }
             }
             .frame(height: 6)
+            .accessibilityLabel("\(stats.termsLearned.count) of \(EncyclopediaTerm.allTerms.count) concepts discovered")
 
             let grouped = Dictionary(grouping: stats.termsLearned) { $0.category }
             let sortedCategories = EncyclopediaTerm.TermCategory.allCases.filter { grouped[$0] != nil }
@@ -328,10 +343,11 @@ struct EpilogueView: View {
             ForEach(sortedCategories, id: \.self) { category in
                 VStack(alignment: .leading, spacing: 10) {
                     Text(category.rawValue.uppercased())
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 11, weight: .bold, design: .rounded))
                         .foregroundColor(categoryColor(category).opacity(0.7))
                         .tracking(2)
                         .padding(.top, 8)
+                        .accessibilityAddTraits(.isHeader)
 
                     ForEach(grouped[category] ?? [], id: \.id) { term in
                         ConceptCard(term: term, color: categoryColor(category))
@@ -345,10 +361,11 @@ struct EpilogueView: View {
             if !undiscovered.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("UNDISCOVERED")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 11, weight: .bold, design: .rounded))
                         .foregroundColor(.white.opacity(0.3))
                         .tracking(2)
                         .padding(.top, 8)
+                        .accessibilityAddTraits(.isHeader)
 
                     ForEach(undiscovered, id: \.id) { term in
                         HStack(spacing: 12) {
@@ -359,10 +376,10 @@ struct EpilogueView: View {
                                 .background(Circle().fill(Color.white.opacity(0.05)))
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(term.term)
-                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .font(ScaledFont.scaledFont(size: 14, weight: .medium, design: .rounded))
                                     .foregroundColor(.white.opacity(0.3))
                                 Text("Play again to discover")
-                                    .font(.system(size: 11, design: .rounded))
+                                    .font(ScaledFont.scaledFont(size: 11, design: .rounded))
                                     .foregroundColor(.white.opacity(0.2))
                             }
                             Spacer()
@@ -373,6 +390,8 @@ struct EpilogueView: View {
                                 .fill(Color.white.opacity(0.02))
                                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.04), lineWidth: 1))
                         )
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(term.term). Undiscovered. Play again to discover.")
                     }
                 }
             }
@@ -397,21 +416,23 @@ struct EpilogueView: View {
                         .frame(width: 64, height: 64)
                         .rotationEffect(.degrees(-90))
                     Text("\(Int(stats.quizAccuracy * 100))%")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 18, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(Int(stats.quizAccuracy * 100)) percent accuracy")
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Quiz Accuracy")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 15, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
                     let correct = stats.quizResults.filter(\.wasCorrect).count
                     let total = stats.quizResults.count
                     Text("\(correct) of \(total) questions correct")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 13, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.5))
                     Text(quizGrade)
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 12, weight: .semibold, design: .rounded))
                         .foregroundColor(stats.quizAccuracy >= 0.8 ? success : stats.quizAccuracy >= 0.5 ? warmGold : coral)
                 }
                 Spacer()
@@ -425,11 +446,13 @@ struct EpilogueView: View {
                         .font(.system(size: 36))
                         .foregroundColor(.white.opacity(0.2))
                     Text("No quizzes completed")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 14, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.4))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("No quizzes completed")
             } else {
                 let grouped = Dictionary(grouping: stats.quizResults) { $0.scene }
                 let orderedScenes = stats.scenesVisited.reduce(into: [StoryScene]()) { result, scene in
@@ -443,15 +466,18 @@ struct EpilogueView: View {
                                 .font(.system(size: 12))
                                 .foregroundColor(scene.accentColor)
                             Text(scene.displayName)
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .rounded))
                                 .foregroundColor(scene.accentColor)
                             Spacer()
                             let sceneResults = grouped[scene] ?? []
                             let sceneCorrect = sceneResults.filter(\.wasCorrect).count
                             Text("\(sceneCorrect)/\(sceneResults.count)")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 12, weight: .medium, design: .rounded))
                                 .foregroundColor(.white.opacity(0.4))
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(scene.displayName): \((grouped[scene] ?? []).filter(\.wasCorrect).count) of \((grouped[scene] ?? []).count) correct")
+                        .accessibilityAddTraits(.isHeader)
 
                         ForEach(Array((grouped[scene] ?? []).enumerated()), id: \.offset) { idx, result in
                             QuizResultCard(result: result, index: idx + 1, success: success, coral: coral)
@@ -470,9 +496,9 @@ struct EpilogueView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(ScaledFont.scaledFont(size: 15, weight: .semibold))
                 Text("Replay Journey")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 16, weight: .semibold, design: .rounded))
             }
             .foregroundColor(.black)
             .padding(.horizontal, 40)
@@ -485,6 +511,8 @@ struct EpilogueView: View {
             .shadow(color: accent.opacity(0.35), radius: 20, y: 6)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Replay journey")
+        .accessibilityHint("Restarts the game from the beginning")
     }
 
     // MARK: - Shared Card Background
@@ -567,13 +595,13 @@ struct EpilogueStatCard: View {
             }
             HStack {
                 Text(value)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 26, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                 Spacer()
             }
             HStack {
                 Text(label)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 11, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.4))
                 Spacer()
             }
@@ -584,6 +612,8 @@ struct EpilogueStatCard: View {
                 .fill(color.opacity(0.05))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.12), lineWidth: 1))
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(value)")
     }
 }
 
@@ -605,12 +635,13 @@ struct ConceptCard: View {
                         .frame(width: 36, height: 36)
                         .background(Circle().fill(color.opacity(0.1)))
                     Text(term.term)
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 15, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
                     Spacer()
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.white.opacity(0.3))
+                        .accessibilityHidden(true)
                 }
                 .padding(14)
                 .contentShape(Rectangle())
@@ -619,7 +650,7 @@ struct ConceptCard: View {
 
             if expanded {
                 Text(term.definition)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 13, weight: .regular, design: .rounded))
                     .foregroundColor(.white.opacity(0.7))
                     .lineSpacing(4)
                     .padding(.horizontal, 14)
@@ -633,6 +664,10 @@ struct ConceptCard: View {
                 .fill(color.opacity(0.04))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(color.opacity(0.1), lineWidth: 1))
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(term.term)\(expanded ? ". \(term.definition)" : "")")
+        .accessibilityHint(expanded ? "Double tap to collapse" : "Double tap to see definition")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -661,10 +696,10 @@ struct QuizResultCard: View {
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Q\(index)")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 10, weight: .bold, design: .rounded))
                             .foregroundColor(.white.opacity(0.3))
                         Text(result.questionText)
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 13, weight: .medium, design: .rounded))
                             .foregroundColor(.white.opacity(0.85))
                             .lineLimit(showDetails ? nil : 2)
                             .multilineTextAlignment(.leading)
@@ -675,6 +710,7 @@ struct QuizResultCard: View {
                     Image(systemName: showDetails ? "chevron.up" : "chevron.down")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.white.opacity(0.25))
+                        .accessibilityHidden(true)
                 }
                 .padding(14)
                 .contentShape(Rectangle())
@@ -689,7 +725,7 @@ struct QuizResultCard: View {
                             let isSelected = i == result.selectedIndex
 
                             Text(["A", "B", "C", "D"][min(i, 3)])
-                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 11, weight: .bold, design: .rounded))
                                 .foregroundColor(isCorrect ? success : isSelected ? coral : .white.opacity(0.3))
                                 .frame(width: 22, height: 22)
                                 .background(
@@ -701,7 +737,7 @@ struct QuizResultCard: View {
                                 )
 
                             Text(option)
-                                .font(.system(size: 12, weight: isCorrect ? .semibold : .regular, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 12, weight: isCorrect ? .semibold : .regular, design: .rounded))
                                 .foregroundColor(isCorrect ? success : isSelected ? coral.opacity(0.7) : .white.opacity(0.5))
 
                             Spacer()
@@ -724,7 +760,7 @@ struct QuizResultCard: View {
                             .foregroundColor(.yellow.opacity(0.7))
                             .padding(.top, 2)
                         Text(result.explanation)
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 12, weight: .regular, design: .rounded))
                             .foregroundColor(.white.opacity(0.6))
                             .lineSpacing(3)
                     }
@@ -744,6 +780,10 @@ struct QuizResultCard: View {
                         .stroke(result.wasCorrect ? success.opacity(0.1) : coral.opacity(0.1), lineWidth: 1)
                 )
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Question \(index): \(result.questionText). \(result.wasCorrect ? "Correct" : "Incorrect")")
+        .accessibilityHint(showDetails ? "Double tap to collapse" : "Double tap to see details")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -780,6 +820,7 @@ struct EpilogueCyberGrid: View {
                 }
             }
         }
+        .accessibilityHidden(true)
     }
 }
 
@@ -795,6 +836,7 @@ struct EpilogueScanLines: View {
             }
         }
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

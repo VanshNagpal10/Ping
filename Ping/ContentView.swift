@@ -90,15 +90,16 @@ struct NewTermPopup: View {
                         .foregroundColor(CyberpunkTheme.neonCyan)
                         .shadow(color: CyberpunkTheme.neonCyan.opacity(0.8), radius: 6)
                 }
+                .accessibilityHidden(true)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("NEW DATA FRAGMENT ACQUIRED")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(ScaledFont.scaledFont(size: 10, weight: .bold, design: .monospaced))
                         .foregroundColor(.cyan)
                         .tracking(1)
                     
                     Text(term.term)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                 }
                 
@@ -112,6 +113,7 @@ struct NewTermPopup: View {
                             .frame(width: 4, height: 4)
                     }
                 }
+                .accessibilityHidden(true)
             }
             .padding(16)
             .background(
@@ -131,6 +133,8 @@ struct NewTermPopup: View {
                     )
                     .shadow(color: CyberpunkTheme.neonCyan.opacity(0.4), radius: 25, y: 5)
             )
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("New data fragment acquired: \(term.term)")
             .padding(.horizontal, 40)
             .padding(.top, 40) // Adjusted slightly to account for notch/dynamic island on newer iPads
             

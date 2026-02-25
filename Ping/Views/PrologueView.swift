@@ -16,6 +16,7 @@ struct PrologueView: View {
     @State private var buttonPulse = false
     @State private var cursorVisible = true
     @State private var isSkipped = false
+    @State private var showMissionBriefing = false
 
     private let accent = Color(red: 0.0, green: 0.9, blue: 1.0)
 
@@ -35,6 +36,7 @@ struct PrologueView: View {
                 // Pure black
                 Color.black
                     .ignoresSafeArea()
+                    .accessibilityHidden(true)
 
                 // Subtle vignette at edges
                 RadialGradient(
@@ -44,6 +46,7 @@ struct PrologueView: View {
                     endRadius: geo.size.width * 0.8
                 )
                 .ignoresSafeArea()
+                .accessibilityHidden(true)
 
                 // ── Text Stack ──
                 VStack(spacing: 20) {
@@ -69,6 +72,7 @@ struct PrologueView: View {
                             .opacity(cursorVisible ? 1 : 0)
                             .shadow(color: accent.opacity(0.6), radius: 4)
                             .padding(.top, 4)
+                            .accessibilityHidden(true)
                     }
 
                     Spacer()
@@ -82,6 +86,8 @@ struct PrologueView: View {
                         Spacer()
 
                         Button {
+                            isSkipped = true
+                            SoundManager.shared.stopTypewriterSound()
                             SoundManager.shared.playButtonSound()
                             withAnimation(.easeInOut(duration: 0.4)) {
                                 onStartGame()
@@ -89,10 +95,10 @@ struct PrologueView: View {
                         } label: {
                             HStack(spacing: 10) {
                                 Text("Enter the Network")
-                                    .font(.system(size: 17, weight: .semibold, design: .monospaced))
+                                    .font(ScaledFont.scaledFont(size: 17, weight: .semibold, design: .monospaced))
                                     .tracking(2)
                                 Image(systemName: "chevron.right.2")
-                                    .font(.system(size: 15, weight: .bold))
+                                    .font(ScaledFont.scaledFont(size: 15, weight: .bold))
                             }
                             .foregroundColor(.black)
                             .padding(.horizontal, 40)
@@ -105,15 +111,49 @@ struct PrologueView: View {
                         .buttonStyle(.plain)
                         .scaleEffect(buttonPulse ? 1.03 : 1.0)
                         .padding(.bottom, 60)
+                        .accessibilityLabel("Enter the Network")
+                        .accessibilityHint("Starts the game")
                     }
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
 
-                // ── Skip Button — rounded capsule, always visible until Enter shows ──
-                if !showButton {
-                    VStack {
-                        HStack {
-                            Spacer()
+                // ── Top Bar: Skip + Info ──
+                VStack {
+                    HStack {
+                        // "What You'll Learn" button (bottom-left style but placed top-left for visibility)
+                        Button {
+                            SoundManager.shared.playButtonSound()
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                showMissionBriefing = true
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "info.circle.fill")
+                                    .font(ScaledFont.scaledFont(size: 13, weight: .semibold))
+                                Text("What You'll Learn")
+                                    .font(ScaledFont.scaledFont(size: 13, weight: .semibold, design: .rounded))
+                            }
+                            .foregroundColor(accent.opacity(0.8))
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 10)
+                            .background(
+                                Capsule()
+                                    .fill(accent.opacity(0.08))
+                                    .overlay(
+                                        Capsule().stroke(accent.opacity(0.25), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("What you'll learn")
+                        .accessibilityHint("Shows the educational topics covered in this app")
+                        .padding(.leading, 24)
+                        .padding(.top, 20)
+                        
+                        Spacer()
+                        
+                        // Skip button
+                        if !showButton {
                             Button {
                                 isSkipped = true
                                 SoundManager.shared.stopTypewriterSound()
@@ -122,9 +162,9 @@ struct PrologueView: View {
                             } label: {
                                 HStack(spacing: 6) {
                                     Text("Skip")
-                                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                        .font(ScaledFont.scaledFont(size: 14, weight: .semibold, design: .rounded))
                                     Image(systemName: "forward.fill")
-                                        .font(.system(size: 11, weight: .semibold))
+                                        .font(ScaledFont.scaledFont(size: 11, weight: .semibold))
                                 }
                                 .foregroundColor(.white.opacity(0.6))
                                 .padding(.horizontal, 22)
@@ -138,11 +178,24 @@ struct PrologueView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Skip prologue")
+                            .accessibilityHint("Skips the intro and starts the game immediately")
                             .padding(.trailing, 24)
                             .padding(.top, 20)
                         }
-                        Spacer()
                     }
+                    Spacer()
+                }
+                
+                // ── Mission Briefing Popup ──
+                if showMissionBriefing {
+                    MissionBriefingPopup(accent: accent) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            showMissionBriefing = false
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    .zIndex(50)
                 }
             }
         }
@@ -192,6 +245,134 @@ struct PrologueView: View {
     }
 }
 
+// MARK: - Mission Briefing Popup
+/// Glassmorphic "What You'll Learn" popup — elevator pitch for judges
+struct MissionBriefingPopup: View {
+    let accent: Color
+    let onDismiss: () -> Void
+    
+    private let learningTopics: [(icon: String, title: String, description: String)] = [
+        ("network",               "TCP/IP & Packets",      "How data packets travel across the internet"),
+        ("lock.shield.fill",      "Encryption & SSL/TLS",  "Why HTTPS keeps your data safe"),
+        ("signpost.right.fill",   "DNS & Routing",         "How your device finds websites by name"),
+        ("arrow.triangle.branch", "TCP vs UDP",            "Choosing reliability vs speed in networking"),
+        ("server.rack",           "Internet Infrastructure","Routers, cables, and servers behind the scenes"),
+    ]
+    
+    var body: some View {
+        ZStack {
+            // Dimmed backdrop
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+                .onTapGesture { onDismiss() }
+                .accessibilityHidden(true)
+            
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "graduationcap.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(accent)
+                            Text("WHAT YOU'LL LEARN")
+                                .font(ScaledFont.scaledFont(size: 16, weight: .bold, design: .monospaced))
+                                .foregroundColor(.white)
+                                .tracking(2)
+                        }
+                        Text("An interactive journey through computer networking")
+                            .font(ScaledFont.scaledFont(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: onDismiss) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.white.opacity(0.4))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
+                
+                // Divider
+                Rectangle()
+                    .fill(LinearGradient(colors: [.clear, accent.opacity(0.5), .clear], startPoint: .leading, endPoint: .trailing))
+                    .frame(height: 1)
+                    .accessibilityHidden(true)
+                
+                // Pitch
+                Text("Ping teaches how the internet works — from TCP/IP protocols to encryption and DNS routing — through an interactive 3D adventure where you become a data packet.")
+                    .font(ScaledFont.scaledFont(size: 15, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.85))
+                    .lineSpacing(5)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                // Topic list
+                VStack(spacing: 10) {
+                    ForEach(Array(learningTopics.enumerated()), id: \.offset) { _, topic in
+                        HStack(spacing: 14) {
+                            Image(systemName: topic.icon)
+                                .font(.system(size: 16))
+                                .foregroundColor(accent)
+                                .frame(width: 32, height: 32)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(accent.opacity(0.1))
+                                )
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(topic.title)
+                                    .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .rounded))
+                                    .foregroundColor(.white)
+                                Text(topic.description)
+                                    .font(ScaledFont.scaledFont(size: 11, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                            
+                            Spacer()
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(topic.title): \(topic.description)")
+                    }
+                }
+                
+                // Built with badge
+                HStack(spacing: 6) {
+                    Image(systemName: "swift")
+                        .foregroundColor(.orange)
+                    Text("Built with SwiftUI & SceneKit")
+                        .font(ScaledFont.scaledFont(size: 11, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.35))
+                }
+                .padding(.top, 4)
+            }
+            .padding(28)
+            .frame(maxWidth: 480)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color(red: 0.05, green: 0.05, blue: 0.08).opacity(0.9))
+                    .background(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [accent.opacity(0.6), Color.purple.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+            )
+            .shadow(color: accent.opacity(0.2), radius: 30)
+        }
+    }
+}
+
 // MARK: - Prologue Typewriter Line
 /// Each line types out character by character with a monospaced font.
 struct PrologueTypewriterLine: View {
@@ -204,10 +385,11 @@ struct PrologueTypewriterLine: View {
 
     var body: some View {
         Text(displayedText)
-            .font(.system(size: fontSize, weight: fontWeight, design: .monospaced))
+            .font(ScaledFont.scaledFont(size: fontSize, weight: fontWeight, design: .monospaced))
             .foregroundColor(textColor)
             .multilineTextAlignment(.center)
             .shadow(color: textColor == .white.opacity(0.85) ? .clear : textColor.opacity(0.5), radius: 12)
+            .accessibilityLabel(text)
             .onAppear {
                 displayedText = ""
                 var charIndex = 0
@@ -258,6 +440,7 @@ struct CyberGrid: View {
                 }
             }
         }
+        .accessibilityHidden(true)
     }
 }
 
@@ -272,6 +455,7 @@ struct ScanLineOverlay: View {
             }
         }
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

@@ -49,6 +49,7 @@ struct CyberpunkTheme {
                     .blur(radius: 150)
                     .offset(x: animate ? -50 : 50, y: animate ? 100 : -50)
             }
+            .accessibilityHidden(true)
             .onAppear {
                 withAnimation(.easeInOut(duration: 8.0).repeatForever(autoreverses: true)) {
                     animate.toggle()
@@ -88,6 +89,7 @@ struct CyberpunkTheme {
                 }
             }
             .allowsHitTesting(false)
+            .accessibilityHidden(true)
         }
     }
 }

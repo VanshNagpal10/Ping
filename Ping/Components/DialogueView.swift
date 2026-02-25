@@ -30,24 +30,26 @@ struct DialogueOverlay: View {
                     
                     HStack {
                         Text(line.speaker)
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .font(ScaledFont.scaledFont(size: 14, weight: .bold, design: .monospaced))
                             .foregroundColor(speakerColor(for: line.speaker))
                         
                         Spacer()
                         
                         // Progress indicator
                         Text("\(engine.currentDialogueIndex + 1)/\(engine.currentDialogue.count)")
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(ScaledFont.scaledFont(size: 10, design: .monospaced))
                             .foregroundColor(.gray)
+                            .accessibilityLabel("Line \(engine.currentDialogueIndex + 1) of \(engine.currentDialogue.count)")
                     }
                     
                     // Dialogue text with typewriter effect
                     Text(engine.typewriterText)
-                        .font(.system(size: 16, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 16, design: .rounded))
                         .foregroundColor(.white)
                         .lineLimit(4)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .frame(minHeight: 60)
+                        .accessibilityLabel(line.text)
                     
                     // Choices OR continue prompt
                     if let choices = engine.activeChoices {
@@ -62,11 +64,13 @@ struct DialogueOverlay: View {
                             Image(systemName: "arrow.up")
                                 .font(.system(size: 10, weight: .bold))
                             Text("TAP YOUR SECURITY LAYER TO UPGRADE")
-                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                .font(ScaledFont.scaledFont(size: 10, weight: .semibold, design: .monospaced))
                         }
                         .foregroundColor(.yellow)
                         .frame(maxWidth: .infinity)
                         .transition(.opacity)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Tap your security layer to upgrade")
                     } else {
                         // Normal continue prompt
                         HStack {
@@ -75,12 +79,13 @@ struct DialogueOverlay: View {
                             if !engine.isTyping {
                                 HStack(spacing: 6) {
                                     Text("TAP TO CONTINUE")
-                                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                        .font(ScaledFont.scaledFont(size: 10, weight: .semibold, design: .monospaced))
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 10))
                                 }
                                 .foregroundColor(.cyan)
                                 .transition(.opacity)
+                                .accessibilityHidden(true)
                             } else {
                                 // Typing indicator
                                 HStack(spacing: 4) {
@@ -91,6 +96,7 @@ struct DialogueOverlay: View {
                                             .opacity(0.6)
                                     }
                                 }
+                                .accessibilityHidden(true)
                             }
                         }
                     }
@@ -117,6 +123,10 @@ struct DialogueOverlay: View {
             .padding(.bottom, 40)
         }
         .background(Color.black.opacity(0.3))
+        .accessibilityAction {
+            engine.advanceDialogue()
+        }
+        .accessibilityHint("Double tap to continue dialogue")
         .onTapGesture {
             engine.advanceDialogue()
         }
@@ -155,9 +165,22 @@ struct DialogueChoicesView: View {
                     choiceCard(for: choice)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(choiceAccessibilityLabel(for: choice))
+                .accessibilityHint("Double tap to select this option")
             }
         }
         .padding(.top, 8)
+    }
+    
+    private func choiceAccessibilityLabel(for choice: DialogueChoice) -> String {
+        let isTCP = choice.text.contains("TCP")
+        let isUDP = choice.text.contains("UDP")
+        if isTCP {
+            return "\(choice.text). Reliable and safe."
+        } else if isUDP {
+            return "\(choice.text). Fast but risky."
+        }
+        return choice.text
     }
     
     @ViewBuilder
@@ -174,18 +197,18 @@ struct DialogueChoicesView: View {
                 .shadow(color: accent.opacity(0.6), radius: 8)
             
             Text(choice.text)
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
             
             // Subtitle hint
             if isTCP {
                 Text("Reliable • Safe")
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(ScaledFont.scaledFont(size: 9, design: .monospaced))
                     .foregroundColor(.green.opacity(0.7))
             } else if isUDP {
                 Text("Fast • Risky")
-                    .font(.system(size: 9, design: .monospaced))
+                    .font(ScaledFont.scaledFont(size: 9, design: .monospaced))
                     .foregroundColor(.orange.opacity(0.7))
             }
         }
@@ -218,10 +241,13 @@ struct InventorySwapPuzzle: View {
                 Image(systemName: "cube.box.fill")
                     .foregroundColor(.cyan)
                 Text("PACKET INVENTORY")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .font(ScaledFont.scaledFont(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(.cyan)
                     .tracking(2)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Packet inventory")
+            .accessibilityAddTraits(.isHeader)
             
             HStack(spacing: 10) {
                 // Layer 4 (Application)
@@ -261,6 +287,8 @@ struct InventorySwapPuzzle: View {
                 }
                 .buttonStyle(.plain)
                 .scaleEffect(pulseSSL && !engine.inventorySwapCompleted ? 1.08 : 1.0)
+                .accessibilityLabel(engine.packet.layers.isSecure ? "Security layer: SSL/TLS equipped" : "Security layer: No encryption. Tap to equip SSL")
+                .accessibilityHint(engine.inventorySwapCompleted ? "" : "Double tap to upgrade your security")
                 
                 // Layer 2 (Network)
                 InventorySlot(
@@ -277,10 +305,11 @@ struct InventorySwapPuzzle: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
                     Text("SSL EQUIPPED! Your data is now encrypted.")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 11, weight: .semibold, design: .rounded))
                         .foregroundColor(.green)
                 }
                 .transition(.scale.combined(with: .opacity))
+                .accessibilityLabel("SSL equipped. Your data is now encrypted.")
             }
         }
         .padding(16)
@@ -319,11 +348,11 @@ struct InventorySlot: View {
                 .foregroundColor(color)
             
             Text(label)
-                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 9, weight: .semibold, design: .rounded))
                 .foregroundColor(.white)
             
             Text(value)
-                .font(.system(size: 8, weight: .medium, design: .monospaced))
+                .font(ScaledFont.scaledFont(size: 8, weight: .medium, design: .monospaced))
                 .foregroundColor(color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -340,6 +369,8 @@ struct InventorySlot: View {
                         )
                 )
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(value)")
     }
 }
 
@@ -359,15 +390,16 @@ struct ExplorationHUD: View {
                 // Scene title
                 VStack(alignment: .leading, spacing: 4) {
                     Text(scene.displayName)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
+                        .accessibilityAddTraits(.isHeader)
                     
                     // Mission text
                     HStack(spacing: 6) {
                         Image(systemName: "target")
                             .foregroundColor(.yellow)
                         Text(mission)
-                            .font(.system(size: 11, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 11, design: .rounded))
                             .foregroundColor(.yellow.opacity(0.9))
                             .lineLimit(2)
                     }
@@ -378,6 +410,8 @@ struct ExplorationHUD: View {
                             .background(.ultraThinMaterial)
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(CyberpunkTheme.neonCyan.opacity(0.4), lineWidth: 1))
                     )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Mission: \(mission)")
                 }
                 .frame(maxWidth: 300)
                 
@@ -396,7 +430,7 @@ struct ExplorationHUD: View {
                                 // Badge for terms count
                                 if termsCount > 0 {
                                     Text("\(termsCount)")
-                                        .font(.system(size: 10, weight: .bold))
+                                        .font(ScaledFont.scaledFont(size: 10, weight: .bold))
                                         .foregroundColor(.white)
                                         .padding(4)
                                         .background(Circle().fill(Color.purple))
@@ -405,7 +439,7 @@ struct ExplorationHUD: View {
                             }
                             
                             Text("Wiki")
-                                .font(.system(size: 9, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 9, design: .rounded))
                                 .foregroundColor(.gray)
                         }
                         .padding(10)
@@ -416,6 +450,10 @@ struct ExplorationHUD: View {
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(CyberpunkTheme.neonPurple.opacity(0.5), lineWidth: 1))
                         )
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Encyclopedia, \(termsCount) terms collected")
+                    .accessibilityHint("Opens your collected networking terms")
+                    .accessibilityAddTraits(.isButton)
                     
                     // Layer Inventory
                     Button(action: onInventory) {
@@ -425,7 +463,7 @@ struct ExplorationHUD: View {
                                 .foregroundColor(.cyan)
                             
                             Text("Layers")
-                                .font(.system(size: 9, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 9, design: .rounded))
                                 .foregroundColor(.gray)
                         }
                         .padding(10)
@@ -436,6 +474,10 @@ struct ExplorationHUD: View {
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(CyberpunkTheme.neonCyan.opacity(0.5), lineWidth: 1))
                         )
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Packet layers")
+                    .accessibilityHint("Shows your packet's network layers")
+                    .accessibilityAddTraits(.isButton)
                     
                     // Mute Toggle
                     Button(action: { soundManager.toggleMute() }) {
@@ -445,7 +487,7 @@ struct ExplorationHUD: View {
                                 .foregroundColor(soundManager.isMuted ? .gray : .orange)
                             
                             Text(soundManager.isMuted ? "Muted" : "Sound")
-                                .font(.system(size: 9, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 9, design: .rounded))
                                 .foregroundColor(.gray)
                         }
                         .padding(10)
@@ -456,6 +498,10 @@ struct ExplorationHUD: View {
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.orange.opacity(0.5), lineWidth: 1))
                         )
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(soundManager.isMuted ? "Sound muted" : "Sound on")
+                    .accessibilityHint("Double tap to toggle sound")
+                    .accessibilityAddTraits(.isButton)
                     
                     // Pause Button
                     Button(action: {
@@ -468,7 +514,7 @@ struct ExplorationHUD: View {
                                 .foregroundColor(.white)
                             
                             Text("Pause")
-                                .font(.system(size: 9, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 9, design: .rounded))
                                 .foregroundColor(.gray)
                         }
                         .padding(10)
@@ -479,6 +525,9 @@ struct ExplorationHUD: View {
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.5), lineWidth: 1))
                         )
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Pause game")
+                    .accessibilityAddTraits(.isButton)
                 }
             }
             .padding(.horizontal, 24) // slightly more breathing room on the sides
@@ -521,11 +570,11 @@ struct LayerInventoryPanel: View {
                         
                         VStack(alignment: .leading, spacing: 1) {
                             Text("PACKET LAYERS")
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .font(ScaledFont.scaledFont(size: 12, weight: .bold, design: .monospaced))
                                 .foregroundColor(.cyan)
                                 .tracking(2)
                             Text("Your gear for the journey")
-                                .font(.system(size: 9, weight: .medium, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 9, weight: .medium, design: .rounded))
                                 .foregroundColor(.white.opacity(0.35))
                         }
                         
@@ -539,7 +588,11 @@ struct LayerInventoryPanel: View {
                                 .font(.system(size: 18))
                                 .foregroundColor(.white.opacity(0.3))
                         }
+                        .accessibilityLabel("Close layers panel")
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Packet layers. Your gear for the journey.")
+                    .accessibilityAddTraits(.isHeader)
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                     .padding(.bottom, 12)
@@ -553,6 +606,7 @@ struct LayerInventoryPanel: View {
                             )
                         )
                         .frame(height: 1)
+                        .accessibilityHidden(true)
                     
                     // Character visualization
                     packetCharacterView
@@ -566,6 +620,7 @@ struct LayerInventoryPanel: View {
                             )
                         )
                         .frame(height: 1)
+                        .accessibilityHidden(true)
                     
                     // Layer cards
                     VStack(spacing: 6) {
@@ -696,6 +751,7 @@ struct LayerInventoryPanel: View {
                         .opacity(layers.applicationLayer != .empty ? 1.0 : 0.25)
                 }
             }
+            .accessibilityHidden(true)
             
             Spacer()
             
@@ -735,9 +791,11 @@ struct LayerInventoryPanel: View {
                 .foregroundColor(ok ? .green : .white.opacity(0.2))
             
             Text(label)
-                .font(.system(size: 9, weight: .medium, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 9, weight: .medium, design: .rounded))
                 .foregroundColor(ok ? .white.opacity(0.7) : .white.opacity(0.25))
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label): \(ok ? "Ready" : "Not ready")")
     }
     
     // MARK: - Layer Card
@@ -769,11 +827,11 @@ struct LayerInventoryPanel: View {
                     
                     VStack(alignment: .leading, spacing: 1) {
                         Text(name)
-                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 11, weight: .semibold, design: .rounded))
                             .foregroundColor(.white)
                         
                         Text(metaphor)
-                            .font(.system(size: 9, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 9, design: .rounded))
                             .foregroundColor(.white.opacity(0.35))
                     }
                     
@@ -781,7 +839,7 @@ struct LayerInventoryPanel: View {
                     
                     // Value pill
                     Text(value)
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .font(ScaledFont.scaledFont(size: 9, weight: .bold, design: .monospaced))
                         .foregroundColor(color)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -792,6 +850,7 @@ struct LayerInventoryPanel: View {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 8, weight: .bold))
                         .foregroundColor(.white.opacity(0.25))
+                        .accessibilityHidden(true)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
@@ -804,7 +863,7 @@ struct LayerInventoryPanel: View {
                             .padding(.leading, 25)
                         
                         Text(detail)
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 10, weight: .medium, design: .rounded))
                             .foregroundColor(.white.opacity(0.6))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 6)
@@ -825,6 +884,10 @@ struct LayerInventoryPanel: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(name), \(metaphor). \(value). \(isActive ? "Active" : "Inactive")\(isExpanded ? ". \(detail)" : "")")
+        .accessibilityHint(isExpanded ? "Double tap to collapse" : "Double tap to expand details")
+        .accessibilityAddTraits(.isButton)
     }
     
     // MARK: - Completion Badge
@@ -838,7 +901,7 @@ struct LayerInventoryPanel: View {
         ].filter { $0 }.count
         
         Text("\(equipped)/4")
-            .font(.system(size: 9, weight: .bold, design: .monospaced))
+            .font(ScaledFont.scaledFont(size: 9, weight: .bold, design: .monospaced))
             .foregroundColor(equipped == 4 ? .green : .cyan)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
@@ -851,6 +914,7 @@ struct LayerInventoryPanel: View {
                     )
             )
             .padding(.trailing, 6)
+            .accessibilityLabel("\(equipped) of 4 layers equipped")
     }
 }
 

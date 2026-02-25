@@ -76,7 +76,7 @@ struct QuizOverlay: View {
                         .foregroundColor(scene.accentColor)
                     
                     Text("KNOWLEDGE CHECK")
-                        .font(.system(size: 13, weight: .bold, design: .monospaced))
+                        .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .monospaced))
                         .foregroundColor(scene.accentColor)
                         .tracking(3)
                     
@@ -84,7 +84,7 @@ struct QuizOverlay: View {
                     
                     // Progress
                     Text("\(currentQuestionIndex + 1)/\(questions.count)")
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .font(ScaledFont.scaledFont(size: 12, weight: .medium, design: .monospaced))
                         .foregroundColor(.white.opacity(0.5))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
@@ -92,6 +92,9 @@ struct QuizOverlay: View {
                             Capsule().fill(Color.white.opacity(0.1))
                         )
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Knowledge check. Question \(currentQuestionIndex + 1) of \(questions.count)")
+                .accessibilityAddTraits(.isHeader)
                 
                 // Progress bar
                 GeometryReader { geo in
@@ -106,14 +109,16 @@ struct QuizOverlay: View {
                     }
                 }
                 .frame(height: 3)
+                .accessibilityHidden(true)
                 
                 // Question text
                 Text(question.question)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 17, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 4)
+                    .accessibilityLabel(question.question)
                 
                 // Answer options
                 VStack(spacing: 10) {
@@ -171,6 +176,17 @@ struct QuizOverlay: View {
         
         let labelLetter = ["A", "B", "C", "D"][min(index, 3)]
         
+        // Build VoiceOver label
+        let voiceOverLabel: String = {
+            var label = "Option \(labelLetter): \(text)"
+            if showResult && isCorrect {
+                label += ". Correct answer"
+            } else if showResult && isSelected && !isCorrect {
+                label += ". Incorrect"
+            }
+            return label
+        }()
+        
         Button {
             guard !showExplanation else { return }
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
@@ -207,7 +223,7 @@ struct QuizOverlay: View {
             HStack(spacing: 12) {
                 // Letter badge
                 Text(labelLetter)
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .monospaced))
                     .foregroundColor(showResult && isCorrect ? .green : .white.opacity(0.6))
                     .frame(width: 28, height: 28)
                     .background(
@@ -216,7 +232,7 @@ struct QuizOverlay: View {
                     )
                 
                 Text(text)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 14, weight: .medium, design: .rounded))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.leading)
                 
@@ -245,6 +261,9 @@ struct QuizOverlay: View {
         }
         .buttonStyle(.plain)
         .disabled(showExplanation)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(voiceOverLabel)
+        .accessibilityAddTraits(.isButton)
     }
     
     // MARK: - Explanation Banner
@@ -256,14 +275,14 @@ struct QuizOverlay: View {
                     .foregroundColor(answeredCorrectly ? .green : .yellow)
                 
                 Text(answeredCorrectly ? "Correct!" : "Not quite!")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 14, weight: .bold, design: .rounded))
                     .foregroundColor(answeredCorrectly ? .green : .yellow)
                 
                 Spacer()
             }
             
             Text(question.explanation)
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 12, weight: .medium, design: .rounded))
                 .foregroundColor(.white.opacity(0.8))
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -274,7 +293,7 @@ struct QuizOverlay: View {
             } label: {
                 HStack(spacing: 6) {
                     Text(currentQuestionIndex < questions.count - 1 ? "NEXT" : "CONTINUE")
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .font(ScaledFont.scaledFont(size: 12, weight: .bold, design: .monospaced))
                         .tracking(2)
                     Image(systemName: "arrow.right")
                         .font(.system(size: 11))
@@ -289,6 +308,7 @@ struct QuizOverlay: View {
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.top, 4)
+            .accessibilityLabel(currentQuestionIndex < questions.count - 1 ? "Next question" : "Continue")
         }
         .padding(14)
         .background(
@@ -302,6 +322,8 @@ struct QuizOverlay: View {
                         )
                 )
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(answeredCorrectly ? "Correct" : "Not quite"). \(question.explanation)")
     }
     
     // MARK: - Quiz Results
@@ -342,26 +364,29 @@ struct QuizOverlay: View {
                             .font(.system(size: 30))
                             .foregroundColor(scoreColor)
                     }
+                    .accessibilityHidden(true)
                     
                     Text(scoreMessage)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
                     // Score
                     HStack(spacing: 4) {
                         Text("\(correctCount)")
-                            .font(.system(size: 36, weight: .black, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 36, weight: .black, design: .rounded))
                             .foregroundColor(scoreColor)
                         Text("/")
-                            .font(.system(size: 24, weight: .light))
+                            .font(ScaledFont.scaledFont(size: 24, weight: .light))
                             .foregroundColor(.white.opacity(0.3))
                         Text("\(questions.count)")
-                            .font(.system(size: 36, weight: .black, design: .rounded))
+                            .font(ScaledFont.scaledFont(size: 36, weight: .black, design: .rounded))
                             .foregroundColor(.white.opacity(0.5))
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(correctCount) out of \(questions.count) correct. \(scoreMessage)")
                     
                     Text("from \(scene.displayName)")
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .font(ScaledFont.scaledFont(size: 12, weight: .medium, design: .monospaced))
                         .foregroundColor(.white.opacity(0.4))
                         .tracking(1)
                     
@@ -371,7 +396,7 @@ struct QuizOverlay: View {
                     } label: {
                         HStack(spacing: 8) {
                             Text("CONTINUE JOURNEY")
-                                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .monospaced))
                                 .tracking(2)
                             Image(systemName: "arrow.right.circle.fill")
                                 .font(.system(size: 16))
@@ -387,6 +412,8 @@ struct QuizOverlay: View {
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 8)
+                    .accessibilityLabel("Continue journey")
+                    .accessibilityHint("Proceeds to the next area")
                 }
                 .padding(32)
                 .frame(maxWidth: 400)

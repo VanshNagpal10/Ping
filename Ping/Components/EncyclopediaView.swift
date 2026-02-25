@@ -43,12 +43,12 @@ struct EncyclopediaView: View {
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("SYSTEM_CODEX // ENCYCLOPEDIA")
-                            .font(.system(size: 18, weight: .black, design: .monospaced))
+                            .font(ScaledFont.scaledFont(size: 18, weight: .black, design: .monospaced))
                             .foregroundColor(.white)
                             .tracking(2)
                         
                         Text("DATA FRAGMENTS COLLECTED: \(terms.count)")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(ScaledFont.scaledFont(size: 10, weight: .bold, design: .monospaced))
                             .foregroundColor(.cyan.opacity(0.8))
                     }
                     
@@ -62,7 +62,11 @@ struct EncyclopediaView: View {
                             .background(Circle().fill(Color.white.opacity(0.1)))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Close encyclopedia")
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Encyclopedia. \(terms.count) data fragments collected.")
+                .accessibilityAddTraits(.isHeader)
                 .padding(24)
                 .background(Color.black.opacity(0.4))
                 
@@ -71,6 +75,7 @@ struct EncyclopediaView: View {
                     .fill(LinearGradient(colors: [.clear, .cyan.opacity(0.8), .clear], startPoint: .leading, endPoint: .trailing))
                     .frame(height: 2)
                     .shadow(color: .cyan, radius: 3)
+                    .accessibilityHidden(true)
                 
                 // Category Filter (Glowing Pills)
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -107,14 +112,16 @@ struct EncyclopediaView: View {
                             .font(.system(size: 60, weight: .thin))
                             .foregroundColor(.cyan.opacity(0.4))
                         Text("NO DATA FRAGMENTS FOUND")
-                            .font(.system(size: 16, weight: .bold, design: .monospaced))
+                            .font(ScaledFont.scaledFont(size: 16, weight: .bold, design: .monospaced))
                             .foregroundColor(.white.opacity(0.6))
                             .tracking(2)
                         Text("Interact with network entities to expand database.")
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(ScaledFont.scaledFont(size: 12, design: .monospaced))
                             .foregroundColor(.gray)
                         Spacer()
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("No data fragments found. Interact with network entities to expand database.")
                 } else {
                     // Scrollable Grid/List
                     ScrollView {
@@ -176,7 +183,7 @@ struct CategoryPill: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .font(ScaledFont.scaledFont(size: 11, weight: .bold, design: .monospaced))
                 .tracking(1)
                 .foregroundColor(isSelected ? .black : color)
                 .padding(.horizontal, 16)
@@ -192,6 +199,8 @@ struct CategoryPill: View {
                 .shadow(color: isSelected ? color.opacity(0.6) : .clear, radius: 5)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Filter: \(title)")
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
 
@@ -224,14 +233,15 @@ struct TermCard: View {
                         .foregroundColor(categoryBadgeColor)
                         .shadow(color: categoryBadgeColor.opacity(0.5), radius: 3)
                 }
+                .accessibilityHidden(true)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(term.term)
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .font(ScaledFont.scaledFont(size: 18, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
                     Text(term.category.rawValue.uppercased())
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(ScaledFont.scaledFont(size: 10, weight: .bold, design: .monospaced))
                         .foregroundColor(categoryBadgeColor)
                         .tracking(1)
                 }
@@ -241,6 +251,7 @@ struct TermCard: View {
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                     .foregroundColor(categoryBadgeColor.opacity(0.7))
                     .font(.system(size: 14, weight: .bold))
+                    .accessibilityHidden(true)
             }
             .padding(16)
             
@@ -250,9 +261,10 @@ struct TermCard: View {
                     Rectangle()
                         .fill(categoryBadgeColor.opacity(0.3))
                         .frame(height: 1)
+                        .accessibilityHidden(true)
                     
                     Text(term.definition)
-                        .font(.system(size: 14, weight: .medium, design: .monospaced)) // Monospaced for tech feel
+                        .font(ScaledFont.scaledFont(size: 14, weight: .medium, design: .monospaced)) // Monospaced for tech feel
                         .foregroundColor(.gray)
                         .lineSpacing(6)
                         .padding(16)
@@ -270,5 +282,9 @@ struct TermCard: View {
                 .stroke(isExpanded ? categoryBadgeColor.opacity(0.6) : Color.white.opacity(0.1), lineWidth: 1.5)
         )
         .shadow(color: isExpanded ? categoryBadgeColor.opacity(0.1) : .clear, radius: 10)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(term.term), \(term.category.rawValue)\(isExpanded ? ". \(term.definition)" : "")")
+        .accessibilityHint(isExpanded ? "Double tap to collapse" : "Double tap to see definition")
+        .accessibilityAddTraits(.isButton)
     }
 }

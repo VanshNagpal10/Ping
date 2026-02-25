@@ -26,6 +26,8 @@ struct ExplorationView3D: View {
                     antialiasingMode: .multisampling4X
                 )
                 .ignoresSafeArea()
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("3D game world")
                 .onTapGesture { _ in
                     // If dialogue is active, tapping anywhere on the 3D world advances it
                     if engine.isDialogueActive {
@@ -70,7 +72,7 @@ struct ExplorationView3D: View {
                                         .foregroundColor(.cyan)
                                     Text(tutorialText)
                                 }
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .font(ScaledFont.scaledFont(size: 13, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 10)
@@ -81,6 +83,8 @@ struct ExplorationView3D: View {
                                 )
                                 .padding(.bottom, 30)
                                 .transition(.opacity.combined(with: .scale))
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("Tip: \(tutorialText)")
                                 .onAppear {
                                     // Change text after 4 seconds
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
@@ -101,6 +105,7 @@ struct ExplorationView3D: View {
                             
                             // Right Side Placeholder (Keeps layout balanced)
                             Color.clear.frame(width: 100, height: 100)
+                                .accessibilityHidden(true)
                         }
                     }
                 }
@@ -181,6 +186,7 @@ struct ExplorationView3D: View {
                     Color.white
                         .ignoresSafeArea()
                         .zIndex(100) // Guarantees it covers absolutely everything
+                        .accessibilityHidden(true)
                 }
             }
             .onAppear {
@@ -206,7 +212,7 @@ struct InteractionPrompt: View {
                 Image(systemName: "bubble.left.fill")
                     .foregroundColor(.yellow)
                 Text("TALK to \(name)")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
             .padding(.horizontal, 16)
@@ -220,6 +226,8 @@ struct InteractionPrompt: View {
                     )
             )
         }
+        .accessibilityLabel("Talk to \(name)")
+        .accessibilityHint("Double tap to start a conversation")
         .scaleEffect(pulse ? 1.05 : 1.0)
         .onAppear {
             withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
@@ -240,7 +248,7 @@ struct PortalPrompt: View {
                 Image(systemName: "arrow.right.circle.fill")
                     .foregroundColor(.magenta)
                 Text("ENTER PORTAL")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
             .padding(.horizontal, 16)
@@ -254,6 +262,8 @@ struct PortalPrompt: View {
                     )
             )
         }
+        .accessibilityLabel("Enter portal")
+        .accessibilityHint("Double tap to travel to the next area")
         .onAppear {
             withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
                 glow = true
@@ -269,7 +279,7 @@ struct LockedPortalPrompt: View {
             Image(systemName: "lock.fill")
                 .foregroundColor(.red)
             Text("TALK TO NPC FIRST")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
         }
         .padding(.horizontal, 16)
@@ -282,6 +292,8 @@ struct LockedPortalPrompt: View {
                         .stroke(Color.red.opacity(0.6), lineWidth: 1.5)
                 )
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Portal locked. Talk to the NPC first.")
     }
 }
 
