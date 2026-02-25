@@ -35,8 +35,9 @@ struct WorldBuilder {
     private static func makeGroundPlane(
         width: CGFloat = 40,
         length: CGFloat = 30,
-        baseColor: UIColor = P.floorBase,
-        accentColor: UIColor = P.cyan
+        baseColor: UIColor = P.floorBase, // Will be overridden in CPU City
+        accentColor: UIColor = P.cyan,
+        secondaryGridColor: UIColor = UIColor.white.withAlphaComponent(0.3)
     ) -> SCNNode {
         let floor = SCNNode()
         
@@ -45,8 +46,8 @@ struct WorldBuilder {
         let plane = SCNPlane(width: visibleSize, height: visibleSize)
         let baseMat = SCNMaterial()
         baseMat.diffuse.contents = baseColor
-        baseMat.roughness.contents = 0.15 // Lower roughness = mirror-like
-        baseMat.metalness.contents = 0.90 // High metalness = reflective
+        baseMat.roughness.contents = 0.25 // Slightly rougher so color shows better
+        baseMat.metalness.contents = 0.60 // Less metallic, more matte
         plane.materials = [baseMat]
         let baseNode = SCNNode(geometry: plane)
         baseNode.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0)
@@ -55,22 +56,59 @@ struct WorldBuilder {
         baseNode.geometry?.firstMaterial?.writesToDepthBuffer = true
         floor.addChildNode(baseNode)
         
-        // Grid lines — concentrated in the play area, fading out beyond it
-        let spacing: Float = 4.0
         let gridExtent: Float = 50 // grid extends well past play area
         let fadeStart: Float = Float(min(width, length)) / 2  // start fading at play-area edge
         
+        // Secondary tighter white grid
+        let secSpacing: Float = 1.0
+        var sx: Float = -gridExtent
+        while sx <= gridExtent {
+            let distFromCenter = abs(sx)
+            let alpha: CGFloat = distFromCenter > fadeStart
+                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 10.0)) * 0.15
+                : 0.15
+            guard alpha > 0.005 else { sx += secSpacing; continue }
+            let lineMat = SCNMaterial()
+            lineMat.diffuse.contents = secondaryGridColor.withAlphaComponent(alpha)
+            lineMat.emission.contents = secondaryGridColor.withAlphaComponent(alpha)
+            let line = SCNBox(width: 0.008, height: 0.001, length: CGFloat(gridExtent * 2), chamferRadius: 0)
+            line.materials = [lineMat]
+            let node = SCNNode(geometry: line)
+            node.position = SCNVector3(sx, 0.001, 0)
+            floor.addChildNode(node)
+            sx += secSpacing
+        }
+        var sz: Float = -gridExtent
+        while sz <= gridExtent {
+            let distFromCenter = abs(sz)
+            let alpha: CGFloat = distFromCenter > fadeStart
+                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 10.0)) * 0.15
+                : 0.15
+            guard alpha > 0.005 else { sz += secSpacing; continue }
+            let lineMat = SCNMaterial()
+            lineMat.diffuse.contents = secondaryGridColor.withAlphaComponent(alpha)
+            lineMat.emission.contents = secondaryGridColor.withAlphaComponent(alpha)
+            let line = SCNBox(width: CGFloat(gridExtent * 2), height: 0.001, length: 0.008, chamferRadius: 0)
+            line.materials = [lineMat]
+            let node = SCNNode(geometry: line)
+            node.position = SCNVector3(0, 0.001, sz)
+            floor.addChildNode(node)
+            sz += secSpacing
+        }
+        
+        // Primary Accent Grid lines — concentrated in the play area, fading out beyond it
+        let spacing: Float = 4.0
         var x: Float = -gridExtent
         while x <= gridExtent {
             let distFromCenter = abs(x)
             let alpha: CGFloat = distFromCenter > fadeStart
-                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.08
-                : 0.08
+                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.12
+                : 0.12 // slightly brighter
             guard alpha > 0.005 else { x += spacing; continue }
             let lineMat = SCNMaterial()
             lineMat.diffuse.contents = accentColor.withAlphaComponent(alpha)
             lineMat.emission.contents = accentColor.withAlphaComponent(alpha * 1.8)
-            let line = SCNBox(width: 0.02, height: 0.003, length: CGFloat(gridExtent * 2), chamferRadius: 0)
+            let line = SCNBox(width: 0.025, height: 0.003, length: CGFloat(gridExtent * 2), chamferRadius: 0)
             line.materials = [lineMat]
             let node = SCNNode(geometry: line)
             node.position = SCNVector3(x, 0.003, 0)
@@ -81,13 +119,13 @@ struct WorldBuilder {
         while z <= gridExtent {
             let distFromCenter = abs(z)
             let alpha: CGFloat = distFromCenter > fadeStart
-                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.08
-                : 0.08
+                ? CGFloat(max(0, 1.0 - (distFromCenter - fadeStart) / 20.0)) * 0.12
+                : 0.12
             guard alpha > 0.005 else { z += spacing; continue }
             let lineMat = SCNMaterial()
             lineMat.diffuse.contents = accentColor.withAlphaComponent(alpha)
             lineMat.emission.contents = accentColor.withAlphaComponent(alpha * 1.8)
-            let line = SCNBox(width: CGFloat(gridExtent * 2), height: 0.003, length: 0.02, chamferRadius: 0)
+            let line = SCNBox(width: CGFloat(gridExtent * 2), height: 0.003, length: 0.025, chamferRadius: 0)
             line.materials = [lineMat]
             let node = SCNNode(geometry: line)
             node.position = SCNVector3(0, 0.003, z)
@@ -391,8 +429,9 @@ struct WorldBuilder {
         manager.scene.fogEndDistance = 60
         manager.scene.fogColor = UIColor(red: 0.07, green: 0.05, blue: 0.16, alpha: 1)
         
-        // ── Ground: dark hex-grid platform ──
-        let floor = makeGroundPlane(width: 44, length: 34, accentColor: P.cyan)
+        // ── Ground: lighter grid floor ──
+        let floorColor = UIColor(red: 0.12, green: 0.12, blue: 0.18, alpha: 1) // Lighter grey/blue base
+        let floor = makeGroundPlane(width: 44, length: 34, baseColor: floorColor, accentColor: P.cyan)
         root.addChildNode(floor)
         
         // Hexagonal accent patches on the floor for a circuit-board feel
