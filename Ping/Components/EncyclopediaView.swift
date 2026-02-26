@@ -42,12 +42,12 @@ struct EncyclopediaView: View {
                         .shadow(color: .cyan, radius: 5)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("SYSTEM_CODEX // ENCYCLOPEDIA")
+                        Text("Concepts of Network")
                             .font(ScaledFont.scaledFont(size: 18, weight: .black, design: .monospaced))
                             .foregroundColor(.white)
                             .tracking(2)
                         
-                        Text("DATA FRAGMENTS COLLECTED: \(terms.count)")
+                        Text("Concepts Discovered till now: \(terms.count)")
                             .font(ScaledFont.scaledFont(size: 10, weight: .bold, design: .monospaced))
                             .foregroundColor(.cyan.opacity(0.8))
                     }
@@ -65,7 +65,7 @@ struct EncyclopediaView: View {
                     .accessibilityLabel("Close encyclopedia")
                 }
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("Encyclopedia. \(terms.count) data fragments collected.")
+                .accessibilityLabel("Concepts of Network. \(terms.count) Concepts Discovered till now.")
                 .accessibilityAddTraits(.isHeader)
                 .padding(24)
                 .background(Color.black.opacity(0.4))
@@ -111,17 +111,17 @@ struct EncyclopediaView: View {
                         Image(systemName: "magnifyingglass.circle")
                             .font(.system(size: 60, weight: .thin))
                             .foregroundColor(.cyan.opacity(0.4))
-                        Text("NO DATA FRAGMENTS FOUND")
+                        Text("NO CONCEPTS DISCOVERED YET.")
                             .font(ScaledFont.scaledFont(size: 16, weight: .bold, design: .monospaced))
                             .foregroundColor(.white.opacity(0.6))
                             .tracking(2)
-                        Text("Interact with network entities to expand database.")
+                        Text("Interact with network entities to learn about Networking.")
                             .font(ScaledFont.scaledFont(size: 12, design: .monospaced))
                             .foregroundColor(.gray)
                         Spacer()
                     }
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("No data fragments found. Interact with network entities to expand database.")
+                    .accessibilityLabel("NO CONCEPTS DISCOVERED YET. Interact with network entities to learn about Networking.")
                 } else {
                     // Scrollable Grid/List
                     ScrollView {

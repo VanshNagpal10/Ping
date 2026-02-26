@@ -91,8 +91,8 @@ enum SecurityProtocol: String, Equatable {
     
     var description: String {
         switch self {
-        case .none: return "Unencrypted — anyone can read your data"
-        case .ssl:  return "Encrypted — data is scrambled and safe"
+        case .none: return "Unencrypted - anyone can read your data"
+        case .ssl:  return "Encrypted - data is scrambled and safe"
         }
     }
     
@@ -374,14 +374,14 @@ struct LevelQuizzes {
                         "A network cable"
                     ],
                     correctIndex: 1,
-                    explanation: "Daemons are background processes that keep your device running — managing Wi-Fi, notifications, and more!"
+                    explanation: "Daemons are background processes that keep your device running. Managing Wi-Fi, notifications, and more!"
                 ),
                 QuizQuestion(
                     question: "What does the Application Layer carry?",
                     options: [
                         "The IP address",
                         "The encryption key",
-                        "The actual data / payload",
+                        "The actual data/payload",
                         "The transport protocol"
                     ],
                     correctIndex: 2,
