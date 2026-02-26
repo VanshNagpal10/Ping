@@ -1,6 +1,6 @@
 //
 //  AccessibilityFonts.swift
-//  Ping - Packet World
+//  Ping
 //
 //  Scaled font utilities for Dynamic Type support.
 //  Wraps UIFontMetrics so that every Text view scales with

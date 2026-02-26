@@ -1,9 +1,6 @@
 //
 //  WorldBuilder.swift
-//  Ping - Packet World
-//
-//  Builds unique 3D diorama environments for each story scene.
-//  Neon cyberpunk aesthetic — dark voids with glowing structures.
+//  Ping
 //
 
 import SceneKit
@@ -41,7 +38,7 @@ struct WorldBuilder {
     ) -> SCNNode {
         let floor = SCNNode()
         
-        // Massive base plane — extends far beyond play area so edges are never visible
+        // Massive base plane  - extends far beyond play area so edges are never visible
         let visibleSize: CGFloat = 200
         let plane = SCNPlane(width: visibleSize, height: visibleSize)
         let baseMat = SCNMaterial()
@@ -212,7 +209,7 @@ struct WorldBuilder {
         return node
     }
     
-    /// Neon sign billboard — replaces SCNText (which crashes on background threads)
+    /// Neon sign billboard  - replaces SCNText (which crashes on background threads)
     private static func makeSignPanel(color: UIColor, width: CGFloat = 6, height: CGFloat = 1.5, at position: SCNVector3) -> SCNNode {
         let panel = SCNBox(width: width, height: height, length: 0.05, chamferRadius: 0.05)
         let mat = SCNMaterial()
@@ -249,7 +246,7 @@ struct WorldBuilder {
         return node
     }
     
-    /// Ambient NPC packet — mini robot similar to player but smaller, flowing in a direction
+    /// Ambient NPC packet  - mini robot similar to player but smaller, flowing in a direction
     private static func makeAmbientPacket(in root: SCNNode, bounds: CGSize, accentColor: UIColor, yRange: ClosedRange<Float> = 0.0...0.0, flowDirection: SCNVector3 = SCNVector3(1, 0, 0)) {
         let colors: [UIColor] = [P.cyan, P.magenta, P.amber, P.lime, P.violet, P.coral]
         let count = Int.random(in: 8...14)
@@ -343,7 +340,7 @@ struct WorldBuilder {
                 packetNode.addChildNode(glowNode)
             }
             
-            // Position — spread along the scene
+            // Position  - spread along the scene
             let startX = Float.random(in: -halfW...halfW)
             let startY = yMin == yMax ? Float(0) : Float.random(in: yMin...yMax)
             let startZ = Float.random(in: -halfH...halfH)
@@ -353,7 +350,7 @@ struct WorldBuilder {
             let angle = atan2(flowDirection.x, flowDirection.z)
             packetNode.eulerAngles = SCNVector3(0, angle, 0)
             
-            // Flow movement — travel in one direction, teleport back, repeat
+            // Flow movement  - travel in one direction, teleport back, repeat
             let travelDist: Float = halfW * 2
             let speed = Double.random(in: 8...16)
             let dx = CGFloat(flowDirection.x * travelDist)
@@ -374,14 +371,14 @@ struct WorldBuilder {
     }
     
     // MARK: - CPU City (Act 1)
-    // The Digital Nexus — first node of the internet. Towering dark server monoliths,
+    // The Digital Nexus  - first node of the internet. Towering dark server monoliths,
     // holographic data columns, flowing data streams, hex-grid platform floor.
     // The player (a fresh packet) spawns here, dwarfed by the digital infrastructure.
     private static func buildCPUCity(in manager: SceneManager) {
         manager.worldBounds = CGSize(width: 36, height: 24)
         let root = manager.scene.rootNode
         
-        // Cyberpunk sky — deep indigo with cyan horizon glow
+        // Cyberpunk sky  - deep indigo with cyan horizon glow
         manager.scene.background.contents = SceneManager.makeGradientSky(
             topColor: UIColor(red: 0.05, green: 0.03, blue: 0.16, alpha: 1),
             midColor: UIColor(red: 0.08, green: 0.06, blue: 0.22, alpha: 1),
@@ -418,7 +415,7 @@ struct WorldBuilder {
             hNode.runAction(SCNAction.repeatForever(pulse))
         }
         
-        // ── Server Monoliths — tall dark towers lining corridors ──
+        // ── Server Monoliths  - tall dark towers lining corridors ──
         let darkColor = UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1)
         
         // Left corridor wall
@@ -427,12 +424,12 @@ struct WorldBuilder {
             (-14, -1, 1.8, 5, 1.4),  (-14, 3, 1.8, 7, 1.4),
             (-14, 7, 1.8, 4, 1.4),   (-14, 10, 1.8, 6, 1.4),
         ]
-        // Right corridor wall — gap near center for portal access
+        // Right corridor wall  - gap near center for portal access
         // Notice we removed the front-facing buildings (z > 0) so the camera doesn't get blocked
         let rightWall: [(x: Float, z: Float, w: CGFloat, h: CGFloat, l: CGFloat)] = [
             (14, -8, 1.8, 7, 1.4),   (14, -4, 1.8, 5, 1.4)
         ]
-        // Inner structures — processing nodes deeper in the scene (cleared near right for portal)
+        // Inner structures  - processing nodes deeper in the scene (cleared near right for portal)
         let innerStructures: [(x: Float, z: Float, w: CGFloat, h: CGFloat, l: CGFloat)] = [
             (-7, -8, 1.5, 4, 1.5),    (3, -7, 2, 5, 1.5),
             (-8, 8, 1.5, 3, 1.5),     (6, 8, 2, 4.5, 1.5),
@@ -451,7 +448,7 @@ struct WorldBuilder {
         
         // ── Holographic Data Columns Removed ──
         
-        // ── Data Stream Lanes — animated glowing pathways ──
+        // ── Data Stream Lanes  - animated glowing pathways ──
         // Main horizontal throughway (Neon rails with glass center)
         let railMat = SCNMaterial()
         railMat.diffuse.contents = P.cyan
@@ -527,7 +524,7 @@ struct WorldBuilder {
             root.addChildNode(vGlassNode)
         }
         
-        // ── Floating Processing Nodes — rotating wireframe cubes ──
+        // ── Floating Processing Nodes  - rotating wireframe cubes ──
         let floatingCubePositions: [(x: Float, y: Float, z: Float, size: CGFloat, color: UIColor)] = [
             (-4, 4, -5, 0.5, P.magenta), (7, 5, -3, 0.6, P.cyan),
             (-9, 3.5, 2, 0.4, P.violet), (3, 6, 4, 0.55, P.amber),
@@ -607,7 +604,7 @@ struct WorldBuilder {
             root.addChildNode(particle)
         }
         
-        // ── Ground-level haze — large very faint disc simulating fog on floor ──
+        // ── Ground-level haze  - large very faint disc simulating fog on floor ──
         let haze = SCNCylinder(radius: 20, height: 0.01)
         let hazeMat = SCNMaterial()
         hazeMat.diffuse.contents = P.cyan.withAlphaComponent(0.015)
@@ -622,7 +619,7 @@ struct WorldBuilder {
         // ── Sign Panel ──
         root.addChildNode(makeSignPanel(color: P.cyan, at: SCNVector3(0, 9, -13)))
         
-        // ── Lighting — multi-colored for depth and drama ──
+        // ── Lighting  - multi-colored for depth and drama ──
         // Cyan spot from front-left
         let spot1 = SCNLight()
         spot1.type = .spot
@@ -664,20 +661,20 @@ struct WorldBuilder {
         spot3Node.eulerAngles = SCNVector3(-Float.pi / 4, Float.pi, 0)
         root.addChildNode(spot3Node)
         
-        // ── Ambient NPC Packets — flowing along the main data lane ──
+        // ── Ambient NPC Packets  - flowing along the main data lane ──
         makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.cyan, flowDirection: SCNVector3(1, 0, 0))
         
         manager.resetPlayerPosition(to: SCNVector3(-12, 0, 0))
     }
     
     // MARK: - WiFi Antenna (Act 2a)
-    // Dramatic industrial rooftop broadcast tower — antenna dominates the center,
+    // Dramatic industrial rooftop broadcast tower  - antenna dominates the center,
     // elevated catwalks, equipment racks, satellite dishes, pulsing signal waves
     private static func buildWiFiAntenna(in manager: SceneManager) {
         manager.worldBounds = CGSize(width: 34, height: 26)
         let root = manager.scene.rootNode
         
-        // Atmosphere — dark sky with green/teal gradient
+        // Atmosphere  - dark sky with green/teal gradient
         manager.scene.background.contents = SceneManager.makeGradientSky(
             topColor: UIColor(red: 0.03, green: 0.06, blue: 0.05, alpha: 1),
             midColor: UIColor(red: 0.05, green: 0.10, blue: 0.08, alpha: 1),
@@ -728,21 +725,21 @@ struct WorldBuilder {
         baseWireNode.position = SCNVector3(0, 0.2, 0)
         root.addChildNode(baseWireNode)
         
-        // Tower lower section — thick
+        // Tower lower section  - thick
         let towerLower = SCNCylinder(radius: 0.6, height: 3)
         towerLower.materials = [metalMat]
         let towerLowerNode = SCNNode(geometry: towerLower)
         towerLowerNode.position = SCNVector3(0, 1.9, 0)
         root.addChildNode(towerLowerNode)
         
-        // Tower mid section — medium
+        // Tower mid section  - medium
         let towerMid = SCNCylinder(radius: 0.35, height: 5)
         towerMid.materials = [metalMat]
         let towerMidNode = SCNNode(geometry: towerMid)
         towerMidNode.position = SCNVector3(0, 5.9, 0)
         root.addChildNode(towerMidNode)
         
-        // Tower upper section — thin
+        // Tower upper section  - thin
         let towerUpper = SCNCylinder(radius: 0.15, height: 4)
         towerUpper.materials = [metalMat]
         let towerUpperNode = SCNNode(geometry: towerUpper)
@@ -775,7 +772,7 @@ struct WorldBuilder {
             armTip.runAction(SCNAction.repeatForever(SCNAction.sequence([blinkOn, wait, blinkOff, wait])))
         }
         
-        // Support struts — diagonal braces from base to mid tower
+        // Support struts  - diagonal braces from base to mid tower
         for angle: Float in [Float.pi / 4, Float.pi * 3 / 4, Float.pi * 5 / 4, Float.pi * 7 / 4] {
             let strut = SCNCylinder(radius: 0.04, height: 6)
             strut.materials = [metalMat]
@@ -787,7 +784,7 @@ struct WorldBuilder {
             root.addChildNode(strutNode)
         }
         
-        // Antenna tip — bright glowing sphere
+        // Antenna tip  - bright glowing sphere
         let tip = SCNSphere(radius: 0.4)
         let tipMat = SCNMaterial()
         tipMat.diffuse.contents = P.lime
@@ -812,7 +809,7 @@ struct WorldBuilder {
         tipLight.attenuationEndDistance = 18
         tipNode.light = tipLight
         
-        // Warning beacon at top — rotating red blink
+        // Warning beacon at top  - rotating red blink
         let beacon = SCNSphere(radius: 0.12)
         let beaconMat = SCNMaterial()
         beaconMat.diffuse.contents = UIColor.red
@@ -832,7 +829,7 @@ struct WorldBuilder {
         registerBox(manager, x: 0, z: 0, w: 2.5, l: 2.5)
         
         // ══════════════════════════════════════════════
-        // ── WiFi WAVE RINGS — dramatic pulsing signal ──
+        // ── WiFi WAVE RINGS  - dramatic pulsing signal ──
         // ══════════════════════════════════════════════
         for i in 0..<5 {
             let ringRadius = CGFloat(1.8 + Double(i) * 2.0)
@@ -876,7 +873,7 @@ struct WorldBuilder {
         }
         
         // ══════════════════════════════════════════════
-        // ── ELEVATED CATWALKS — adds depth & verticality ──
+        // ── ELEVATED CATWALKS  - adds depth & verticality ──
         // ══════════════════════════════════════════════
         
         // Catwalk ring around the antenna at height 1.5
@@ -919,7 +916,7 @@ struct WorldBuilder {
                 root.addChildNode(postNode)
             }
             
-            // Collision — axis-aligned bounding box for the catwalk
+            // Collision  - axis-aligned bounding box for the catwalk
             // Rotated walkways: swap width/length based on orientation
             let isHorizontal = abs(sin(angle)) > 0.5  // angle ≈ π/2 or 3π/2
             let collW: CGFloat = isHorizontal ? 1.2 : 6
@@ -928,7 +925,7 @@ struct WorldBuilder {
         }
         
         // ══════════════════════════════════════════════
-        // ── SATELLITE DISHES — larger, more dramatic ──
+        // ── SATELLITE DISHES  - larger, more dramatic ──
         // ══════════════════════════════════════════════
         let dishPositions: [(x: Float, z: Float, scale: Float, tilt: Float)] = [
             (8, -6, 1.3, -0.4),
@@ -1000,7 +997,7 @@ struct WorldBuilder {
         registerBox(manager, x: 5, z: -9, w: 2, l: 1)
         
         // ══════════════════════════════════════════════
-        // ── CABLE CONDUITS — across the rooftop ──
+        // ── CABLE CONDUITS  - across the rooftop ──
         // ══════════════════════════════════════════════
         for z: Float in [-5, 0, 5, 9] {
             root.addChildNode(makePipe(from: SCNVector3(-14, 0.2, z), to: SCNVector3(14, 0.2, z), radius: 0.04, color: P.lime))
@@ -1015,7 +1012,7 @@ struct WorldBuilder {
         root.addChildNode(makePipe(from: SCNVector3(-14, 5, 6), to: SCNVector3(14, 5, 6), radius: 0.05, color: P.lime))
         
         // ══════════════════════════════════════════════
-        // ── SIGNAL STRENGTH INDICATORS — vertical light bars ──
+        // ── SIGNAL STRENGTH INDICATORS  - vertical light bars ──
         // ══════════════════════════════════════════════
         let barPositions: [(x: Float, z: Float)] = [(-4, -10), (4, -10), (-4, 10), (4, 10)]
         for barPos in barPositions {
@@ -1045,7 +1042,7 @@ struct WorldBuilder {
         }
         
         // ══════════════════════════════════════════════
-        // ── ROOFTOP EDGE — low wall perimeter ──
+        // ── ROOFTOP EDGE  - low wall perimeter ──
         // ══════════════════════════════════════════════
         let edgePositions: [(x: Float, z: Float, w: CGFloat, l: CGFloat)] = [
             (0, -12, 30, 0.3),   // back edge
@@ -1094,7 +1091,7 @@ struct WorldBuilder {
         }
         
         // ══════════════════════════════════════════════
-        // ── LIGHTING — dramatic multi-color setup ──
+        // ── LIGHTING  - dramatic multi-color setup ──
         // ══════════════════════════════════════════════
         
         // Main lime spot from above-front
@@ -1159,12 +1156,12 @@ struct WorldBuilder {
     }
     
     // MARK: - Router Station (Act 2b)
-    // Underground subway station — platforms, rails, overhead pipes, signage
+    // Underground subway station  - platforms, rails, overhead pipes, signage
     private static func buildRouterStation(in manager: SceneManager) {
         manager.worldBounds = CGSize(width: 32, height: 20)
         let root = manager.scene.rootNode
         
-        // Station atmosphere — warm amber-tinted sky, brighter than default
+        // Station atmosphere  - warm amber-tinted sky, brighter than default
         manager.scene.background.contents = SceneManager.makeGradientSky(
             topColor: UIColor(red: 0.08, green: 0.06, blue: 0.16, alpha: 1),
             midColor: UIColor(red: 0.14, green: 0.10, blue: 0.22, alpha: 1),
@@ -1185,7 +1182,7 @@ struct WorldBuilder {
         let floor = makeGroundPlane(width: 36, length: 24, baseColor: floorColor, accentColor: P.amber)
         root.addChildNode(floor)
         
-        // Track rails — embedded glowing lines
+        // Track rails  - embedded glowing lines
         for i in -2...2 {
             let rail = SCNBox(width: 30, height: 0.06, length: 0.08, chamferRadius: 0.02)
             let railMat = SCNMaterial()
@@ -1197,7 +1194,7 @@ struct WorldBuilder {
             root.addChildNode(railNode)
         }
         
-        // Platform pillars — thick metallic columns
+        // Platform pillars  - thick metallic columns
         for x in stride(from: -12, through: 12, by: 6) {
             for z in [-8, 8] as [Float] {
                 root.addChildNode(makePillar(radius: 0.3, height: 6, color: P.amber, at: SCNVector3(Float(x), 0, z)))
@@ -1210,7 +1207,7 @@ struct WorldBuilder {
             root.addChildNode(makePipe(from: SCNVector3(-15, 5.5, z), to: SCNVector3(15, 5.5, z), radius: 0.07, color: P.amber))
         }
         
-        // Platform walls — back walls with detail
+        // Platform walls  - back walls with detail
         for z: Float in [-10, 10] {
             let wall = SCNBox(width: 32, height: 6, length: 0.3, chamferRadius: 0)
             let wMat = SCNMaterial()
@@ -1228,7 +1225,7 @@ struct WorldBuilder {
         root.addChildNode(makeSignPanel(color: UIColor.systemBlue, width: 3, height: 0.8, at: SCNVector3(-8, 4.5, -9.5)))
         root.addChildNode(makeSignPanel(color: UIColor.systemGreen, width: 3, height: 0.8, at: SCNVector3(8, 4.5, -9.5)))
         
-        // Data trains — glowing spheres racing along rails
+        // Data trains  - glowing spheres racing along rails
         for rail in 0..<3 {
             for offset in 0..<2 {
                 let trainLight = SCNNode()
@@ -1247,7 +1244,7 @@ struct WorldBuilder {
             }
         }
         
-        // Spot lights from ceiling — boosted for visibility
+        // Spot lights from ceiling  - boosted for visibility
         for x: Float in [-8, 0, 8] {
             let spot = SCNLight()
             spot.type = .spot
@@ -1283,16 +1280,16 @@ struct WorldBuilder {
         // Packets rushing through the station
         makeAmbientPacket(in: root, bounds: manager.worldBounds, accentColor: P.amber, yRange: 0.5...3.0, flowDirection: SCNVector3(1, 0, 0))
         
-        // Use default camera — matches all other scenes for consistent framing
+        // Use default camera  - matches all other scenes for consistent framing
         
         manager.resetPlayerPosition(to: SCNVector3(-10, 0, 0))
     }
     
     // MARK: - Ocean Cable (Act 3)
-    // Undersea fiber optic cable run — player travels INSIDE a long glowing tube
+    // Undersea fiber optic cable run  - player travels INSIDE a long glowing tube
     // across the ocean floor. Bioluminescent deep-sea environment outside the glass.
     private static func buildOceanCable(in manager: SceneManager) {
-        // Long corridor — player is constrained inside the cable tube
+        // Long corridor  - player is constrained inside the cable tube
         let cableLength: Float = 80
         let cableRadius: Float = 2.8
         manager.worldBounds = CGSize(width: CGFloat(cableLength), height: CGFloat(cableRadius * 1.4))
@@ -1314,7 +1311,7 @@ struct WorldBuilder {
         manager.scene.fogStartDistance = 35
         manager.scene.fogEndDistance = 80
         
-        // ── Deep ocean floor — visible far below through the glass ──
+        // ── Deep ocean floor  - visible far below through the glass ──
         let oceanFloor = SCNPlane(width: 300, height: 300)
         let floorMat = SCNMaterial()
         floorMat.diffuse.contents = UIColor(red: 0.04, green: 0.08, blue: 0.18, alpha: 1)
@@ -1327,11 +1324,11 @@ struct WorldBuilder {
         root.addChildNode(floorNode)
         
         // ══════════════════════════════════════════════
-        // ── MAIN FIBER OPTIC CABLE — glass tube the player runs through ──
+        // ── MAIN FIBER OPTIC CABLE  - glass tube the player runs through ──
         // ══════════════════════════════════════════════
         let tubeLength = CGFloat(cableLength + 20)
         
-        // Outer glass shell — translucent, glowing blue-green
+        // Outer glass shell  - translucent, glowing blue-green
         let outerTube = SCNCylinder(radius: CGFloat(cableRadius), height: tubeLength)
         outerTube.radialSegmentCount = 32
         let outerMat = SCNMaterial()
@@ -1346,7 +1343,7 @@ struct WorldBuilder {
         outerNode.eulerAngles = SCNVector3(0, 0, Float.pi / 2)
         root.addChildNode(outerNode)
         
-        // Wireframe overlay on the tube — hexagonal feel
+        // Wireframe overlay on the tube  - hexagonal feel
         let wireTube = SCNCylinder(radius: CGFloat(cableRadius) + 0.02, height: tubeLength)
         wireTube.radialSegmentCount = 6
         let wireMat = SCNMaterial()
@@ -1360,7 +1357,7 @@ struct WorldBuilder {
         wireNode.eulerAngles = outerNode.eulerAngles
         root.addChildNode(wireNode)
         
-        // Inner floor walkway — the actual surface the player walks on
+        // Inner floor walkway  - the actual surface the player walks on
         let walkway = SCNBox(width: tubeLength, height: 0.08, length: CGFloat(cableRadius) * 1.4, chamferRadius: 0.02)
         let walkMat = SCNMaterial()
         walkMat.diffuse.contents = UIColor(red: 0.06, green: 0.12, blue: 0.22, alpha: 1)
@@ -1394,7 +1391,7 @@ struct WorldBuilder {
         }
         
         // ══════════════════════════════════════════════
-        // ── DATA PULSES — light orbs racing through the cable ──
+        // ── DATA PULSES  - light orbs racing through the cable ──
         // ══════════════════════════════════════════════
         let pulseColors: [UIColor] = [P.cyan, P.cyan, P.lime, P.cyan, P.magenta, P.cyan, P.violet, P.cyan]
         for i in 0..<8 {
@@ -1424,7 +1421,7 @@ struct WorldBuilder {
         }
         
         // ══════════════════════════════════════════════
-        // ── RING MARKERS — periodic glowing rings inside the tube ──
+        // ── RING MARKERS  - periodic glowing rings inside the tube ──
         // ══════════════════════════════════════════════
         let ringSpacing: Float = 8
         var ringX: Float = -cableLength / 2
@@ -1452,7 +1449,7 @@ struct WorldBuilder {
         // ── OCEAN SCENERY OUTSIDE THE CABLE (decorative, no collision) ──
         // ══════════════════════════════════════════════
         
-        // Coral formations outside the tube — visible through the glass
+        // Coral formations outside the tube  - visible through the glass
         let coralPositions: [(x: Float, z: Float, color: UIColor, size: CGFloat)] = [
             (-30, -8, P.coral, 1.8),  (-20, 9, P.magenta, 1.4),
             (-10, -10, P.violet, 1.6), (0, 10, P.coral, 2.0),
@@ -1541,7 +1538,7 @@ struct WorldBuilder {
         }
         
         // ══════════════════════════════════════════════
-        // ── LIGHTING — bright underwater glow ──
+        // ── LIGHTING  - bright underwater glow ──
         // ══════════════════════════════════════════════
         
         // Overhead caustic-style lights along the cable
@@ -1582,12 +1579,12 @@ struct WorldBuilder {
     }
     
     // MARK: - DNS Library (Act 4)
-    // Mystical library — towering shelves, floating books, purple haze
+    // Mystical library  - towering shelves, floating books, purple haze
     private static func buildDNSLibrary(in manager: SceneManager) {
         manager.worldBounds = CGSize(width: 32, height: 24)
         let root = manager.scene.rootNode
         
-        // Mystical library atmosphere — deep indigo-blue with warm amber undertones
+        // Mystical library atmosphere  - deep indigo-blue with warm amber undertones
         manager.scene.background.contents = SceneManager.makeGradientSky(
             topColor: UIColor(red: 0.06, green: 0.05, blue: 0.18, alpha: 1),
             midColor: UIColor(red: 0.10, green: 0.08, blue: 0.24, alpha: 1),
@@ -1604,14 +1601,14 @@ struct WorldBuilder {
         manager.scene.fogStartDistance = 40
         manager.scene.fogEndDistance = 80
         
-        // Polished floor — dark with warm amber grid lines
+        // Polished floor  - dark with warm amber grid lines
         // ── Ground: dark glass mirror ──
         let floorColor = UIColor(red: 0.10, green: 0.12, blue: 0.16, alpha: 1)
         let floor = makeGroundPlane(width: 36, length: 28, baseColor: floorColor, accentColor: P.amber)
         root.addChildNode(floor)
         
         // ══════════════════════════════════════════════
-        // ── BOOKSHELVES — open-face units with visible books ──
+        // ── BOOKSHELVES  - open-face units with visible books ──
         // ══════════════════════════════════════════════
         let shelfPositions: [(x: Float, z: Float, h: CGFloat, tiers: Int)] = [
             (-12, -8, 5, 4), (-12, -2, 4, 3), (-12, 4, 5, 4), (-12, 9, 3.5, 3),
@@ -1620,7 +1617,7 @@ struct WorldBuilder {
             (12, -4, 5, 4), (12, 3, 4, 3), (12, 8, 5, 4),
         ]
         
-        // Warm dark-wood cyber material — NOT purple
+        // Warm dark-wood cyber material  - NOT purple
         let woodDark = UIColor(red: 0.14, green: 0.09, blue: 0.06, alpha: 1)
         let woodMid  = UIColor(red: 0.22, green: 0.14, blue: 0.08, alpha: 1)
         let woodEdge = UIColor(red: 0.55, green: 0.35, blue: 0.15, alpha: 1)   // warm amber edge
@@ -1693,7 +1690,7 @@ struct WorldBuilder {
                 plankNode.position = SCNVector3(0, shelfY + Float(panelThickness / 2), 0)
                 shelfNode.addChildNode(plankNode)
                 
-                // ── Books on this shelf — varied sizes, colorful spines ──
+                // ── Books on this shelf  - varied sizes, colorful spines ──
                 let numBooks = Int.random(in: 5...8)
                 var xCursor: Float = -Float(shelfWidth / 2) + 0.15
                 let maxX: Float = Float(shelfWidth / 2) - 0.15
@@ -1758,7 +1755,7 @@ struct WorldBuilder {
             edgeNode.position = SCNVector3(0, Float(totalH) + Float(panelThickness) + 0.02, 0)
             shelfNode.addChildNode(edgeNode)
             
-            // ── Warm light per shelf — amber/gold instead of purple ──
+            // ── Warm light per shelf  - amber/gold instead of purple ──
             let shelfLight = SCNLight()
             shelfLight.type = .omni
             shelfLight.color = UIColor(red: 1.0, green: 0.85, blue: 0.55, alpha: 1) // warm amber
@@ -1775,7 +1772,7 @@ struct WorldBuilder {
             registerBox(manager, x: shelf.x, z: shelf.z, w: shelfWidth, l: shelfDepth)
         }
         
-        // Central reading desk — dark wood with warm amber trim
+        // Central reading desk  - dark wood with warm amber trim
         let desk = SCNBox(width: 4, height: 0.8, length: 2.5, chamferRadius: 0.08)
         let deskMat = SCNMaterial()
         deskMat.diffuse.contents = UIColor(red: 0.16, green: 0.10, blue: 0.06, alpha: 1)
@@ -1799,7 +1796,7 @@ struct WorldBuilder {
         root.addChildNode(deskWireNode)
         registerBox(manager, x: 0, z: 0, w: 4, l: 2.5)
         
-        // Desk lamp light — warm amber glow from above the desk
+        // Desk lamp light  - warm amber glow from above the desk
         let deskLight = SCNLight()
         deskLight.type = .omni
         deskLight.color = UIColor(red: 1.0, green: 0.82, blue: 0.5, alpha: 1)
@@ -1837,7 +1834,7 @@ struct WorldBuilder {
         holoLight.attenuationEndDistance = 8
         holoNode.light = holoLight
         
-        // Scene-wide spot lights — warm-tinted, pointing down for shelf illumination
+        // Scene-wide spot lights  - warm-tinted, pointing down for shelf illumination
         let librarySpots: [(x: Float, z: Float)] = [(-12, -5), (-12, 5), (-6, 0), (6, 0), (12, -5), (12, 5), (0, -8), (0, 8)]
         for spot in librarySpots {
             let sLight = SCNLight()
@@ -1857,7 +1854,7 @@ struct WorldBuilder {
             root.addChildNode(sNode)
         }
         
-        // Large ambient fill lights — warm amber-violet blend
+        // Large ambient fill lights  - warm amber-violet blend
         let fillPositions: [(x: Float, z: Float)] = [(-8, -4), (-8, 4), (0, 0), (8, -4), (8, 4)]
         for fill in fillPositions {
             let fLight = SCNLight()
@@ -1872,7 +1869,7 @@ struct WorldBuilder {
             root.addChildNode(fNode)
         }
         
-        // Key directional light — warm white for natural illumination
+        // Key directional light  - warm white for natural illumination
         let keyLight = SCNLight()
         keyLight.type = .directional
         keyLight.color = UIColor(red: 0.9, green: 0.82, blue: 0.7, alpha: 1)
@@ -1885,7 +1882,7 @@ struct WorldBuilder {
         keyNode.eulerAngles = SCNVector3(-Float.pi / 3, 0, 0)
         root.addChildNode(keyNode)
         
-        // Floating knowledge orbs — larger and brighter
+        // Floating knowledge orbs  - larger and brighter
         for _ in 0..<20 {
             let orb = makeDataParticle(
                 color: [P.violet, P.magenta, P.cyan].randomElement()!,
@@ -1895,7 +1892,7 @@ struct WorldBuilder {
             root.addChildNode(orb)
         }
         
-        // Floating rune rings — mystical decoration around the library
+        // Floating rune rings  - mystical decoration around the library
         for i in 0..<4 {
             let runeRing = SCNTorus(ringRadius: CGFloat.random(in: 1.5...3.0), pipeRadius: 0.04)
             let runeMat = SCNMaterial()
@@ -1919,12 +1916,12 @@ struct WorldBuilder {
     }
     
     // MARK: - Return Journey (Act 5)
-    // Urgent high-speed corridor — amber/coral streaks, flashing lights, tunnel rush
+    // Urgent high-speed corridor  - amber/coral streaks, flashing lights, tunnel rush
     private static func buildReturnJourney(in manager: SceneManager) {
         manager.worldBounds = CGSize(width: 30, height: 16)
         let root = manager.scene.rootNode
         
-        // Hot atmosphere — warm amber/coral sky for urgency
+        // Hot atmosphere  - warm amber/coral sky for urgency
         manager.scene.background.contents = SceneManager.makeGradientSky(
             topColor: UIColor(red: 0.12, green: 0.04, blue: 0.04, alpha: 1),
             midColor: UIColor(red: 0.18, green: 0.08, blue: 0.06, alpha: 1),
@@ -1939,7 +1936,7 @@ struct WorldBuilder {
         let floor = makeGroundPlane(width: 34, length: 20, baseColor: floorColor, accentColor: P.coral)
         root.addChildNode(floor)
         
-        // Tunnel walls — solid panels with neon trim
+        // Tunnel walls  - solid panels with neon trim
         for side in [-1, 1] as [Float] {
             // Continuous wall panels
             for i in 0..<6 {

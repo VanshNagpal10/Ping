@@ -1,6 +1,6 @@
 //
 //  ExplorationView3D.swift
-//  Ping - Packet World
+//  Ping
 //
 
 import SwiftUI

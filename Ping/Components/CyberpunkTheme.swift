@@ -1,6 +1,6 @@
 //
 //  CyberpunkTheme.swift
-//  Ping - Packet World
+//  Ping
 //
 //  Design system for a lavish, neon cyberpunk aesthetic.
 //

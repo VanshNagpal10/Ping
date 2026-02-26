@@ -1,7 +1,7 @@
 //
 //  QuizView.swift
-//  Ping - Packet World
-//  Level-end quiz overlay — tests concepts taught in each scene
+//  Ping
+//  Level-end quiz overlay  - tests concepts taught in each scene
 //
 
 import SwiftUI

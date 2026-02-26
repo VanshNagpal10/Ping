@@ -1,5 +1,5 @@
 //  PingApp.swift
-//  Ping - Packet World
+//  Ping
 //
 //  A Narrative Journey Through the Internet
 //

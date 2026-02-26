@@ -1,8 +1,8 @@
 //
 //  SceneManager.swift
-//  Ping - Packet World
+//  Ping
 //
-//  SceneKit 3D scene manager — neon cyberpunk aesthetic
+//  SceneKit 3D scene manager  - neon cyberpunk aesthetic
 //
 
 import SceneKit
@@ -25,7 +25,7 @@ class SceneManager: ObservableObject {
     // World boundaries
     var worldBounds: CGSize = CGSize(width: 30, height: 20)
     
-    // Obstacle collision — simple AABB rects on the XZ plane
+    // Obstacle collision  - simple AABB rects on the XZ plane
     struct ObstacleRect {
         let minX: Float
         let maxX: Float
@@ -105,7 +105,7 @@ class SceneManager: ObservableObject {
     
     // MARK: - Lighting
     private func setupLighting() {
-        // Key light — warm amber from above-right
+        // Key light  - warm amber from above-right
         let keyLight = SCNLight()
         keyLight.type = .directional
         keyLight.color = UIColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
@@ -120,7 +120,7 @@ class SceneManager: ObservableObject {
         keyNode.eulerAngles = SCNVector3(-Float.pi / 3, Float.pi / 5, 0)
         scene.rootNode.addChildNode(keyNode)
         
-        // Fill light — cool cyan from left (kept subtle to avoid washing everything)
+        // Fill light  - cool cyan from left (kept subtle to avoid washing everything)
         let fillLight = SCNLight()
         fillLight.type = .directional
         fillLight.color = Palette.cyan
@@ -130,7 +130,7 @@ class SceneManager: ObservableObject {
         fillNode.eulerAngles = SCNVector3(-Float.pi / 4, -Float.pi / 3, 0)
         scene.rootNode.addChildNode(fillNode)
         
-        // Ambient — dark purple tint, low intensity for deep shadows
+        // Ambient  - dark purple tint, low intensity for deep shadows
         let ambient = SCNLight()
         ambient.type = .ambient
         ambient.color = UIColor(red: 0.10, green: 0.06, blue: 0.18, alpha: 1)
@@ -142,10 +142,10 @@ class SceneManager: ObservableObject {
     
     // MARK: - Player
     private func setupPlayer() {
-        // Cute robot packet character — replace with .usdz model later
+        // Cute robot packet character  - replace with .usdz model later
         playerNode = SCNNode()
         
-        // Body — rounded box with metallic finish
+        // Body  - rounded box with metallic finish
         let body = SCNBox(width: 0.9, height: 1.0, length: 0.9, chamferRadius: 0.25)
         let bodyMat = SCNMaterial()
         bodyMat.diffuse.contents = UIColor(red: 0.88, green: 0.90, blue: 0.92, alpha: 1)
@@ -156,7 +156,7 @@ class SceneManager: ObservableObject {
         bodyNode.name = "body"
         bodyNode.position = SCNVector3(0, 0.55, 0)
         
-        // Head — slightly bigger rounded box
+        // Head  - slightly bigger rounded box
         let head = SCNBox(width: 0.95, height: 0.7, length: 0.85, chamferRadius: 0.2)
         let headMat = SCNMaterial()
         headMat.diffuse.contents = UIColor(red: 0.92, green: 0.93, blue: 0.95, alpha: 1)
@@ -166,7 +166,7 @@ class SceneManager: ObservableObject {
         let headNode = SCNNode(geometry: head)
         headNode.position = SCNVector3(0, 1.4, 0)
         
-        // Visor — glowing face plate
+        // Visor  - glowing face plate
         let visor = SCNBox(width: 0.75, height: 0.35, length: 0.05, chamferRadius: 0.1)
         let visorMat = SCNMaterial()
         visorMat.diffuse.contents = UIColor.black
@@ -288,7 +288,7 @@ class SceneManager: ObservableObject {
         newX = max(-halfW, min(halfW, newX))
         newZ = max(-halfH, min(halfH, newZ))
         
-        // Obstacle collision — resolve each axis independently for sliding
+        // Obstacle collision  - resolve each axis independently for sliding
         let r = playerRadius
         let oldX = playerNode.position.x
         let oldZ = playerNode.position.z
@@ -319,7 +319,7 @@ class SceneManager: ObservableObject {
         
         playerNode.position = SCNVector3(finalX, playerNode.position.y, finalZ)
         
-        // Rotate to face movement direction (quaternion slerp — no gimbal flip)
+        // Rotate to face movement direction (quaternion slerp  - no gimbal flip)
         if abs(dx) > 0.001 || abs(dz) > 0.001 {
             let angle = atan2(dx, dz)
             let target = simd_quatf(angle: angle, axis: simd_float3(0, 1, 0))
@@ -530,7 +530,7 @@ class SceneManager: ObservableObject {
         archNode.eulerAngles = SCNVector3(Float.pi / 2, 0, 0)
         portal.addChildNode(archNode)
         
-        // Inner spinning ring — colored
+        // Inner spinning ring  - colored
         let innerRing = SCNTorus(ringRadius: 1.2, pipeRadius: 0.06)
         let innerMat = SCNMaterial()
         innerMat.diffuse.contents = color
@@ -541,7 +541,7 @@ class SceneManager: ObservableObject {
         innerNode.eulerAngles = SCNVector3(Float.pi / 2, 0, 0)
         portal.addChildNode(innerNode)
         
-        // Portal fill — glowing disc
+        // Portal fill  - glowing disc
         let disc = SCNCylinder(radius: 1.1, height: 0.02)
         let discMat = SCNMaterial()
         discMat.diffuse.contents = color.withAlphaComponent(0.15)

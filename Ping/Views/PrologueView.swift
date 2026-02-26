@@ -1,8 +1,6 @@
 //
 //  PrologueView.swift
-//  Ping - Packet World
-//
-//  Cinematic minimalist opening — black void, typewriter text, pure narrative.
+//  Ping
 //
 
 import SwiftUI
@@ -20,7 +18,7 @@ struct PrologueView: View {
 
     private let accent = Color(red: 0.0, green: 0.9, blue: 1.0)
 
-    // The narrative beats — each is a line that types on screen
+
     private let lines: [(text: String, size: CGFloat, weight: Font.Weight, delay: Double, color: Color?)] = [
         ("Every time you open an app…",              20, .medium,  1.0,  nil),
         ("a tiny packet of data is born.",            20, .medium,  4.5,  nil),
@@ -187,7 +185,7 @@ struct PrologueView: View {
                     Spacer()
                 }
                 
-                // ── Mission Briefing Popup ──
+                // Mission Briefing Popup
                 if showMissionBriefing {
                     MissionBriefingPopup(accent: accent) {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
@@ -246,7 +244,7 @@ struct PrologueView: View {
 }
 
 // MARK: - Mission Briefing Popup
-/// Glassmorphic "What You'll Learn" popup — elevator pitch for judges
+/// Glassmorphic "What You'll Learn" popup for judges
 struct MissionBriefingPopup: View {
     let accent: Color
     let onDismiss: () -> Void
@@ -305,7 +303,7 @@ struct MissionBriefingPopup: View {
                     .accessibilityHidden(true)
                 
                 // Pitch
-                Text("Ping teaches how the internet works — from TCP/IP protocols to encryption and DNS routing — through an interactive 3D adventure where you become a data packet.")
+                Text("Ping teaches how the internet works, from TCP/IP protocols to encryption and DNS routing, through an interactive 3D adventure where you become a data packet.")
                     .font(ScaledFont.scaledFont(size: 15, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.85))
                     .lineSpacing(5)

@@ -1,10 +1,6 @@
 //
 //  EpilogueView.swift
-//  Ping - Packet World
-//
-//  Mission complete — the payload is delivered.
-//  Clean, Apple-quality epilogue with scrollable results,
-//  concepts review, quiz breakdown, and replay.
+//  Ping
 //
 
 import SwiftUI
@@ -14,7 +10,7 @@ struct EpilogueView: View {
     let stats: JourneyStats
     let onReplay: () -> Void
 
-    // Clean palette — cool blues and teals, no harsh neon
+
     private let accent   = Color(red: 0.0, green: 0.82, blue: 0.88)
     private let mint     = Color(red: 0.3, green: 0.95, blue: 0.85)
     private let warmGold = Color(red: 1.0, green: 0.82, blue: 0.36)

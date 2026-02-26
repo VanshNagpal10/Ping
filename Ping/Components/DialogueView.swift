@@ -1,6 +1,6 @@
 //
 //  DialogueView.swift
-//  Ping - Packet World
+//  Ping
 //
 //  Dialogue system with typewriter effect
 //
@@ -59,7 +59,7 @@ struct DialogueOverlay: View {
                         }
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     } else if engine.showInventorySwap && !engine.inventorySwapCompleted {
-                        // Waiting for inventory swap — show hint
+                        // Waiting for inventory swap  - show hint
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up")
                                 .font(.system(size: 10, weight: .bold))
@@ -229,7 +229,7 @@ struct DialogueChoicesView: View {
 }
 
 // MARK: - Inventory Swap Puzzle
-/// Appears during the Firewall SSL check — player must tap the security slot to equip SSL.
+/// Appears during the Firewall SSL check  - player must tap the security slot to equip SSL.
 struct InventorySwapPuzzle: View {
     @ObservedObject var engine: GameEngine
     @State private var pulseSSL = false
@@ -268,7 +268,7 @@ struct InventorySwapPuzzle: View {
                     isTarget: false
                 )
                 
-                // Security Layer — THE TARGET
+                // Security Layer  - THE TARGET
                 Button {
                     if !engine.inventorySwapCompleted {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {

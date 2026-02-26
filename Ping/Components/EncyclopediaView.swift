@@ -1,6 +1,6 @@
 //
 //  EncyclopediaView.swift
-//  Ping - Packet World
+//  Ping
 //
 //  The Daemon's Encyclopedia - collected journal of networking terms
 //

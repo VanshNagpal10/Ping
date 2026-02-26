@@ -1,8 +1,6 @@
 //
 //  GameEngine.swift
-//  Ping - Packet World
-//
-//  Main game engine for the narrative adventure
+//  Ping
 //
 
 import SwiftUI
@@ -165,7 +163,7 @@ class GameEngine: ObservableObject {
         )
         npcs.append(daemon)
         
-        // Portal to WiFi — far right, opposite player spawn
+
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
@@ -187,14 +185,14 @@ class GameEngine: ObservableObject {
                 DialogueLine(speaker: "Security Gateway", text: "WARNING: You are attempting to transmit via HTTP. This plaintext protocol is unencrypted and vulnerable to interception.", learnedTerm: EncyclopediaTerm.term(for: "https")),
                 DialogueLine(speaker: "Security Gateway", text: "Access Denied. I cannot permit unsecured data to broadcast over open airwaves."),
                 DialogueLine(speaker: "Security Gateway", text: "You must equip a TLS/SSL certificate to encrypt your payload. Open your Layer Inventory and upgrade your security protocol.", learnedTerm: EncyclopediaTerm.term(for: "encryption")),
-                DialogueLine(speaker: "SYSTEM", text: "SECURITY CHECK — Open your Layers menu (top right) to equip HTTPS encryption on Layer 1.", action: .showInventorySwap),
+                DialogueLine(speaker: "SYSTEM", text: "SECURITY CHECK: Open your Layers menu (top right) to equip HTTPS encryption on Layer 1.", action: .showInventorySwap),
                 DialogueLine(speaker: "Security Gateway", text: "Scan complete. SSL Certificate verified. Your data is now securely encrypted."),
                 DialogueLine(speaker: "Security Gateway", text: "You are cleared for transmission. The antenna will convert your digital data into radio frequencies. Brace for broadcast.")
             ]
         )
         npcs.append(firewall)
         
-        // Portal — far right, opposite player spawn
+
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
@@ -217,8 +215,8 @@ class GameEngine: ObservableObject {
                 DialogueLine(speaker: "Core Router", text: "TCP provides reliable delivery with error-checking, but introduces slight latency.", learnedTerm: EncyclopediaTerm.term(for: "tcp")),
                 DialogueLine(speaker: "Core Router", text: "UDP maximizes speed by skipping verification, but risks permanent data loss if turbulence occurs.", learnedTerm: EncyclopediaTerm.term(for: "udp")),
                 DialogueLine(speaker: "Core Router", text: "Select your routing protocol for the ocean crossing:", choices: [
-                    DialogueChoice(text: "TCP — Prioritize Reliability", nextDialogueIndex: 7, action: .setTransportProtocol(.tcp)),
-                    DialogueChoice(text: "UDP — Prioritize Speed", nextDialogueIndex: 9, action: .setTransportProtocol(.udp))
+                    DialogueChoice(text: "TCP: Prioritize Reliability", nextDialogueIndex: 7, action: .setTransportProtocol(.tcp)),
+                    DialogueChoice(text: "UDP: Prioritize Speed", nextDialogueIndex: 9, action: .setTransportProtocol(.udp))
                 ]),
                 // Index 7 (TCP)
                 DialogueLine(speaker: "Core Router", text: "TCP acknowledged. Data integrity will be prioritized over speed."),
@@ -234,7 +232,7 @@ class GameEngine: ObservableObject {
         )
         npcs.append(routerGuard)
         
-        // Portal — far right, opposite player spawn
+
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
@@ -269,7 +267,7 @@ class GameEngine: ObservableObject {
             self.showCurrentDialogueLine()
         }
         
-        // Portal — far right end of the cable
+
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
@@ -291,15 +289,15 @@ class GameEngine: ObservableObject {
                 DialogueLine(speaker: "DNS Resolver", text: "Parsing application layer... You are requesting the host address for 'socialmedia.com'."),
                 DialogueLine(speaker: "DNS Resolver", text: "Searching authoritative zones... Match found. Generating IP response."),
                 DialogueLine(speaker: "DNS Resolver", text: "The IPv4 address is: 142.250.185.78. I am caching this result to expedite future lookups.", learnedTerm: EncyclopediaTerm.term(for: "ip_address")),
-                DialogueLine(speaker: "SYSTEM", text: "[Layer 2] Network Layer updated — Destination IP set to 142.250.185.78."),
-                DialogueLine(speaker: "SYSTEM", text: "[Layer 4] Application Layer updated — Payload swapped to IP Response Data."),
+                DialogueLine(speaker: "SYSTEM", text: "[Layer 2] Network Layer updated: Destination IP set to 142.250.185.78."),
+                DialogueLine(speaker: "SYSTEM", text: "[Layer 4] Application Layer updated: Payload swapped to IP Response Data."),
                 DialogueLine(speaker: "DNS Resolver", text: "Your routing headers are complete. Initiate the return sequence immediately."),
                 DialogueLine(speaker: "DNS Resolver", text: "The user's browser is waiting. If latency exceeds 500ms, the connection will time out.", learnedTerm: EncyclopediaTerm.term(for: "latency"))
             ]
         )
         npcs.append(librarian)
         
-        // Portal — far right, opposite player spawn
+
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
@@ -309,11 +307,11 @@ class GameEngine: ObservableObject {
     }
     
     private func setupReturnJourney() {
-        currentMission = "Navigate through heavy network traffic — the user is waiting!"
+        currentMission = "Navigate through heavy network traffic, the user is waiting!"
         packet.layers.applicationLayer = .ipResponse
         packet.layers.networkLayer.destinationIP = "142.250.185.78"
         
-        // Add a Load Balancer NPC to make Act 5 interactive
+
         let loadBalancer = NPC(
             type: .routerGuard,
             position: CGPoint(x: screenSize.width * 0.45, y: screenSize.height * 0.45),
@@ -327,7 +325,7 @@ class GameEngine: ObservableObject {
         )
         npcs.append(loadBalancer)
         
-        // Portal — far right, opposite player spawn
+
         let portal = InteractiveObject(
             type: .portal,
             position: CGPoint(x: screenSize.width * 0.9, y: screenSize.height * 0.5),
@@ -336,7 +334,7 @@ class GameEngine: ObservableObject {
         interactiveObjects.append(portal)
     }
     
-    /// 3D variant — tap-to-talk with the nearest NPC in range.
+    /// Tap-to-talk with the nearest NPC in range.
     func interactWithNearby3DNPC() {
         guard !isDialogueActive else { return }
         if let nearestNPCID = sceneManager.nearestNPCInRange(range: 3.0),
@@ -347,7 +345,7 @@ class GameEngine: ObservableObject {
                 startDialogue(with: npc)
                 npcs[npcIndex].hasSpoken = true
                 
-                // Hide the floating quest marker now that we've talked to them
+
                 sceneManager.hideQuestMarker(for: nearestNPCID)
             }
         }
@@ -355,7 +353,7 @@ class GameEngine: ObservableObject {
     
     // MARK: - Dialogue System
     func startDialogue(with npc: NPC) {
-        // Stop all movement when dialogue begins
+
         joystickDirection = .zero
         gameLoop3DTimer?.invalidate()
         gameLoop3DTimer = nil
@@ -375,7 +373,7 @@ class GameEngine: ObservableObject {
         
         let line = currentDialogue[currentDialogueIndex]
         
-        // Kill any previous typewriter timer to prevent garbled text
+
         typewriterTimer?.invalidate()
         typewriterTimer = nil
         
@@ -384,54 +382,52 @@ class GameEngine: ObservableObject {
         activeChoices = nil
         showInventorySwap = false
         
-        // Check for learned term
+
         if let term = line.learnedTerm {
             learnTerm(term)
         }
         
-        // If this is a layer update from Daemon, update packet layers
+
         if line.speaker == "SYSTEM" {
             if line.text.contains("Application Layer") && line.text.contains("GET socialmedia.com") {
                 packet.layers.applicationLayer = .dnsQuery
             }
         }
         
-        // Typewriter effect
+
         let fullText = line.text
         var charIndex = 0
         
-        // Start typewriter sound (stops any previous one)
+
         SoundManager.shared.startTypewriterSound()
         
         typewriterTimer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] timer in
-            guard let self = self, charIndex < fullText.count else {
-                timer.invalidate()
-                self?.typewriterTimer = nil
-                DispatchQueue.main.async {
-                    // Stop the typewriter sound the moment text is fully displayed
+            MainActor.assumeIsolated {
+                guard let self = self, charIndex < fullText.count else {
+                    timer.invalidate()
+                    self?.typewriterTimer = nil
+
                     SoundManager.shared.stopTypewriterSound()
                     self?.isTyping = false
-                    // After typewriter finishes, show choices if this line has them
+
                     if let choices = line.choices, !choices.isEmpty {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             self?.activeChoices = choices
                         }
                     }
-                    // Execute direct action on the line (e.g. showInventorySwap)
+
                     if let action = line.action {
                         self?.executeChoiceAction(action)
                     }
+                    return
                 }
-                return
-            }
-            
-            let index = fullText.index(fullText.startIndex, offsetBy: charIndex)
-            self.typewriterText += String(fullText[index])
-            charIndex += 1
-            
-            // Haptic tick every 3rd character for subtle typing feel
-            if charIndex % 3 == 0 {
-                DispatchQueue.main.async {
+                
+                let index = fullText.index(fullText.startIndex, offsetBy: charIndex)
+                self.typewriterText += String(fullText[index])
+                charIndex += 1
+                
+
+                if charIndex % 3 == 0 {
                     SoundManager.shared.playTypingHaptic()
                 }
             }
@@ -439,16 +435,16 @@ class GameEngine: ObservableObject {
     }
     
     func advanceDialogue() {
-        // If choices are showing, auto-select the first choice (TCP default)
+
         if let choices = activeChoices, let firstChoice = choices.first {
             selectChoice(firstChoice)
             return
         }
-        // Don't advance if inventory swap is pending
+
         if showInventorySwap && !inventorySwapCompleted { return }
         
         if isTyping {
-            // Skip typewriter and show full text immediately
+
             typewriterTimer?.invalidate()
             typewriterTimer = nil
             SoundManager.shared.stopTypewriterSound()
@@ -456,13 +452,13 @@ class GameEngine: ObservableObject {
                 let line = currentDialogue[currentDialogueIndex]
                 typewriterText = line.text
                 isTyping = false
-                // Show choices if present
+
                 if let choices = line.choices, !choices.isEmpty {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         activeChoices = choices
                     }
                 }
-                // Execute direct action on skip too
+
                 if let action = line.action {
                     executeChoiceAction(action)
                 }
@@ -478,12 +474,11 @@ class GameEngine: ObservableObject {
         SoundManager.shared.playButtonSound()
         stats.choicesMade.append(choice.text)
         
-        // Execute the choice's action
+
         if let action = choice.action {
             executeChoiceAction(action)
             
-            // For transport protocol choices, replace dialogue with branch-specific lines
-            // to prevent crossing into the other branch
+
             if case .setTransportProtocol(let proto) = action {
                 let ackText = proto == .tcp
                     ? "TCP acknowledged. Data integrity will be prioritized over speed."
@@ -502,7 +497,7 @@ class GameEngine: ObservableObject {
         
         activeChoices = nil
         
-        // Jump to specified dialogue index, or advance normally
+
         if let nextIndex = choice.nextDialogueIndex {
             currentDialogueIndex = nextIndex
         } else {
@@ -543,7 +538,7 @@ class GameEngine: ObservableObject {
             showInventorySwap = false
         }
         
-        // Auto-advance dialogue after a beat
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.currentDialogueIndex += 1
             self.showCurrentDialogueLine()
@@ -572,11 +567,11 @@ class GameEngine: ObservableObject {
         let quizQuestions = LevelQuizzes.quiz(for: currentScene)
         
         if !quizQuestions.isEmpty {
-            // Store where to go after quiz
+
             pendingSceneAfterQuiz = nextScene
             quizScene = currentScene
             
-            // Stop movement
+
             joystickDirection = .zero
             gameLoop3DTimer?.invalidate()
             gameLoop3DTimer = nil
@@ -585,7 +580,7 @@ class GameEngine: ObservableObject {
                 showQuiz = true
             }
         } else {
-            // No quiz for this scene — go straight
+
             transitionTo3DScene(nextScene)
         }
     }
@@ -601,7 +596,7 @@ class GameEngine: ObservableObject {
             showQuiz = false
         }
         
-        // Transition to the pending scene
+
         if let next = pendingSceneAfterQuiz {
             pendingSceneAfterQuiz = nil
             transitionTo3DScene(next)
@@ -675,21 +670,21 @@ class GameEngine: ObservableObject {
     
     /// Builds the 3D world and places NPCs / portals
     func build3DWorld(for scene: StoryScene) {
-        // Build the environment diorama
+
         WorldBuilder.buildScene(scene, in: sceneManager)
         
-        // Clear old mappings
+
         npcIDMap.removeAll()
         portalIDMap.removeAll()
         
-        // Place NPCs in 3D
+
         for (index, npc) in npcs.enumerated() {
             let pos3D = convertTo3DPosition(npc.position)
             sceneManager.addNPC(id: npc.id, type: npc.type, at: pos3D)
             npcIDMap[npc.id] = index
         }
         
-        // Place portals in 3D
+
         for (index, obj) in interactiveObjects.enumerated() {
             if obj.type == .portal {
                 let pos3D = convertTo3DPosition(obj.position)
@@ -710,8 +705,7 @@ class GameEngine: ObservableObject {
     
     /// Convert 2D screen position to 3D world position
     private func convertTo3DPosition(_ point: CGPoint) -> SCNVector3 {
-        // Map from screen-space to 3D world-space
-        // Screen center → (0,0,0), edges → world bounds
+
         let halfW = sceneManager.worldBounds.width / 2
         let halfH = sceneManager.worldBounds.height / 2
         
@@ -744,7 +738,9 @@ class GameEngine: ObservableObject {
     private func start3DGameLoop() {
         gameLoop3DTimer?.invalidate()
         gameLoop3DTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
-            self?.gameLoop3DTick()
+            MainActor.assumeIsolated {
+                self?.gameLoop3DTick()
+            }
         }
     }
     
@@ -755,15 +751,14 @@ class GameEngine: ObservableObject {
         
         sceneManager.movePlayer(direction: dir, speed: 0.18)
         
-        // Check for 3D interactions
+
         check3DInteractions()
     }
     
     private func check3DInteractions() {
         guard !isDialogueActive else { return }
         
-        // Check NPC proximity — only set nearbyNPCName for the "Talk" prompt.
-        // Dialogue is NOT auto-triggered; the user must tap to talk.
+
         if let nearestNPCID = sceneManager.nearestNPCInRange(range: 3.0),
            let npcIndex = npcIDMap[nearestNPCID],
            npcIndex < npcs.count {
@@ -773,7 +768,7 @@ class GameEngine: ObservableObject {
             nearbyNPCName = nil
         }
         
-        // Check portal proximity AND ensure user has talked to the NPC (if there is one)
+
         let hasTalkedToLocalNPC = npcs.isEmpty || npcs.contains(where: { $0.hasSpoken })
         
         if let nearestPortalID = sceneManager.nearestPortalInRange(range: 2.5),
@@ -812,21 +807,20 @@ class GameEngine: ObservableObject {
     }
     
     func transitionTo3DScene(_ scene: StoryScene) {
-        // Stop movement
+
         joystickDirection = .zero
         gameLoop3DTimer?.invalidate()
         gameLoop3DTimer = nil
         
         SoundManager.shared.playPortalSound()
         
-        // Mark as setup so ExplorationView3D.onAppear won't double-build
+
         has3DSceneBeenSetup = true
         
         currentScene = scene
         stats.scenesVisited.append(scene)
         
-        // Setup scene content first (populates npcs and interactiveObjects arrays),
-        // then build 3D world synchronously to avoid race conditions
+
         setupSceneContent(for: scene)
         build3DWorld(for: scene)
         

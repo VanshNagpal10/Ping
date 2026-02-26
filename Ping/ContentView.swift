@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  Ping - Packet World
+//  Ping
 //
 //  Main game flow controller
 //

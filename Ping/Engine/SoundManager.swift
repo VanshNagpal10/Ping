@@ -1,8 +1,6 @@
 //
 //  SoundManager.swift
-//  Ping - Packet World
-//
-//  Manages ambient sounds and haptic feedback
+//  Ping
 //
 
 import SwiftUI
@@ -64,13 +62,12 @@ class SoundManager: ObservableObject {
     }
     
     private func playBGM(filename: String, volume: Float = 0.3) {
-        // Don't restart if already playing the same track
         if currentBGMFile == filename, bgmPlayer?.isPlaying == true {
             return
         }
         
         guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3") else {
-            print("Missing BGM file: \(filename).mp3 — stopping BGM")
+            print("Missing BGM file: \(filename).mp3")
             bgmPlayer?.stop()
             currentBGMFile = nil
             return
@@ -97,7 +94,6 @@ class SoundManager: ObservableObject {
     }
     
     // MARK: - Dialogue Typing
-    /// Light haptic only — no audio, to avoid overlapping sound spam
     func playTypingHaptic() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred(intensity: 0.4)
@@ -132,7 +128,7 @@ class SoundManager: ObservableObject {
     func playAmbientSound(for scene: StoryScene) {
         switch scene {
         case .prologue, .feedLoaded:
-            // No cafe_ambient file yet — use cyber_bgm at lower volume as fallback
+            // No cafe_ambient file yet  - use cyber_bgm at lower volume as fallback
             playBGM(filename: "cyber_bgm", volume: 0.15)
         case .cpuCity:
             playBGM(filename: "cyber_bgm", volume: 0.25)
@@ -141,13 +137,13 @@ class SoundManager: ObservableObject {
         case .oceanCable:
             playBGM(filename: "underwater_hum", volume: 0.3)
         case .dnsLibrary:
-            // No library_chimes file yet — use cyber_bgm at low volume
+            // No library_chimes file yet  - use cyber_bgm at low volume
             playBGM(filename: "cyber_bgm", volume: 0.15)
         case .returnJourney:
             playBGM(filename: "cyber_bgm", volume: 0.3)
         }
         
-        // Scene transition haptic
+
         let style: UIImpactFeedbackGenerator.FeedbackStyle = scene == .oceanCable ? .rigid : .light
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
@@ -159,7 +155,7 @@ class SoundManager: ObservableObject {
         generator.impactOccurred()
         
         guard !isMuted else { return }
-        // Use typewriter as a short click — it's the closest available SFX
+        // Use typewriter as a short click  - it's the closest available SFX
         playSoundEffect(filename: "typewriter", volume: 0.3)
     }
     

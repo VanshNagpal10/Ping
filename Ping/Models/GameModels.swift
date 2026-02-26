@@ -1,6 +1,6 @@
 //
 //  GameModels.swift
-//  Ping - Packet World
+//  Ping
 //
 //  Core data models for the narrative adventure game
 //
@@ -385,7 +385,7 @@ struct LevelQuizzes {
                         "The transport protocol"
                     ],
                     correctIndex: 2,
-                    explanation: "The Application Layer holds the payload — the actual data you want to send, like 'GET socialmedia.com'."
+                    explanation: "The Application Layer holds the payload  - the actual data you want to send, like 'GET socialmedia.com'."
                 )
             ]
         case .wifiAntenna:
@@ -435,7 +435,7 @@ struct LevelQuizzes {
                         "There is no difference"
                     ],
                     correctIndex: 1,
-                    explanation: "TCP guarantees delivery by checking and resending lost packets. UDP is faster but doesn't confirm — lost data is gone forever."
+                    explanation: "TCP guarantees delivery by checking and resending lost packets. UDP is faster but doesn't confirm  - lost data is gone forever."
                 )
             ]
         case .oceanCable:
@@ -449,7 +449,7 @@ struct LevelQuizzes {
                         "Over 95%"
                     ],
                     correctIndex: 3,
-                    explanation: "Over 95% of intercontinental data travels through undersea cables — thousands of miles of glass fiber on the ocean floor!"
+                    explanation: "Over 95% of intercontinental data travels through undersea cables  - thousands of miles of glass fiber on the ocean floor!"
                 )
             ]
         case .dnsLibrary:
@@ -463,7 +463,7 @@ struct LevelQuizzes {
                         "Dynamic Name Security"
                     ],
                     correctIndex: 1,
-                    explanation: "DNS = Domain Name System. It's the internet's phone book — translating human-readable names like 'google.com' into IP addresses."
+                    explanation: "DNS = Domain Name System. It's the internet's phone book  - translating human-readable names like 'google.com' into IP addresses."
                 ),
                 QuizQuestion(
                     question: "What is an IP address?",
@@ -474,7 +474,7 @@ struct LevelQuizzes {
                         "A type of encryption"
                     ],
                     correctIndex: 1,
-                    explanation: "An IP address (like 142.250.185.78) is a unique number that identifies every device on a network — like a street address for computers."
+                    explanation: "An IP address (like 142.250.185.78) is a unique number that identifies every device on a network  - like a street address for computers."
                 )
             ]
         default:
@@ -503,7 +503,7 @@ extension EncyclopediaTerm {
         EncyclopediaTerm(
             id: "dns",
             term: "DNS",
-            definition: "Domain Name System — the internet's address book. When you type 'google.com', DNS translates that into a numeric IP address (like 142.250.185.78) that computers understand.",
+            definition: "Domain Name System  - the internet's address book. When you type 'google.com', DNS translates that into a numeric IP address (like 142.250.185.78) that computers understand.",
             icon: "book.closed.fill",
             category: .infrastructure
         ),
@@ -517,14 +517,14 @@ extension EncyclopediaTerm {
         EncyclopediaTerm(
             id: "tcp",
             term: "TCP",
-            definition: "Transmission Control Protocol — the reliable delivery method. TCP numbers every packet, checks they all arrived, and requests re-sends for any lost. Used for web pages, emails, and files.",
+            definition: "Transmission Control Protocol  - the reliable delivery method. TCP numbers every packet, checks they all arrived, and requests re-sends for any lost. Used for web pages, emails, and files.",
             icon: "checkmark.circle.fill",
             category: .protocols
         ),
         EncyclopediaTerm(
             id: "udp",
             term: "UDP",
-            definition: "User Datagram Protocol — the fast delivery method. UDP sends data without verifying arrival. Perfect for live video calls and gaming where speed matters more than perfection.",
+            definition: "User Datagram Protocol  - the fast delivery method. UDP sends data without verifying arrival. Perfect for live video calls and gaming where speed matters more than perfection.",
             icon: "bolt.circle.fill",
             category: .protocols
         ),
@@ -538,7 +538,7 @@ extension EncyclopediaTerm {
         EncyclopediaTerm(
             id: "firewall",
             term: "Firewall",
-            definition: "A security system that monitors all incoming and outgoing network traffic. Firewalls use rules to decide what's allowed — protecting against hackers, malware, and unauthorized access.",
+            definition: "A security system that monitors all incoming and outgoing network traffic. Firewalls use rules to decide what's allowed  - protecting against hackers, malware, and unauthorized access.",
             icon: "shield.checkered",
             category: .security
         ),
@@ -566,7 +566,7 @@ extension EncyclopediaTerm {
         EncyclopediaTerm(
             id: "payload",
             term: "Payload",
-            definition: "The actual data inside a packet — your message, image, or web request. Everything else (headers, checksums) is packaging. A packet's payload is typically 1,500 bytes or less.",
+            definition: "The actual data inside a packet  - your message, image, or web request. Everything else (headers, checksums) is packaging. A packet's payload is typically 1,500 bytes or less.",
             icon: "doc.fill",
             category: .basics
         ),

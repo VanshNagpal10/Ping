@@ -1,6 +1,6 @@
 //
 //  JoystickView.swift
-//  Ping - Packet World
+//  Ping
 //
 //  Virtual joystick for player movement
 //
