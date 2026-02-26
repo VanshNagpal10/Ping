@@ -86,7 +86,7 @@ struct PrologueView: View {
                         Button {
                             isSkipped = true
                             SoundManager.shared.stopTypewriterSound()
-                            SoundManager.shared.playButtonSound()
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             withAnimation(.easeInOut(duration: 0.4)) {
                                 onStartGame()
                             }
@@ -120,7 +120,8 @@ struct PrologueView: View {
                     HStack {
                         // "What You'll Learn" button (bottom-left style but placed top-left for visibility)
                         Button {
-                            SoundManager.shared.playButtonSound()
+                            SoundManager.shared.stopTypewriterSound()
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                 showMissionBriefing = true
                             }
@@ -155,7 +156,7 @@ struct PrologueView: View {
                             Button {
                                 isSkipped = true
                                 SoundManager.shared.stopTypewriterSound()
-                                SoundManager.shared.playButtonSound()
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                 onStartGame()
                             } label: {
                                 HStack(spacing: 6) {
@@ -198,10 +199,16 @@ struct PrologueView: View {
             }
         }
         .onAppear { startCinematic() }
+        .onDisappear {
+            isSkipped = true
+            SoundManager.shared.stopTypewriterSound()
+        }
     }
 
     // MARK: - Cinematic Sequence
     private func startCinematic() {
+        guard !isSkipped else { return }
+        
         // Ambient music
         SoundManager.shared.playAmbientSound(for: .prologue)
 
