@@ -131,7 +131,7 @@ class SoundManager: ObservableObject {
     // MARK: - Scene Ambient Sounds
     func playAmbientSound(for scene: StoryScene) {
         switch scene {
-        case .frozenCafe, .feedLoaded:
+        case .prologue, .feedLoaded:
             // No cafe_ambient file yet — use cyber_bgm at lower volume as fallback
             playBGM(filename: "cyber_bgm", volume: 0.15)
         case .cpuCity:

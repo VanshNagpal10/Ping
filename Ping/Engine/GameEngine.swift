@@ -13,7 +13,7 @@ import Combine
 class GameEngine: ObservableObject {
     // MARK: - Published State
     @Published var phase: GamePhase = .prologue
-    @Published var currentScene: StoryScene = .frozenCafe
+    @Published var currentScene: StoryScene = .prologue
     @Published var packet: PacketState = PacketState()
     @Published var npcs: [NPC] = []
     @Published var interactiveObjects: [InteractiveObject] = []
@@ -59,7 +59,7 @@ class GameEngine: ObservableObject {
     
     // Quiz State
     @Published var showQuiz: Bool = false
-    @Published var quizScene: StoryScene = .frozenCafe       // which scene's quiz is showing
+    @Published var quizScene: StoryScene = .prologue       // which scene's quiz is showing
     private var pendingSceneAfterQuiz: StoryScene? = nil     // scene to transition to after quiz
     
     // Movement
@@ -78,7 +78,7 @@ class GameEngine: ObservableObject {
     
     // MARK: - Scene Management
     func setupInitialScene() {
-        currentScene = .frozenCafe
+        currentScene = .prologue
         phase = .prologue
     }
     
@@ -642,7 +642,7 @@ class GameEngine: ObservableObject {
     
     func resetGame() {
         phase = .prologue
-        currentScene = .frozenCafe
+        currentScene = .prologue
         packet = PacketState()
         npcs.removeAll()
         interactiveObjects.removeAll()

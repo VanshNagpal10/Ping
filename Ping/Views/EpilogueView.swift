@@ -543,7 +543,7 @@ struct EpilogueView: View {
 
     private func sceneIcon(for scene: StoryScene) -> String {
         switch scene {
-        case .frozenCafe:     return "cup.and.saucer.fill"
+        case .prologue:       return "flag.checkered"
         case .cpuCity:        return "cpu.fill"
         case .wifiAntenna:    return "antenna.radiowaves.left.and.right"
         case .routerStation:  return "arrow.triangle.branch"

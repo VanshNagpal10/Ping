@@ -20,7 +20,7 @@ enum GamePhase: Equatable {
 
 // MARK: - Story Scene
 enum StoryScene: String, CaseIterable {
-    case frozenCafe = "frozen_cafe"
+    case prologue = "prologue"
     case cpuCity = "cpu_city"
     case wifiAntenna = "wifi_antenna"
     case routerStation = "router_station"
@@ -31,7 +31,7 @@ enum StoryScene: String, CaseIterable {
     
     var displayName: String {
         switch self {
-        case .frozenCafe: return "The Frozen World"
+        case .prologue: return "Prologue"
         case .cpuCity: return "CPU City"
         case .wifiAntenna: return "Wi-Fi Antenna"
         case .routerStation: return "Router Station"
@@ -44,7 +44,7 @@ enum StoryScene: String, CaseIterable {
     
     var backgroundColor: Color {
         switch self {
-        case .frozenCafe: return Color(red: 0.04, green: 0.02, blue: 0.08)
+        case .prologue: return Color(red: 0.04, green: 0.02, blue: 0.08)
         case .cpuCity: return Color(red: 0.04, green: 0.02, blue: 0.08)
         case .wifiAntenna: return Color(red: 0.03, green: 0.05, blue: 0.08)
         case .routerStation: return Color(red: 0.06, green: 0.04, blue: 0.08)
@@ -57,7 +57,7 @@ enum StoryScene: String, CaseIterable {
     
     var accentColor: Color {
         switch self {
-        case .frozenCafe: return .cyan
+        case .prologue: return .cyan
         case .cpuCity: return .cyan
         case .wifiAntenna: return Color(red: 0.4, green: 1.0, blue: 0.3)
         case .routerStation: return Color(red: 1.0, green: 0.75, blue: 0.0)

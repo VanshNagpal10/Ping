@@ -205,7 +205,7 @@ struct PrologueView: View {
     // MARK: - Cinematic Sequence
     private func startCinematic() {
         // Ambient music
-        SoundManager.shared.playAmbientSound(for: .frozenCafe)
+        SoundManager.shared.playAmbientSound(for: .prologue)
 
         // Blinking cursor
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
