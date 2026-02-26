@@ -48,6 +48,7 @@ class GameEngine: ObservableObject {
     }
     @Published var currentMission: String = ""
     @Published var portalLocked: Bool = false
+    @Published var lockedPortalNPCName: String = ""
     @Published var screenSize: CGSize = .zero
     
     // 3D Scene Manager
@@ -787,6 +788,7 @@ class GameEngine: ObservableObject {
                 } else {
                     nearPortal = false
                     portalLocked = true
+                    lockedPortalNPCName = npcs.first(where: { !$0.hasSpoken })?.name ?? "NPC"
                     pendingPortalScene = nil
                 }
             } else {

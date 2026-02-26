@@ -148,7 +148,7 @@ struct ExplorationView3D: View {
                                 
                                 // Portal locked prompt
                                 if engine.portalLocked {
-                                    LockedPortalPrompt()
+                                    LockedPortalPrompt(npcName: engine.lockedPortalNPCName)
                                         .transition(.scale.combined(with: .opacity))
                                 }
                             }
@@ -274,11 +274,13 @@ struct PortalPrompt: View {
 
 // MARK: - Locked Portal Prompt
 struct LockedPortalPrompt: View {
+    let npcName: String
+    
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "lock.fill")
                 .foregroundColor(.red)
-            Text("TALK TO NPC FIRST")
+            Text("TALK TO \(npcName) FIRST")
                 .font(ScaledFont.scaledFont(size: 13, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
         }
@@ -293,7 +295,7 @@ struct LockedPortalPrompt: View {
                 )
         )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Portal locked. Talk to the NPC first.")
+        .accessibilityLabel("Portal locked. Talk to \(npcName) first.")
     }
 }
 
