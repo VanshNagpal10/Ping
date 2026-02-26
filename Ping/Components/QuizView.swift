@@ -36,13 +36,7 @@ struct QuizOverlay: View {
             
             // Subtle scan lines
             CyberpunkTheme.ScanlineOverlay(alpha: 0.15)
-            /* Replaced by CyberpunkTheme components */
-            
-            // The .ignoresSafeArea() was applied to the background ZStack.
-            // Now, the background components are directly in the main ZStack.
-            // Applying .ignoresSafeArea() here will make the entire ZStack ignore safe area,
-            // which is likely the desired effect for the background.
-            .ignoresSafeArea()
+                .ignoresSafeArea()
             
             if quizComplete {
                 quizResultsView
@@ -326,7 +320,6 @@ struct QuizOverlay: View {
         .accessibilityLabel("\(answeredCorrectly ? "Correct" : "Not quite"). \(question.explanation)")
     }
     
-    // MARK: - Quiz Results
     // MARK: - Quiz Results
         @ViewBuilder
         private var quizResultsView: some View {

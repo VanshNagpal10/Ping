@@ -21,11 +21,12 @@ struct PrologueView: View {
 
     private let lines: [(text: String, size: CGFloat, weight: Font.Weight, delay: Double, color: Color?)] = [
         ("Every time you open an app…",              20, .medium,  1.0,  nil),
-        ("a tiny packet of data is born.",            20, .medium,  4.5,  nil),
-        ("It travels thousands of miles",             18, .regular, 9.0,  nil),
-        ("through cables, routers, and servers",      18, .regular, 12.5, nil),
-        ("all in under a second.",                    18, .regular, 16.0, nil),
-        ("This is that journey.",                     24, .bold,    20.5, Color(red: 0.0, green: 0.9, blue: 1.0)),
+        ("a tiny packet of data is born.",            20, .medium,  3.0,  nil),
+        ("It travels thousands of miles",             18, .regular, 5.5,  nil),
+        ("through cables, routers, and servers",      18, .regular, 8.0,  nil),
+        ("all in under a second.",                    18, .regular, 10.5, nil),
+        ("This is that journey.",                     24, .bold,    13.0, Color(red: 0.0, green: 0.9, blue: 1.0)),
+        ("Mission: Deliver the feed to the user.",    15, .medium,  16.0, Color.white.opacity(0.45)),
     ]
 
     var body: some View {
@@ -226,7 +227,7 @@ struct PrologueView: View {
                     phase = index + 1
                 }
                 // Stop typing sound after the line would finish typing
-                let typeDuration = Double(line.text.count) * 0.04 + 0.2
+                let typeDuration = Double(line.text.count) * 0.025 + 0.2
                 DispatchQueue.main.asyncAfter(deadline: .now() + typeDuration) {
                     if isSkipped { return }
                     SoundManager.shared.stopTypewriterSound()
@@ -236,7 +237,7 @@ struct PrologueView: View {
 
         // Show enter button after all text
         let lastDelay = lines.last?.delay ?? 20.0
-        let lastTypeDuration = Double(lines.last?.text.count ?? 20) * 0.04
+        let lastTypeDuration = Double(lines.last?.text.count ?? 20) * 0.025
         DispatchQueue.main.asyncAfter(deadline: .now() + lastDelay + lastTypeDuration + 1.5) {
             if isSkipped { return }
             SoundManager.shared.playPortalSound()
@@ -398,7 +399,7 @@ struct PrologueTypewriterLine: View {
             .onAppear {
                 displayedText = ""
                 var charIndex = 0
-                Timer.scheduledTimer(withTimeInterval: 0.04, repeats: true) { timer in
+                Timer.scheduledTimer(withTimeInterval: 0.025, repeats: true) { timer in
                     if charIndex < text.count {
                         let idx = text.index(text.startIndex, offsetBy: charIndex)
                         displayedText += String(text[idx])
@@ -408,59 +409,6 @@ struct PrologueTypewriterLine: View {
                     }
                 }
             }
-    }
-}
-
-// MARK: - Legacy components kept for other views that may reference them
-
-struct CyberGrid: View {
-    let scroll: CGFloat
-    let color: Color
-
-    var body: some View {
-        GeometryReader { geo in
-            Canvas { context, size in
-                let lineColor = color.opacity(0.3)
-                let horizon: CGFloat = size.height * 0.42
-                let lineCount = 18
-                for i in 0..<lineCount {
-                    let t = CGFloat(i) / CGFloat(lineCount)
-                    let adjusted = t + scroll.truncatingRemainder(dividingBy: 1.0 / CGFloat(lineCount))
-                    let y = horizon + pow(adjusted, 1.8) * (size.height - horizon)
-                    var path = Path()
-                    path.move(to: CGPoint(x: 0, y: y))
-                    path.addLine(to: CGPoint(x: size.width, y: y))
-                    context.stroke(path, with: .color(lineColor), lineWidth: 0.6)
-                }
-                let vCount = 14
-                let vanishX = size.width / 2
-                for i in 0...vCount {
-                    let t = CGFloat(i) / CGFloat(vCount)
-                    let bottomX = t * size.width
-                    let topX = vanishX + (bottomX - vanishX) * 0.15
-                    var path = Path()
-                    path.move(to: CGPoint(x: topX, y: horizon))
-                    path.addLine(to: CGPoint(x: bottomX, y: size.height))
-                    context.stroke(path, with: .color(lineColor), lineWidth: 0.5)
-                }
-            }
-        }
-        .accessibilityHidden(true)
-    }
-}
-
-struct ScanLineOverlay: View {
-    var body: some View {
-        Canvas { context, size in
-            for y in stride(from: 0, to: size.height, by: 3) {
-                var path = Path()
-                path.move(to: CGPoint(x: 0, y: y))
-                path.addLine(to: CGPoint(x: size.width, y: y))
-                context.stroke(path, with: .color(.black.opacity(0.3)), lineWidth: 1)
-            }
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 }
 

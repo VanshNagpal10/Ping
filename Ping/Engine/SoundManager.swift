@@ -149,16 +149,6 @@ class SoundManager: ObservableObject {
         generator.impactOccurred()
     }
     
-    // MARK: - UI Sounds
-    func playButtonSound() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-        
-        guard !isMuted else { return }
-        // Use typewriter as a short click  - it's the closest available SFX
-        playSoundEffect(filename: "typewriter", volume: 0.3)
-    }
-    
     func playTermLearnedSound() {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)

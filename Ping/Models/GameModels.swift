@@ -168,7 +168,7 @@ struct NetworkHeader: Equatable {
     }
     
     var displayDestination: String {
-        destinationIP.isEmpty ? "???.???.???.???" : destinationIP
+        destinationIP.isEmpty ? "UNRESOLVED" : destinationIP
     }
 }
 

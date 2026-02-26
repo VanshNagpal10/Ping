@@ -487,7 +487,7 @@ struct EpilogueView: View {
     // MARK: - Replay Button
     private var replayButton: some View {
         Button {
-            SoundManager.shared.playButtonSound()
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             onReplay()
         } label: {
             HStack(spacing: 10) {

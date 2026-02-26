@@ -505,7 +505,7 @@ struct ExplorationHUD: View {
                     
                     // Pause Button
                     Button(action: {
-                        SoundManager.shared.playButtonSound()
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         onPause()
                     }) {
                         VStack(spacing: 4) {
@@ -546,151 +546,211 @@ struct LayerInventoryPanel: View {
     @State private var glowPulse = false
     @State private var selectedLayer: Int? = nil
     
-    private let layerData: [(icon: String, name: String, metaphor: String)] = [
-        ("signpost.right.fill", "Network Layer", "Layer 2"),
-        ("lock.shield.fill", "Security Layer", "Layer 1"),
-        ("arrow.left.arrow.right", "Transport Layer", "Layer 3"),
-        ("shippingbox.fill", "Application Layer", "Layer 4")
-    ]
+    private let panelAccent = Color(red: 0.0, green: 0.88, blue: 0.95)
+    
+    private var equippedCount: Int {
+        [
+            layers.applicationLayer != .empty,
+            true,
+            layers.isSecure,
+            layers.networkLayer.hasDestination
+        ].filter { $0 }.count
+    }
     
     var body: some View {
         VStack {
             HStack {
                 VStack(spacing: 0) {
-                    // Header
-                    HStack(spacing: 8) {
+                    // MARK: Header
+                    HStack(spacing: 12) {
+                        // Animated holographic icon
                         ZStack {
                             Circle()
-                                .fill(Color.cyan.opacity(0.15))
-                                .frame(width: 32, height: 32)
-                            Image(systemName: "cube.box.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(.cyan)
+                                .fill(
+                                    RadialGradient(
+                                        colors: [panelAccent.opacity(0.2), panelAccent.opacity(0.0)],
+                                        center: .center, startRadius: 0, endRadius: 22
+                                    )
+                                )
+                                .frame(width: 44, height: 44)
+                                .scaleEffect(glowPulse ? 1.15 : 1.0)
+                            
+                            Circle()
+                                .stroke(panelAccent.opacity(0.3), lineWidth: 1.5)
+                                .frame(width: 38, height: 38)
+                            
+                            Image(systemName: "cube.transparent.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundStyle(
+                                    LinearGradient(colors: [panelAccent, .white], startPoint: .top, endPoint: .bottom)
+                                )
+                                .shadow(color: panelAccent.opacity(0.5), radius: 6)
                         }
                         
-                        VStack(alignment: .leading, spacing: 1) {
+                        VStack(alignment: .leading, spacing: 3) {
                             Text("PACKET LAYERS")
-                                .font(ScaledFont.scaledFont(size: 12, weight: .bold, design: .monospaced))
-                                .foregroundColor(.cyan)
-                                .tracking(2)
+                                .font(ScaledFont.scaledFont(size: 13, weight: .black, design: .monospaced))
+                                .foregroundColor(.white)
+                                .tracking(3)
                             Text("Your gear for the journey")
-                                .font(ScaledFont.scaledFont(size: 9, weight: .medium, design: .rounded))
-                                .foregroundColor(.white.opacity(0.35))
+                                .font(ScaledFont.scaledFont(size: 10, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.4))
                         }
                         
                         Spacer()
                         
-                        // Completion badge
-                        completionBadge
-                        
                         Button(action: onClose) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.white.opacity(0.3))
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.white.opacity(0.4))
+                                .padding(8)
+                                .background(Circle().fill(Color.white.opacity(0.06)))
+                                .overlay(Circle().stroke(Color.white.opacity(0.08), lineWidth: 1))
                         }
+                        .buttonStyle(.plain)
                         .accessibilityLabel("Close layers panel")
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("Packet layers. Your gear for the journey.")
                     .accessibilityAddTraits(.isHeader)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
-                    .padding(.bottom, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
+                    
+                    // MARK: Progress Bar
+                    VStack(spacing: 10) {
+                        HStack {
+                            Text("READINESS")
+                                .font(ScaledFont.scaledFont(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundColor(.white.opacity(0.3))
+                                .tracking(2)
+                            Spacer()
+                            Text("\(equippedCount)/4 LAYERS")
+                                .font(ScaledFont.scaledFont(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundColor(equippedCount == 4 ? .green : panelAccent)
+                                .tracking(1)
+                        }
+                        
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.white.opacity(0.06))
+                                
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: equippedCount == 4
+                                                ? [.green, Color(red: 0.3, green: 0.95, blue: 0.85)]
+                                                : [panelAccent, panelAccent.opacity(0.6)],
+                                            startPoint: .leading, endPoint: .trailing
+                                        )
+                                    )
+                                    .frame(width: geo.size.width * CGFloat(equippedCount) / 4.0)
+                                    .shadow(color: (equippedCount == 4 ? Color.green : panelAccent).opacity(0.4), radius: 6)
+                            }
+                        }
+                        .frame(height: 5)
+                        
+                        // Status dots
+                        HStack(spacing: 16) {
+                            statusDot(label: "Payload", ok: layers.applicationLayer != .empty)
+                            statusDot(label: "Transport", ok: true)
+                            statusDot(label: "Encrypt", ok: layers.isSecure)
+                            statusDot(label: "Dest", ok: layers.networkLayer.hasDestination)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 14)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(equippedCount) of 4 layers equipped")
                     
                     // Divider
                     Rectangle()
                         .fill(
                             LinearGradient(
-                                colors: [.clear, .cyan.opacity(0.3), .clear],
+                                colors: [.clear, panelAccent.opacity(0.25), .clear],
                                 startPoint: .leading, endPoint: .trailing
                             )
                         )
                         .frame(height: 1)
                         .accessibilityHidden(true)
                     
-                    // Character visualization
-                    packetCharacterView
+                    // MARK: Layer Cards
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 8) {
+                            layerCard(
+                                index: 0,
+                                icon: "signpost.right.fill",
+                                name: "Network Layer",
+                                layerNum: "L2",
+                                value: "IP: \(layers.networkLayer.displayDestination)",
+                                detail: layers.networkLayer.hasDestination
+                                    ? "Route: \(layers.networkLayer.sourceIP) → \(layers.networkLayer.destinationIP)"
+                                    : "Destination unknown - visit DNS Library",
+                                color: layers.networkLayer.hasDestination ? .green : .gray,
+                                isActive: layers.networkLayer.hasDestination
+                            )
+                            
+                            layerCard(
+                                index: 1,
+                                icon: layers.isSecure ? "lock.fill" : "lock.open.fill",
+                                name: "Security Layer",
+                                layerNum: "L1",
+                                value: layers.securityLayer.rawValue,
+                                detail: layers.securityLayer.description,
+                                color: layers.isSecure ? .green : .red,
+                                isActive: layers.isSecure
+                            )
+                            
+                            layerCard(
+                                index: 2,
+                                icon: "arrow.left.arrow.right",
+                                name: "Transport Layer",
+                                layerNum: "L3",
+                                value: layers.transportLayer.rawValue,
+                                detail: layers.transportLayer.description,
+                                color: layers.transportLayer.color,
+                                isActive: true
+                            )
+                            
+                            layerCard(
+                                index: 3,
+                                icon: "shippingbox.fill",
+                                name: "Application Layer",
+                                layerNum: "L4",
+                                value: layers.applicationLayer.rawValue,
+                                detail: layers.applicationLayer == .empty
+                                    ? "No payload yet"
+                                    : "Carrying data for the mission",
+                                color: layers.applicationLayer.color,
+                                isActive: layers.applicationLayer != .empty
+                            )
+                        }
+                        .padding(.horizontal, 14)
                         .padding(.vertical, 12)
-                    
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.clear, .cyan.opacity(0.2), .clear],
-                                startPoint: .leading, endPoint: .trailing
-                            )
-                        )
-                        .frame(height: 1)
-                        .accessibilityHidden(true)
-                    
-                    // Layer cards
-                    VStack(spacing: 6) {
-                        layerCard(
-                            index: 0,
-                            icon: "signpost.right.fill",
-                            name: "Network Layer",
-                            metaphor: "Layer 2",
-                            value: "IP: \(layers.networkLayer.displayDestination)",
-                            detail: layers.networkLayer.hasDestination
-                                ? "Route: \(layers.networkLayer.sourceIP) \u{2192} \(layers.networkLayer.destinationIP)"
-                                : "Destination unknown \u{2014} visit DNS Library",
-                            color: layers.networkLayer.hasDestination ? .green : .gray,
-                            isActive: layers.networkLayer.hasDestination
-                        )
-                        
-                        layerCard(
-                            index: 1,
-                            icon: layers.isSecure ? "lock.fill" : "lock.open.fill",
-                            name: "Security Layer",
-                            metaphor: layers.isSecure ? "SSL/TLS Active" : "Unencrypted",
-                            value: layers.securityLayer.rawValue,
-                            detail: layers.securityLayer.description,
-                            color: layers.isSecure ? .green : .red,
-                            isActive: layers.isSecure
-                        )
-                        
-                        layerCard(
-                            index: 2,
-                            icon: "arrow.left.arrow.right",
-                            name: "Transport Layer",
-                            metaphor: "Layer 3",
-                            value: layers.transportLayer.rawValue,
-                            detail: layers.transportLayer.description,
-                            color: layers.transportLayer.color,
-                            isActive: true
-                        )
-                        
-                        layerCard(
-                            index: 3,
-                            icon: "shippingbox.fill",
-                            name: "Application Layer",
-                            metaphor: "Layer 4",
-                            value: layers.applicationLayer.rawValue,
-                            detail: layers.applicationLayer == .empty
-                                ? "No payload yet"
-                                : "Carrying data for the mission",
-                            color: layers.applicationLayer.color,
-                            isActive: layers.applicationLayer != .empty
-                        )
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
                 }
-                .frame(width: 300)
+                .frame(width: 340)
                 .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(Color(red: 0.04, green: 0.03, blue: 0.08).opacity(0.97))
+                    RoundedRectangle(cornerRadius: 22)
+                        .fill(Color(red: 0.04, green: 0.03, blue: 0.07).opacity(0.98))
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(.ultraThinMaterial)
+                                .opacity(0.3)
+                        )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 18)
+                            RoundedRectangle(cornerRadius: 22)
                                 .stroke(
                                     LinearGradient(
-                                        colors: [.cyan.opacity(0.4), .purple.opacity(0.2), .cyan.opacity(0.1)],
+                                        colors: [panelAccent.opacity(0.5), .purple.opacity(0.25), panelAccent.opacity(0.15)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
                                     lineWidth: 1.5
                                 )
                         )
-                        .shadow(color: .cyan.opacity(0.08), radius: 20)
+                        .shadow(color: panelAccent.opacity(0.1), radius: 30)
                 )
                 .scaleEffect(appear ? 1 : 0.9)
                 .opacity(appear ? 1 : 0)
@@ -705,94 +765,34 @@ struct LayerInventoryPanel: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 appear = true
             }
-            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
                 glowPulse = true
             }
         }
     }
     
-    // MARK: - Packet Character Visualization
+    // MARK: - Status Dot
     @ViewBuilder
-    private var packetCharacterView: some View {
-        HStack(spacing: 0) {
-            Spacer()
-            
+    private func statusDot(label: String, ok: Bool) -> some View {
+        VStack(spacing: 4) {
             ZStack {
-                // Glow ring
                 Circle()
-                    .stroke(Color.cyan.opacity(glowPulse ? 0.2 : 0.05), lineWidth: 2)
-                    .frame(width: 90, height: 90)
-                    .scaleEffect(glowPulse ? 1.1 : 1.0)
-                
-                // Packet layers visualization
-                VStack(spacing: 2) {
-                    // Layer 2 (Network)
-                    Image(systemName: "signpost.right.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(layers.networkLayer.hasDestination ? .green : .gray)
-                        .opacity(layers.networkLayer.hasDestination ? 1.0 : 0.25)
-                    
-                    // Layer 1 (Security) overlaid on Layer 3
-                    ZStack {
-                        Image(systemName: "arrow.left.arrow.right")
-                            .font(.system(size: 22))
-                            .foregroundColor(.cyan)
-                        
-                        Image(systemName: layers.isSecure ? "lock.fill" : "lock.open.fill")
-                            .font(.system(size: 10))
-                            .foregroundColor(layers.isSecure ? .green : .red)
-                            .offset(x: 16, y: -10)
-                    }
-                    
-                    // Layer 4 (Application)
-                    Image(systemName: "shippingbox.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(layers.applicationLayer != .empty ? .orange : .gray)
-                        .opacity(layers.applicationLayer != .empty ? 1.0 : 0.25)
+                    .fill(ok ? Color.green.opacity(0.2) : Color.white.opacity(0.04))
+                    .frame(width: 20, height: 20)
+                Circle()
+                    .fill(ok ? Color.green : Color.white.opacity(0.1))
+                    .frame(width: 8, height: 8)
+                if ok {
+                    Circle()
+                        .fill(Color.green.opacity(0.3))
+                        .frame(width: 20, height: 20)
+                        .scaleEffect(glowPulse ? 1.3 : 1.0)
+                        .opacity(glowPulse ? 0 : 0.5)
                 }
             }
-            .accessibilityHidden(true)
-            
-            Spacer()
-            
-            // Quick status column
-            VStack(alignment: .leading, spacing: 6) {
-                statusRow(
-                    icon: "shippingbox.fill",
-                    label: "Payload",
-                    ok: layers.applicationLayer != .empty
-                )
-                statusRow(
-                    icon: "arrow.left.arrow.right",
-                    label: "Transport",
-                    ok: true
-                )
-                statusRow(
-                    icon: "lock.shield.fill",
-                    label: "Encryption",
-                    ok: layers.isSecure
-                )
-                statusRow(
-                    icon: "signpost.right.fill",
-                    label: "Destination",
-                    ok: layers.networkLayer.hasDestination
-                )
-            }
-            
-            Spacer()
-        }
-    }
-    
-    @ViewBuilder
-    private func statusRow(icon: String, label: String, ok: Bool) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: ok ? "checkmark.circle.fill" : "circle.dashed")
-                .font(.system(size: 10))
-                .foregroundColor(ok ? .green : .white.opacity(0.2))
-            
             Text(label)
-                .font(ScaledFont.scaledFont(size: 9, weight: .medium, design: .rounded))
-                .foregroundColor(ok ? .white.opacity(0.7) : .white.opacity(0.25))
+                .font(ScaledFont.scaledFont(size: 8, weight: .semibold, design: .rounded))
+                .foregroundColor(ok ? .white.opacity(0.5) : .white.opacity(0.2))
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(label): \(ok ? "Ready" : "Not ready")")
@@ -804,7 +804,7 @@ struct LayerInventoryPanel: View {
         index: Int,
         icon: String,
         name: String,
-        metaphor: String,
+        layerNum: String,
         value: String,
         detail: String,
         color: Color,
@@ -817,104 +817,105 @@ struct LayerInventoryPanel: View {
                 selectedLayer = selectedLayer == index ? nil : index
             }
         } label: {
-            VStack(spacing: 0) {
-                HStack(spacing: 10) {
-                    // Icon
-                    Image(systemName: icon)
-                        .font(.system(size: 16))
-                        .foregroundColor(color)
-                        .frame(width: 32)
-                    
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(name)
-                            .font(ScaledFont.scaledFont(size: 11, weight: .semibold, design: .rounded))
-                            .foregroundColor(.white)
-                        
-                        Text(metaphor)
-                            .font(ScaledFont.scaledFont(size: 9, design: .rounded))
-                            .foregroundColor(.white.opacity(0.35))
-                    }
-                    
-                    Spacer()
-                    
-                    // Value pill
-                    Text(value)
-                        .font(ScaledFont.scaledFont(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundColor(color)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule().fill(color.opacity(0.12))
-                        )
-                    
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundColor(.white.opacity(0.25))
-                        .accessibilityHidden(true)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
+            HStack(spacing: 0) {
+                // Left accent bar
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(isActive ? color : color.opacity(0.2))
+                    .frame(width: 3)
+                    .padding(.vertical, 6)
+                    .shadow(color: isActive ? color.opacity(0.5) : .clear, radius: 4)
                 
-                if isExpanded {
-                    HStack {
-                        Rectangle()
-                            .fill(color.opacity(0.4))
-                            .frame(width: 2)
-                            .padding(.leading, 25)
+                VStack(spacing: 0) {
+                    HStack(spacing: 12) {
+                        // Icon with background
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(color.opacity(isActive ? 0.15 : 0.06))
+                                .frame(width: 36, height: 36)
+                            Image(systemName: icon)
+                                .font(.system(size: 15))
+                                .foregroundColor(isActive ? color : color.opacity(0.4))
+                                .shadow(color: isActive ? color.opacity(0.4) : .clear, radius: 4)
+                        }
                         
-                        Text(detail)
-                            .font(ScaledFont.scaledFont(size: 10, weight: .medium, design: .rounded))
-                            .foregroundColor(.white.opacity(0.6))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 6)
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 6) {
+                                Text(name)
+                                    .font(ScaledFont.scaledFont(size: 13, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white)
+                                
+                                Text(layerNum)
+                                    .font(ScaledFont.scaledFont(size: 8, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.white.opacity(0.2))
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(
+                                        Capsule().fill(Color.white.opacity(0.05))
+                                    )
+                            }
+                            
+                            // Value pill inline
+                            Text(value)
+                                .font(ScaledFont.scaledFont(size: 10, weight: .bold, design: .monospaced))
+                                .foregroundColor(color.opacity(isActive ? 1.0 : 0.5))
+                                .lineLimit(1)
+                        }
                         
                         Spacer()
+                        
+                        // Status indicator
+                        ZStack {
+                            Circle()
+                                .fill(isActive ? color.opacity(0.12) : Color.white.opacity(0.03))
+                                .frame(width: 28, height: 28)
+                            Image(systemName: isActive ? "checkmark" : "minus")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(isActive ? color : .white.opacity(0.15))
+                        }
+                        
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white.opacity(0.2))
+                            .padding(.leading, 4)
+                            .accessibilityHidden(true)
                     }
-                    .padding(.bottom, 6)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    
+                    if isExpanded {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "lightbulb.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.yellow.opacity(0.6))
+                                .padding(.top, 1)
+                            
+                            Text(detail)
+                                .font(ScaledFont.scaledFont(size: 11, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.55))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .lineSpacing(2)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 10)
+                        .padding(.leading, 48)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
             }
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(color.opacity(isActive ? 0.06 : 0.02))
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(color.opacity(isActive ? 0.05 : 0.02))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(color.opacity(isActive ? 0.15 : 0.05), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(color.opacity(isActive ? 0.15 : 0.06), lineWidth: 1)
                     )
             )
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(name), \(metaphor). \(value). \(isActive ? "Active" : "Inactive")\(isExpanded ? ". \(detail)" : "")")
+        .accessibilityLabel("\(name), \(layerNum). \(value). \(isActive ? "Active" : "Inactive")\(isExpanded ? ". \(detail)" : "")")
         .accessibilityHint(isExpanded ? "Double tap to collapse" : "Double tap to expand details")
         .accessibilityAddTraits(.isButton)
-    }
-    
-    // MARK: - Completion Badge
-    @ViewBuilder
-    private var completionBadge: some View {
-        let equipped = [
-            layers.applicationLayer != .empty,
-            true, // transport always active
-            layers.isSecure,
-            layers.networkLayer.hasDestination
-        ].filter { $0 }.count
-        
-        Text("\(equipped)/4")
-            .font(ScaledFont.scaledFont(size: 9, weight: .bold, design: .monospaced))
-            .foregroundColor(equipped == 4 ? .green : .cyan)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(
-                Capsule()
-                    .fill(equipped == 4 ? Color.green.opacity(0.12) : Color.cyan.opacity(0.1))
-                    .overlay(
-                        Capsule()
-                            .stroke(equipped == 4 ? Color.green.opacity(0.3) : Color.cyan.opacity(0.2), lineWidth: 1)
-                    )
-            )
-            .padding(.trailing, 6)
-            .accessibilityLabel("\(equipped) of 4 layers equipped")
     }
 }
 

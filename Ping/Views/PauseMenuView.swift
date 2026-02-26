@@ -21,7 +21,7 @@ struct PauseMenuView: View {
                 
                 VStack(spacing: 16) {
                     Button(action: {
-                        SoundManager.shared.playButtonSound()
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         withAnimation {
                             engine.showPauseMenu = false
                         }
@@ -43,7 +43,7 @@ struct PauseMenuView: View {
                     .accessibilityHint("Continues the game from where you left off")
                     
                     Button(action: {
-                        SoundManager.shared.playButtonSound()
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         withAnimation {
                             engine.showPauseMenu = false
                             engine.resetGame()

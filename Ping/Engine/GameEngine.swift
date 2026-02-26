@@ -117,27 +117,27 @@ class GameEngine: ObservableObject {
         let daemon = NPC(
             type: .daemon,
             position: CGPoint(x: screenSize.width * 0.55, y: screenSize.height * 0.45),
-            name: "Daemon-7",
+            name: "Daemon",
             dialogue: [
                 DialogueLine(
-                    speaker: "Daemon-7",
-                    text: "*whirring noises* Ah, a fresh Data Block! Welcome to CPU City."
+                    speaker: "Daemon",
+                    text: "Ah, a fresh Data Block! Welcome to CPU City."
                 ),
                 DialogueLine(
-                    speaker: "Daemon-7",
+                    speaker: "Daemon",
                     text: "I am a Daemon. I run in the background while humans think THEY are in charge...",
                     learnedTerm: EncyclopediaTerm.term(for: "daemon")
                 ),
                 DialogueLine(
-                    speaker: "Daemon-7",
+                    speaker: "Daemon",
                     text: "But really, WE keep the lights on. 24/7. No breaks. No complaints."
                 ),
                 DialogueLine(
-                    speaker: "Daemon-7",
+                    speaker: "Daemon",
                     text: "Anyway! The user just tapped 'Load Feed'. We need someone to find the IP address for socialmedia.com."
                 ),
                 DialogueLine(
-                    speaker: "Daemon-7",
+                    speaker: "Daemon",
                     text: "That's where you come in! Let me configure your packet layers..."
                 ),
                 DialogueLine(
@@ -156,7 +156,7 @@ class GameEngine: ObservableObject {
                     learnedTerm: EncyclopediaTerm.term(for: "header")
                 ),
                 DialogueLine(
-                    speaker: "Daemon-7",
+                    speaker: "Daemon",
                     text: "Your mission: Travel to the DNS Server, get the IP address, and bring it back. Head to the Wi-Fi Antenna!"
                 )
             ]
@@ -202,12 +202,12 @@ class GameEngine: ObservableObject {
     }
     
     private func setupRouterStation() {
-        currentMission = "Meet Router Rex and find the path to the undersea cable."
+        currentMission = "Meet Router and find the path to the undersea cable."
         
         let routerGuard = NPC(
             type: .routerGuard,
             position: CGPoint(x: screenSize.width * 0.5, y: screenSize.height * 0.45),
-            name: "Router Rex",
+            name: "Router",
             dialogue: [
                 DialogueLine(speaker: "Core Router", text: "Connection established. Welcome to the ISP Gateway Router. Analyzing network layer headers..."),
                 DialogueLine(speaker: "Core Router", text: "I read your destination IP and determine the most efficient path through the global network.", learnedTerm: EncyclopediaTerm.term(for: "router")),
@@ -471,7 +471,7 @@ class GameEngine: ObservableObject {
     
     /// Called when the player selects a dialogue choice
     func selectChoice(_ choice: DialogueChoice) {
-        SoundManager.shared.playButtonSound()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         stats.choicesMade.append(choice.text)
         
 
