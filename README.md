@@ -6,7 +6,7 @@ Ping is an interactive 3D educational game built for iPad where you become a tin
 
 Built entirely with Swift using SwiftUI, SceneKit, AVFoundation, and UIKit. Every 3D environment is generated from code using basic geometry. There are no imported 3D model files anywhere in the project.
 
-Submitted for the Apple Swift Student Challenge.
+Submitted for the Apple Swift Student Challenge '26.
 
 ---
 
