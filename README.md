@@ -227,7 +227,7 @@ The game teaches through three integrated methods:
 
 ![Encyclopedia](screenshots/encyclopedia.png)
 
-![Mission Complete](screenshots/mission_complete.png)
+![Mission Complete](screenshots/quiz.png)
 
 ---
 
