@@ -8,6 +8,8 @@ Built entirely with Swift using SwiftUI, SceneKit, AVFoundation, and UIKit. Ever
 
 Submitted for the Apple Swift Student Challenge '26.
 
+![CPU City](screenshots/cpu_city.png)
+
 ---
 
 ## Table of Contents
@@ -165,6 +167,8 @@ The first level represents the inside of a smartphone's CPU. The environment is 
 
 The player meets a Daemon NPC who explains that a user just tapped "Load Feed" and a packet needs to be sent to find the IP address for socialmedia.com.
 
+![CPU City](screenshots/cpu_city.png)
+
 ### 2. Wi-Fi Antenna
 
 This level is an industrial rooftop with a massive broadcast antenna tower at the center. The antenna is built from multiple cylindrical sections (base, lower, mid, upper) with cross-arms at mid height, support struts, and a glowing sphere at the tip. WiFi signal wave rings (torus shapes) pulse outward from the antenna tip, expanding and fading in a staggered pattern. Satellite dishes with receiver arms dot the rooftop. Signal strength indicator bars cascade in blinking patterns. Elevated catwalks with railing posts ring the antenna. Cable conduits run across the floor and overhead.
@@ -177,6 +181,8 @@ Designed as an underground subway station. Track rails glow with amber light. Pl
 
 The player meets the Router who explains packet forwarding and offers the choice between TCP and UDP.
 
+![Router Station](screenshots/router_station.png)
+
 ### 4. Ocean Floor Cable
 
 The player travels inside a long fiber optic cable stretched across the ocean floor. The cable is a glass cylinder made from a translucent SCNCylinder with a hexagonal wireframe overlay. Inside, a walkway provides the surface to walk on with glowing center and side stripes. Data pulse spheres race through the cable. Outside the cable, the environment features bioluminescent deep-sea elements including kelp forests, coral formations, jellyfish shapes, bubble columns, and manta ray silhouettes. The sky is a deep blue gradient and the ambient sound switches to an underwater hum.
@@ -188,6 +194,8 @@ During this level, signal degradation triggers a system message that plays out d
 A grand cathedral-like library. The centerpiece is a knowledge tree made from a cylindrical trunk with sphere and torus canopy elements covered in glowing leaves. Towering bookshelf walls line the sides, built from SCNBox shapes stacked in rows with colored spines. Floating holographic data panels hover in the air. Reading desks have glowing text surfaces. Crystal data pillars stand around the space. The lighting uses violet and magenta tones to create a mystical atmosphere.
 
 The player meets the DNS Librarian who resolves socialmedia.com to IP address 142.250.185.78.
+
+![DNS Library](screenshots/dns_library.png)
 
 ### 6. Return Journey
 
@@ -208,6 +216,10 @@ The game teaches through three integrated methods:
 **Quizzes with explanations.** After each level, quiz questions test comprehension. Each question has four options and a detailed explanation shown after answering. This reinforces the concepts you just encountered.
 
 **Encyclopedia collection.** Terms are collected passively during dialogue. Players can review them at any time. Each term includes a real-world fact (like "over 95% of intercontinental data travels through undersea cables") to ground the game concepts in reality.
+
+![Encyclopedia](screenshots/encyclopedia.png)
+
+![Mission Complete](screenshots/mission_complete.png)
 
 ---
 
