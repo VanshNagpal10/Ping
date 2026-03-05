@@ -8,7 +8,9 @@ Built entirely with Swift using SwiftUI, SceneKit, AVFoundation, and UIKit. Ever
 
 Submitted for the Apple Swift Student Challenge '26.
 
-![CPU City](screenshots/cpu_city.png)
+![Prologue](screenshots/prologue.png)
+
+![What You Will Learn](screenshots/what_you_learn.png)
 
 ---
 
@@ -175,6 +177,8 @@ This level is an industrial rooftop with a massive broadcast antenna tower at th
 
 The player meets the Firewall who blocks passage until SSL encryption is equipped through the inventory swap puzzle.
 
+![Wi-Fi Antenna](screenshots/wifi_antenna.png)
+
 ### 3. Router Station
 
 Designed as an underground subway station. Track rails glow with amber light. Platform pillars made of thick metallic cylinders line both sides. Overhead pipes run along the ceiling. Back walls close off the sides. Glowing spheres representing data trains race along the rails. Neon direction signs hang on the walls. The lighting is warm amber with boosted spot lights from the ceiling and omni lights between pillars.
@@ -189,6 +193,8 @@ The player travels inside a long fiber optic cable stretched across the ocean fl
 
 During this level, signal degradation triggers a system message that plays out differently depending on the TCP/UDP choice.
 
+![Ocean Floor Cable](screenshots/ocean_floor.png)
+
 ### 5. DNS Library
 
 A grand cathedral-like library. The centerpiece is a knowledge tree made from a cylindrical trunk with sphere and torus canopy elements covered in glowing leaves. Towering bookshelf walls line the sides, built from SCNBox shapes stacked in rows with colored spines. Floating holographic data panels hover in the air. Reading desks have glowing text surfaces. Crystal data pillars stand around the space. The lighting uses violet and magenta tones to create a mystical atmosphere.
@@ -202,6 +208,8 @@ The player meets the DNS Librarian who resolves socialmedia.com to IP address 14
 The final level creates urgency with a warm coral/red color palette. Network congestion is visualized through red warning lights, traffic cone shapes, warning beacons, and a congested data lane with red flashing pulses. Floating error cubes tumble through the air. The accent color shifts to coral to communicate the time pressure of getting the response back before the connection times out.
 
 The player meets a Load Balancer who routes them through an express channel.
+
+![The Return](screenshots/the_return.png)
 
 ---
 
