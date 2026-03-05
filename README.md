@@ -8,7 +8,7 @@ Built entirely with Swift using SwiftUI, SceneKit, AVFoundation, and UIKit. Ever
 
 Submitted for the Apple Swift Student Challenge '26.
 
-https://github.com/VanshNagpal10/Ping/raw/main/screenshots/demo.mp4
+![Prologue](screenshots/prologue.png)
 
 ![What You Will Learn](screenshots/what_you_learn.png)
 
