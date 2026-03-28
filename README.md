@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="screenshots/logo.png" width="200" alt="Ping Logo">
+</p>
+
 # Ping
 
 ## A Narrative Journey Through the Internet
